@@ -11,14 +11,15 @@
 
     "walls":{
         "filepaths": [
-            "geometry/simpleBox.stl"
+            "geometry/simpleBox.stl",
+            "geometry/spiral.stl"
         ]
     },
 
     "inlet":{
         "inputMode":"shuffle",
         "COMMENT":"allowed input modes are 'shuffle', 'files' ",
-        "numParticle":50000,
+        "numParticle":20000,
         "shuffle":{
             "minx":-0.5,
             "maxx": 0.5,
@@ -28,26 +29,29 @@
             "maxz":0.5
         },
 
-        "file":"initParticle.txt"
+        "file":{
+            "name":"initParticle.txt"
+        }
 
     },
 
     "particleTypes":{
         "particle0":{
             "density":1000.,
-            "radius":0.01,
+            "radius":0.013,
             "CoR":0.3,
-            "k":5.0e5,
+            "youngModulus":1.0e8,
             "mu":0.3
         }
     },
     "others":{
         "seed":1,
-        "dtFactor":15,
+        "dtFactor":100,
         "startTime":0,
         "endTime":2.0,
         "outputTiming":0.01,
-        "gpuOn":1
+        "gpuOn":1,
+        "bruteOn":0
     },
 
     "gravity":{

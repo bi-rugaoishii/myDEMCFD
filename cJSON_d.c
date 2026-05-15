@@ -3225,7 +3225,7 @@ double get_json_double(cJSON *obj, const char *key) {
 
 char* get_json_string(cJSON *obj, const char *key) {
     cJSON *item = cJSON_GetObjectItem(obj, key);
-    if (!item || !cJSON_IsObject(item)) {
+    if (!item || !cJSON_IsString(item)) {
         fprintf(stderr, "Error: invalid or missing object '%s'\n", key);
         abort();
     }
