@@ -82,7 +82,7 @@ void deallocate(ParticleSys<DeviceMemory> *ps){
 void copyToDevice(ParticleSys<HostMemory> *ps, ParticleSys<DeviceMemory> *d_ps){
     size_t N = ps->N;
 
-    #define MEMBER(type,name,Np,SAVE_FLAG) cudaMemcpy(d_ps->name,ps->name,Np*sizeof(type),cudaMemcpyHostToDevice); 
+    #define MEMBER(type,name,Np,SAVE_FLAG) cudaMemcpy(d_ps->name,ps->name,(Np)*sizeof(type),cudaMemcpyHostToDevice); 
     #include "memberList/ParticleSystemMember_common.def"
     #undef MEMBER
 
@@ -99,7 +99,7 @@ void copyFromDevice(ParticleSys<DeviceMemory>* d_ps, ParticleSys<HostMemory>* ps
 
     #define MEMBER(type,name,Np,SAVE_FLAG) \
     if(SAVE_FLAG == SAVE_ON){ \
-        cudaMemcpy(ps->name,d_ps->name, Np*sizeof(type), cudaMemcpyDeviceToHost);\
+        cudaMemcpy(ps->name,d_ps->name, (Np)*sizeof(type), cudaMemcpyDeviceToHost);\
     }
     #include "memberList/ParticleSystemMember_common.def"
     #undef MEMBER
@@ -199,7 +199,8 @@ void initializeParticles(ParticleSys<HostMemory>* ps,cJSON *json_inlet, double r
     ps->mass_factor = 1.0;
     ps->time_factor = 1.0;
 
-    double k =4./3.*(E*0.5)*sqrt(r*0.5)*sqrt(0.05*r);
+    //double k =4./3.*(E*0.5)*sqrt(r*0.5)*sqrt(0.05*r);
+    double k =E*r*2.;
     printf("k= %e\n",k);
 
     if(strcmp(cJSON_GetObjectItem(json_inlet,"inputMode")->valuestring,"shuffle")==0){

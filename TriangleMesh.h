@@ -31,145 +31,48 @@ void sort3(int *x, int *y, int *z);
 
 typedef struct DeviceTriangleMesh {
 
-    /* vertices */
-    double* mx; 
-    double* my;
-    double* mz;
-
-    /* normals */
-    double* nx;
-    double* ny;
-    double* nz;
-    double *d;
-
-    /* edge  */
-    /* defined by pair of vertex indices */
-    int *edge;
+    #define MEMBER(type,name, size) type* name; 
+    #include "memberList/TriangleMeshMember_common.def"
+    #undef MEMBER
 
 
-    /* edge vectors */
-    double* e01x;
-    double* e01y;
-    double* e01z;
-
-    double* e02x;
-    double* e02y;
-    double* e02z;
-
-    double* e12x;
-    double* e12y;
-    double* e12z;
-
-    /* barycentric */
-    double* d00;
-    double* d00inv;
-    double* d01;
-    double* d11;
-    double* d11inv;
-    double* d22;
-    double* d22inv;
-    double* denom;
-
-    /* used for aabb */
-    double *minx, *maxx;
-    double *miny, *maxy;
-    double *minz, *maxz;
-
-    /* triangle vertex indices */
-    int* tri_i0;
-    int* tri_i1;
-    int* tri_i2;
-
-    /* triangle edge indices */
-    int* tri_e0;
-    int* tri_e1;
-    int* tri_e2;
-
+    /* === non array === */
     int nVert; /* number of vertices */
     int nTri; /* number of triangles */
     int nShift; /*  shift of id  from vertex to edge  */
 
     /* bounding box as a whole triangle mesh */
-
     double gminx, gmaxx;
     double gminy, gmaxy;
     double gminz, gmaxz;
 
 } DeviceTriangleMesh;
+
 /* =====================================
    double precision triangle mesh
 ===================================== */
 typedef struct TriangleMesh {
     int *sortedIndex;
 
+
+    /* morton key */
+    uint32_t *mortonKey;
+
     /* center coord */
     double* cx; 
     double* cy;
     double* cz;
 
-    /* morton key */
-    uint32_t *mortonKey;
+    #define MEMBER(type,name,size) type* name; 
+    #include "memberList/TriangleMeshMember_common.def"
+    #undef MEMBER
 
-    /* vertices */
-    double* mx; 
-    double* my;
-    double* mz;
-
-    /* normals */
-    double* nx;
-    double* ny;
-    double* nz;
-    double *d;
-
-    /* edge  */
-    /* defined by pair of vertex indices */
-    int *edge;
-
-
-    /* edge vectors */
-    double* e01x;
-    double* e01y;
-    double* e01z;
-
-    double* e02x;
-    double* e02y;
-    double* e02z;
-
-    double* e12x;
-    double* e12y;
-    double* e12z;
-
-    /* barycentric */
-    double* d00;
-    double* d00inv;
-    double* d01;
-    double* d11;
-    double* d11inv;
-    double* d22;
-    double* d22inv;
-    double* denom;
-
-    /* used for aabb */
-    double *minx, *maxx;
-    double *miny, *maxy;
-    double *minz, *maxz;
-
-    /* triangle vertex indices */
-    int* tri_i0;
-    int* tri_i1;
-    int* tri_i2;
-
-    /* triangle edge indices */
-    int* tri_e0;
-    int* tri_e1;
-    int* tri_e2;
-
+    /* === non array === */
     int nVert; /* number of vertices */
     int nTri; /* number of triangles */
     int nShift; /*  shift of id  from vertex to edge  */
 
     /* bounding box as a whole triangle mesh */
-
     double gminx, gmaxx;
     double gminy, gmaxy;
     double gminz, gmaxz;

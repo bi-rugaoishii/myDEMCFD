@@ -12,16 +12,9 @@
  * ==============================
  */
 typedef struct DeviceBVH{
-    double* minx;
-    double* miny;
-    double* minz;
-    double* maxx;
-    double* maxy;
-    double* maxz;
-
-    int* left;
-    int* right;
-    int* tri;      // leafなら三角形index, 内部ノードなら-1
+    #define MEMBER(type,name,size) type* name;
+    #include "memberList/BVHMember_common.def"
+    #undef MEMBER
 
     int nodeCount;
 } DeviceBVH;
@@ -30,16 +23,9 @@ typedef struct BVH{
     DeviceBVH d_bvh;
     DeviceBVH* d_bvhPtr;
 
-    double* minx;
-    double* miny;
-    double* minz;
-    double* maxx;
-    double* maxy;
-    double* maxz;
-
-    int* left;
-    int* right;
-    int* tri;      // leafなら三角形index, 内部ノードなら-1
+    #define MEMBER(type,name,size) type* name;
+    #include "memberList/BVHMember_common.def"
+    #undef MEMBER
 
     int nodeCount;
 } BVH;

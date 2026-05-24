@@ -627,29 +627,17 @@ void update_neighborlist_wall(ParticleSys<HostMemory> *p,TriangleMesh *mesh, BVH
 
 void initializeBVH(BVH *bvh, int numTriangles, int isGPUon){
     int maxNodes = 2*numTriangles-1;
-    bvh->minx = (double*)malloc(sizeof(double)*maxNodes);
-    bvh->miny = (double*)malloc(sizeof(double)*maxNodes);
-    bvh->minz = (double*)malloc(sizeof(double)*maxNodes);
-    bvh->maxx = (double*)malloc(sizeof(double)*maxNodes);
-    bvh->maxy = (double*)malloc(sizeof(double)*maxNodes);
-    bvh->maxz = (double*)malloc(sizeof(double)*maxNodes);
 
-    bvh->left = (int*)malloc(sizeof(int)*maxNodes);
-    bvh->right = (int*)malloc(sizeof(int)*maxNodes);
-    bvh->tri = (int*)malloc(sizeof(int)*maxNodes);
+    #define MEMBER(type, name, size) bvh->name = (type*)malloc(sizeof(type)*(size));
+    #include "memberList/BVHMember_common.def"
+    #undef MEMBER
+
     bvh->nodeCount = 0;
     #if USE_GPU
     if (isGPUon == 1){
-        cudaMalloc(&bvh->d_bvh.minx, sizeof(double)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.miny, sizeof(double)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.minz, sizeof(double)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.maxx, sizeof(double)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.maxy, sizeof(double)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.maxz, sizeof(double)*maxNodes);
-
-        cudaMalloc(&bvh->d_bvh.left, sizeof(int)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.right, sizeof(int)*maxNodes);
-        cudaMalloc(&bvh->d_bvh.tri, sizeof(int)*maxNodes);
+        #define MEMBER(type, name, size) cudaMalloc(&bvh->d_bvh.name, sizeof(type)*(size));
+        #include "memberList/BVHMember_common.def"
+        #undef MEMBER
 
         bvh->d_bvh.nodeCount = bvh->nodeCount;
 
@@ -661,28 +649,17 @@ void initializeBVH(BVH *bvh, int numTriangles, int isGPUon){
 }
 
 void free_BVH(BVH *bvh, int isGPUon){
-    free(bvh->minx) ;
-    free(bvh->miny) ;
-    free(bvh->minz) ;
-    free(bvh->maxx) ;
-    free(bvh->maxy) ;
-    free(bvh->maxz) ;
-
-    free(bvh->left) ;
-    free(bvh->right);
-    free(bvh->tri) ;
+    #define MEMBER(type, name, size) free(bvh->name);
+    #include "memberList/BVHMember_common.def"
+    #undef MEMBER
 
     #if USE_GPU
     if (isGPUon == 1){
-        cudaFree(bvh->d_bvh.minx);
-        cudaFree(bvh->d_bvh.miny);
-        cudaFree(bvh->d_bvh.minz);
-        cudaFree(bvh->d_bvh.maxx);
-        cudaFree(bvh->d_bvh.maxy);
-        cudaFree(bvh->d_bvh.maxz);
-        cudaFree(bvh->d_bvh.left);
-        cudaFree(bvh->d_bvh.right);
-        cudaFree(bvh->d_bvh.tri);
+
+        #define MEMBER(type, name, size) cudaFree(bvh->d_bvh.name);
+        #include "memberList/BVHMember_common.def"
+        #undef MEMBER
+
         cudaFree(bvh->d_bvhPtr);
     }
     #endif
@@ -694,16 +671,9 @@ void copyToDeviceBVH(BVH *bvh,  int numTriangles){
 
     bvh->d_bvh.nodeCount = bvh->nodeCount;
 
-    cudaMemcpy(bvh->d_bvh.minx,  bvh->minx,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.miny,  bvh->miny,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.minz,  bvh->minz,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.maxx,  bvh->maxx,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.maxy,  bvh->maxy,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.maxz,  bvh->maxz,  sizeof(double)*maxNodes, cudaMemcpyHostToDevice);
-
-    cudaMemcpy(bvh->d_bvh.left,  bvh->left,  sizeof(int)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.right,  bvh->right,  sizeof(int)*maxNodes, cudaMemcpyHostToDevice);
-    cudaMemcpy(bvh->d_bvh.tri,  bvh->tri,  sizeof(int)*maxNodes, cudaMemcpyHostToDevice);
+    #define MEMBER(type, name, size) cudaMemcpy(bvh->d_bvh.name, bvh->name, sizeof(type)*(size),cudaMemcpyHostToDevice);
+    #include "memberList/BVHMember_common.def"
+    #undef MEMBER
 
     cudaMemcpy(bvh->d_bvhPtr,  &bvh->d_bvh,  sizeof(DeviceBVH), cudaMemcpyHostToDevice);
 }
