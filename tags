@@ -1,0 +1,632 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/dakahoshi/myProgram/myCFD3d/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+$(PROGRAM)	makefile	/^$(PROGRAM): $(OBJS)$/;"	t
+$(PROGRAM)	old/makefile	/^$(PROGRAM): $(OBJS)$/;"	t
+%.o	makefile	/^%.o : %.cpp$/;"	t
+%.o	makefile	/^%.o : %.cu$/;"	t
+%.o	old/makefile	/^%.o : %.cpp$/;"	t
+%.o	old/makefile	/^%.o : %.cu$/;"	t
+0.1 SolverConfig	README.md	/^## 0.1 SolverConfig$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.1 SolverConfig	old/README.md	/^## 0.1 SolverConfig$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.2 Fixed Time Step / CFL Time Step Switching	README.md	/^## 0.2 Fixed Time Step \/ CFL Time Step Switching$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.2 Fixed Time Step / CFL Time Step Switching	old/README.md	/^## 0.2 Fixed Time Step \/ CFL Time Step Switching$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.2b Alpha Substepping for VOF Transport	README.md	/^## 0.2b Alpha Substepping for VOF Transport$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.2b Alpha Substepping for VOF Transport	old/README.md	/^## 0.2b Alpha Substepping for VOF Transport$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.3 Ownership of dt, Nx, Ny, and Other Parameters	README.md	/^## 0.3 Ownership of dt, Nx, Ny, and Other Parameters$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.3 Ownership of dt, Nx, Ny, and Other Parameters	old/README.md	/^## 0.3 Ownership of dt, Nx, Ny, and Other Parameters$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.4 Face/Cell Indexing Convention Cleanup	README.md	/^## 0.4 Face\/Cell Indexing Convention Cleanup$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+0.4 Face/Cell Indexing Convention Cleanup	old/README.md	/^## 0.4 Face\/Cell Indexing Convention Cleanup$/;"	s	chapter:Phase 0: Configuration and Design Cleanup
+1.1 Coarse-Grained Algorithms: Virtual Interfaces	README.md	/^## 1.1 Coarse-Grained Algorithms: Virtual Interfaces$/;"	s	chapter:Phase 1: Switchable Numerical Methods
+1.1 Coarse-Grained Algorithms: Virtual Interfaces	old/README.md	/^## 1.1 Coarse-Grained Algorithms: Virtual Interfaces$/;"	s	chapter:Phase 1: Switchable Numerical Methods
+1.2 Fine-Grained Schemes: Template / Policy Design	README.md	/^## 1.2 Fine-Grained Schemes: Template \/ Policy Design$/;"	s	chapter:Phase 1: Switchable Numerical Methods
+1.2 Fine-Grained Schemes: Template / Policy Design	old/README.md	/^## 1.2 Fine-Grained Schemes: Template \/ Policy Design$/;"	s	chapter:Phase 1: Switchable Numerical Methods
+3.1 Implemented Solvers	README.md	/^## 3.1 Implemented Solvers$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.1 Implemented Solvers	old/README.md	/^## 3.1 Implemented Solvers$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.2 Validation	README.md	/^## 3.2 Validation$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.2 Validation	old/README.md	/^## 3.2 Validation$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.3 GMG Tuning	README.md	/^## 3.3 GMG Tuning$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.3 GMG Tuning	old/README.md	/^## 3.3 GMG Tuning$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.4 GMG Robustness	README.md	/^## 3.4 GMG Robustness$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+3.4 GMG Robustness	old/README.md	/^## 3.4 GMG Robustness$/;"	s	chapter:Phase 3: Pressure Solver Validation and Benchmarking
+6.1 Implemented	README.md	/^## 6.1 Implemented$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+6.1 Implemented	old/README.md	/^## 6.1 Implemented$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+6.2 Validation	README.md	/^## 6.2 Validation$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+6.2 Validation	old/README.md	/^## 6.2 Validation$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+6.3 Curvature and Force Improvements	README.md	/^## 6.3 Curvature and Force Improvements$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+6.3 Curvature and Force Improvements	old/README.md	/^## 6.3 Curvature and Force Improvements$/;"	s	chapter:Phase 6: Surface Tension Validation and Improvement
+ALPHA	PCG_Scalars.h	/^    ALPHA = 0,$/;"	e	enum:ScalarID
+ALPHA	old/PCG_Scalars.h	/^    ALPHA = 0,$/;"	e	enum:ScalarID
+Already tested	README.md	/^## Already tested$/;"	s	chapter:Phase 7: Additional Validation Tests
+Already tested	old/README.md	/^## Already tested$/;"	s	chapter:Phase 7: Additional Validation Tests
+Ap_kernel_ms	old/pressure_solver/G_PCGSolver.h	/^    float Ap_kernel_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+BETA	old/hardCodedParameters.h	/^#define BETA /;"	d
+Base	old/pressure_solver/G_GMGSolver.h	/^    using Base=G_PressureSolverBase;$/;"	t	struct:G_GMGSolver	typeref:typename:G_PressureSolverBase
+Base	old/pressure_solver/G_PCGSolver.h	/^    using Base=G_PressureSolverBase;$/;"	t	struct:G_PCGSolver	typeref:typename:G_PressureSolverBase
+CC	makefile	/^CC = nvcc$/;"	m
+CC	old/makefile	/^CC = nvcc$/;"	m
+CC_C	makefile	/^CC_C = g++$/;"	m
+CC_C	old/makefile	/^CC_C = g++$/;"	m
+CFD/VOF Solver TODO	README.md	/^# CFD\/VOF Solver TODO$/;"	c
+CFD/VOF Solver TODO	old/README.md	/^# CFD\/VOF Solver TODO$/;"	c
+CFDTime	CFDTime.cpp	/^CFDTime::CFDTime(double initdt,double max_dt,double outfreqtime,double endTime,double cfl_thresh/;"	f	class:CFDTime
+CFDTime	CFDTime.h	/^struct CFDTime{$/;"	s
+CFDTime	old/CFDTime.cpp	/^CFDTime::CFDTime(double initdt,double max_dt,double outfreqtime,double endTime,double cfl_thresh/;"	f	class:CFDTime
+CFDTime	old/CFDTime.h	/^struct CFDTime{$/;"	s
+CFL	PCG_Scalars.h	/^    CFL,$/;"	e	enum:ScalarID
+CFL	old/PCG_Scalars.h	/^    CFL,$/;"	e	enum:ScalarID
+CFLAGS	makefile	/^CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  $/;"	m
+CFLAGS	old/makefile	/^CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  $/;"	m
+CONLYFLAGS	makefile	/^CONLYFLAGS = -O3  $/;"	m
+CONLYFLAGS	old/makefile	/^CONLYFLAGS = -O3  $/;"	m
+CONST_TIME_STEP	CFDTime.h	/^    CONST_TIME_STEP,$/;"	e	enum:Time_mode
+CONST_TIME_STEP	old/CFDTime.h	/^    CONST_TIME_STEP,$/;"	e	enum:Time_mode
+Current Short-Term Priorities	README.md	/^# Current Short-Term Priorities$/;"	c
+Current Short-Term Priorities	old/README.md	/^# Current Short-Term Priorities$/;"	c
+Current Status	README.md	/^## Current Status$/;"	s	chapter:CFD/VOF Solver TODO
+Current Status	old/README.md	/^## Current Status$/;"	s	chapter:CFD/VOF Solver TODO
+Design Summary	README.md	/^# Design Summary$/;"	c
+Design Summary	old/README.md	/^# Design Summary$/;"	c
+EPS	old/hardCodedParameters.h	/^#define EPS /;"	d
+Future validation cases	README.md	/^## Future validation cases$/;"	s	chapter:Phase 7: Additional Validation Tests
+Future validation cases	old/README.md	/^## Future validation cases$/;"	s	chapter:Phase 7: Additional Validation Tests
+GPUFLAGS	makefile	/^GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false $/;"	m
+GPUFLAGS	old/makefile	/^GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false $/;"	m
+GPU_ON	main.cu	/^#define GPU_ON /;"	d	file:
+GPU_ON	old/main.cu	/^#define GPU_ON /;"	d	file:
+G_GMGSolver	old/pressure_solver/G_GMGSolver.h	/^struct G_GMGSolver:G_PressureSolverBase{$/;"	s
+G_Levels	old/pressure_solver/G_Levels.h	/^struct G_Levels{$/;"	s
+G_PCGSolver	old/pressure_solver/G_PCGSolver.cu	/^G_PCGSolver::G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+G_PCGSolver	old/pressure_solver/G_PCGSolver.h	/^struct G_PCGSolver:G_PressureSolverBase{$/;"	s
+G_PCGSolver	old/pressure_solver/G_PCGSolver_prof.cu	/^G_PCGSolver::G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+G_PressureSolverBase	old/pressure_solver/G_PressureSolverBase.h	/^struct G_PressureSolverBase{$/;"	s
+G_PressureSolverBase	pressure_solver/G_PressureSolverBase.h	/^struct G_PressureSolverBase{$/;"	s
+G_SMACSolver	old/G_SMACSolver.h	/^struct G_SMACSolver{$/;"	s
+G_StaggeredGrid	G_StaggeredGrid.h	/^struct G_StaggeredGrid{$/;"	s
+G_StaggeredGrid	old/G_StaggeredGrid.h	/^struct G_StaggeredGrid{$/;"	s
+Implemented	README.md	/^### Implemented$/;"	S	section:CFD/VOF Solver TODO""Current Status
+Implemented	old/README.md	/^### Implemented$/;"	S	section:CFD/VOF Solver TODO""Current Status
+LIBS	makefile	/^LIBS = -lm $/;"	m
+LIBS	old/makefile	/^LIBS = -lm $/;"	m
+MAX_LEVELS	old/pressure_solver/G_Levels.h	/^#define MAX_LEVELS /;"	d
+MEMBER	G_StaggeredGrid.h	/^    #define MEMBER(/;"	d
+MEMBER	SMACSolver.cpp	/^    #define MEMBER(/;"	d	file:
+MEMBER	StaggeredGrid.h	/^    #define MEMBER(/;"	d
+MEMBER	old/G_SMACSolver.cu	/^    #define MEMBER(/;"	d	file:
+MEMBER	old/G_StaggeredGrid.h	/^    #define MEMBER(/;"	d
+MEMBER	old/SMACSolver.cpp	/^    #define MEMBER(/;"	d	file:
+MEMBER	old/StaggeredGrid.h	/^    #define MEMBER(/;"	d
+MUSCL-TVD	README.md	/^## MUSCL-TVD$/;"	s	chapter:Phase 4: Higher-Order Momentum Advection
+MUSCL-TVD	old/README.md	/^## MUSCL-TVD$/;"	s	chapter:Phase 4: Higher-Order Momentum Advection
+Main Development Goals	README.md	/^## Main Development Goals$/;"	s	chapter:CFD/VOF Solver TODO
+Main Development Goals	old/README.md	/^## Main Development Goals$/;"	s	chapter:CFD/VOF Solver TODO
+MyArray	MyArray.h	/^struct MyArray<T,2>{$/;"	s
+MyArray	MyArray.h	/^struct MyArray<T,3>{$/;"	s
+MyArray	old/MyArray.h	/^struct MyArray<T,2>{$/;"	s
+MyArray	old/MyArray.h	/^struct MyArray<T,3>{$/;"	s
+NUM_SCALARS	PCG_Scalars.h	/^    NUM_SCALARS$/;"	e	enum:ScalarID
+NUM_SCALARS	old/PCG_Scalars.h	/^    NUM_SCALARS$/;"	e	enum:ScalarID
+Nx_	G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Nx_	StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+Nx_	old/G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Nx_	old/StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+Ny_	G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Ny_	StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+Ny_	old/G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Ny_	old/StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+Nz_	G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Nz_	StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+Nz_	old/G_StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:int
+Nz_	old/StaggeredGrid.h	/^    int Nx_,Ny_,Nz_;$/;"	m	struct:StaggeredGrid	typeref:typename:int
+OBJS	makefile	/^OBJS =  main.o SMACSolver.o G_SMACSolver.o CFDTime.o\\$/;"	m
+OBJS	old/makefile	/^OBJS =  main.o SMACSolver.o G_SMACSolver.o CFDTime.o\\$/;"	m
+Overview	README.md	/^## Overview$/;"	s	chapter:CFD/VOF Solver TODO
+Overview	old/README.md	/^## Overview$/;"	s	chapter:CFD/VOF Solver TODO
+PAP	PCG_Scalars.h	/^    PAP,$/;"	e	enum:ScalarID
+PAP	old/PCG_Scalars.h	/^    PAP,$/;"	e	enum:ScalarID
+PCGProfile	old/pressure_solver/G_PCGSolver.h	/^struct PCGProfile{$/;"	s
+PCG_BETA	PCG_Scalars.h	/^    PCG_BETA,$/;"	e	enum:ScalarID
+PCG_BETA	old/PCG_Scalars.h	/^    PCG_BETA,$/;"	e	enum:ScalarID
+PCG_PROFILE	old/pressure_solver/G_PCGSolver.h	/^#define PCG_PROFILE /;"	d
+PI	old/hardCodedParameters.h	/^#define PI /;"	d
+PROGRAM	makefile	/^PROGRAM = myCFD$/;"	m
+PROGRAM	old/makefile	/^PROGRAM = myCFD$/;"	m
+Phase 0: Configuration and Design Cleanup	README.md	/^# Phase 0: Configuration and Design Cleanup$/;"	c
+Phase 0: Configuration and Design Cleanup	old/README.md	/^# Phase 0: Configuration and Design Cleanup$/;"	c
+Phase 10: Debugging and Quality Control	README.md	/^# Phase 10: Debugging and Quality Control$/;"	c
+Phase 10: Debugging and Quality Control	old/README.md	/^# Phase 10: Debugging and Quality Control$/;"	c
+Phase 1: Switchable Numerical Methods	README.md	/^# Phase 1: Switchable Numerical Methods$/;"	c
+Phase 1: Switchable Numerical Methods	old/README.md	/^# Phase 1: Switchable Numerical Methods$/;"	c
+Phase 2: Diagnostics and Logging	README.md	/^# Phase 2: Diagnostics and Logging$/;"	c
+Phase 2: Diagnostics and Logging	old/README.md	/^# Phase 2: Diagnostics and Logging$/;"	c
+Phase 3: Pressure Solver Validation and Benchmarking	README.md	/^# Phase 3: Pressure Solver Validation and Benchmarking$/;"	c
+Phase 3: Pressure Solver Validation and Benchmarking	old/README.md	/^# Phase 3: Pressure Solver Validation and Benchmarking$/;"	c
+Phase 4: Higher-Order Momentum Advection	README.md	/^# Phase 4: Higher-Order Momentum Advection$/;"	c
+Phase 4: Higher-Order Momentum Advection	old/README.md	/^# Phase 4: Higher-Order Momentum Advection$/;"	c
+Phase 5: Viscous Term Correction	README.md	/^# Phase 5: Viscous Term Correction$/;"	c
+Phase 5: Viscous Term Correction	old/README.md	/^# Phase 5: Viscous Term Correction$/;"	c
+Phase 6: Surface Tension Validation and Improvement	README.md	/^# Phase 6: Surface Tension Validation and Improvement$/;"	c
+Phase 6: Surface Tension Validation and Improvement	old/README.md	/^# Phase 6: Surface Tension Validation and Improvement$/;"	c
+Phase 7: Additional Validation Tests	README.md	/^# Phase 7: Additional Validation Tests$/;"	c
+Phase 7: Additional Validation Tests	old/README.md	/^# Phase 7: Additional Validation Tests$/;"	c
+Phase 8: Preparation for 3D	README.md	/^# Phase 8: Preparation for 3D$/;"	c
+Phase 8: Preparation for 3D	old/README.md	/^# Phase 8: Preparation for 3D$/;"	c
+Phase 9: Long-Running Simulation Utilities	README.md	/^# Phase 9: Long-Running Simulation Utilities$/;"	c
+Phase 9: Long-Running Simulation Utilities	old/README.md	/^# Phase 9: Long-Running Simulation Utilities$/;"	c
+RES0	PCG_Scalars.h	/^    RES0,$/;"	e	enum:ScalarID
+RES0	old/PCG_Scalars.h	/^    RES0,$/;"	e	enum:ScalarID
+RHS_NORM	PCG_Scalars.h	/^    RHS_NORM,$/;"	e	enum:ScalarID
+RHS_NORM	old/PCG_Scalars.h	/^    RHS_NORM,$/;"	e	enum:ScalarID
+RZ_BUF0	PCG_Scalars.h	/^    RZ_BUF0,$/;"	e	enum:ScalarID
+RZ_BUF0	old/PCG_Scalars.h	/^    RZ_BUF0,$/;"	e	enum:ScalarID
+RZ_BUF1	PCG_Scalars.h	/^    RZ_BUF1,$/;"	e	enum:ScalarID
+RZ_BUF1	old/PCG_Scalars.h	/^    RZ_BUF1,$/;"	e	enum:ScalarID
+RZ_NEW	PCG_Scalars.h	/^    RZ_NEW,$/;"	e	enum:ScalarID
+RZ_NEW	old/PCG_Scalars.h	/^    RZ_NEW,$/;"	e	enum:ScalarID
+RZ_OLD	PCG_Scalars.h	/^    RZ_OLD,$/;"	e	enum:ScalarID
+RZ_OLD	old/PCG_Scalars.h	/^    RZ_OLD,$/;"	e	enum:ScalarID
+SAVE_OFF	old/hardCodedParameters.h	/^#define SAVE_OFF /;"	d
+SAVE_ON	old/hardCodedParameters.h	/^#define SAVE_ON /;"	d
+SCA_TMP	PCG_Scalars.h	/^    SCA_TMP,$/;"	e	enum:ScalarID
+SCA_TMP	old/PCG_Scalars.h	/^    SCA_TMP,$/;"	e	enum:ScalarID
+SMACSolver	SMACSolver.h	/^struct SMACSolver{$/;"	s
+SMACSolver	old/SMACSolver.h	/^struct SMACSolver{$/;"	s
+SMALL_NUM	old/hardCodedParameters.h	/^#define SMALL_NUM /;"	d
+ScalarID	PCG_Scalars.h	/^enum ScalarID {$/;"	g
+ScalarID	old/PCG_Scalars.h	/^enum ScalarID {$/;"	g
+StaggeredGrid	StaggeredGrid.h	/^struct StaggeredGrid{$/;"	s
+StaggeredGrid	old/StaggeredGrid.h	/^struct StaggeredGrid{$/;"	s
+Time_mode	CFDTime.h	/^enum Time_mode{$/;"	g
+Time_mode	old/CFDTime.h	/^enum Time_mode{$/;"	g
+VARIBALE_TIME_STEP	CFDTime.h	/^    VARIBALE_TIME_STEP $/;"	e	enum:Time_mode
+VARIBALE_TIME_STEP	old/CFDTime.h	/^    VARIBALE_TIME_STEP $/;"	e	enum:Time_mode
+all	makefile	/^all: $(PROGRAM)$/;"	t
+all	old/makefile	/^all: $(PROGRAM)$/;"	t
+alpha_flux_accum	old/G_SMACSolver.cu	/^void G_SMACSolver::alpha_flux_accum(int Nx, int Ny){$/;"	f	typeref:typename:void G_SMACSolver::
+alpha_flux_thinc_x	SMACSolver.cpp	/^void SMACSolver::alpha_flux_thinc_x(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thinc_x	old/SMACSolver.cpp	/^void SMACSolver::alpha_flux_thinc_x(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thinc_y	SMACSolver.cpp	/^void SMACSolver::alpha_flux_thinc_y(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thinc_y	old/SMACSolver.cpp	/^void SMACSolver::alpha_flux_thinc_y(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thincwlic_x	SMACSolver.cpp	/^void SMACSolver::alpha_flux_thincwlic_x(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thincwlic_x	old/G_SMACSolver.cu	/^void G_SMACSolver::alpha_flux_thincwlic_x(int Nx, int Ny, double dt){$/;"	f	typeref:typename:void G_SMACSolver::
+alpha_flux_thincwlic_x	old/SMACSolver.cpp	/^void SMACSolver::alpha_flux_thincwlic_x(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thincwlic_y	SMACSolver.cpp	/^void SMACSolver::alpha_flux_thincwlic_y(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_thincwlic_y	old/G_SMACSolver.cu	/^void G_SMACSolver::alpha_flux_thincwlic_y(int Nx, int Ny,double dt){$/;"	f	typeref:typename:void G_SMACSolver::
+alpha_flux_thincwlic_y	old/SMACSolver.cpp	/^void SMACSolver::alpha_flux_thincwlic_y(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_upwind	SMACSolver.cpp	/^void SMACSolver::alpha_flux_upwind(){$/;"	f	class:SMACSolver	typeref:typename:void
+alpha_flux_upwind	old/SMACSolver.cpp	/^void SMACSolver::alpha_flux_upwind(){$/;"	f	class:SMACSolver	typeref:typename:void
+bindGrid	old/G_SMACSolver.cu	/^void G_SMACSolver::bindGrid(){$/;"	f	typeref:typename:void G_SMACSolver::
+bindView	old/G_SMACSolver.cu	/^void G_SMACSolver::bindView(){$/;"	f	typeref:typename:void G_SMACSolver::
+block_dim_	old/G_SMACSolver.h	/^    dim3 block_dim_;$/;"	m	struct:G_SMACSolver	typeref:typename:dim3
+block_dim_	old/pressure_solver/G_PressureSolverBase.h	/^    dim3 block_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+block_dim_	pressure_solver/G_PressureSolverBase.h	/^    dim3 block_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+build_vof_poisson_Ap	SMACSolver.cpp	/^void SMACSolver::build_vof_poisson_Ap(const double *p){$/;"	f	class:SMACSolver	typeref:typename:void
+build_vof_poisson_Ap	old/SMACSolver.cpp	/^void SMACSolver::build_vof_poisson_Ap(const double *p){$/;"	f	class:SMACSolver	typeref:typename:void
+build_vof_poisson_invdiag	SMACSolver.cpp	/^void SMACSolver::build_vof_poisson_invdiag(){$/;"	f	class:SMACSolver	typeref:typename:void
+build_vof_poisson_invdiag	old/SMACSolver.cpp	/^void SMACSolver::build_vof_poisson_invdiag(){$/;"	f	class:SMACSolver	typeref:typename:void
+calc_alpha_area	old/G_SMACSolver.cu	/^double G_SMACSolver::calc_alpha_area(){$/;"	f	typeref:typename:double G_SMACSolver::
+calc_alpha_area	old/SMACSolver.cpp	/^double SMACSolver::calc_alpha_area() $/;"	f	class:SMACSolver	typeref:typename:double
+calc_cfl	SMACSolver.cpp	/^double SMACSolver::calc_cfl(){$/;"	f	class:SMACSolver	typeref:typename:double
+calc_cfl	old/G_SMACSolver.cu	/^double G_SMACSolver::calc_cfl(SMACSolver solv){$/;"	f	typeref:typename:double G_SMACSolver::
+calc_cfl	old/SMACSolver.cpp	/^double SMACSolver::calc_cfl(){$/;"	f	class:SMACSolver	typeref:typename:double
+calc_surface_tension	old/G_SMACSolver.cu	/^void G_SMACSolver::calc_surface_tension(){$/;"	f	typeref:typename:void G_SMACSolver::
+cfl_thresh_	CFDTime.h	/^    double cfl_thresh_;$/;"	m	struct:CFDTime	typeref:typename:double
+cfl_thresh_	old/CFDTime.h	/^    double cfl_thresh_;$/;"	m	struct:CFDTime	typeref:typename:double
+check_array_finite	SMACSolver.cpp	/^static void check_array_finite($/;"	f	typeref:typename:void	file:
+check_array_finite	old/G_SMACSolver.cu	/^static void check_array_finite($/;"	f	typeref:typename:void	file:
+check_array_finite	old/SMACSolver.cpp	/^static void check_array_finite($/;"	f	typeref:typename:void	file:
+check_divergence	SMACSolver.cpp	/^void SMACSolver::check_divergence(){$/;"	f	class:SMACSolver	typeref:typename:void
+check_divergence	old/SMACSolver.cpp	/^void SMACSolver::check_divergence(){$/;"	f	class:SMACSolver	typeref:typename:void
+check_nan_all	SMACSolver.cpp	/^void SMACSolver::check_nan_all(const char* tag)$/;"	f	class:SMACSolver	typeref:typename:void
+check_nan_all	old/G_SMACSolver.cu	/^void G_SMACSolver::check_nan_all(const char* tag)$/;"	f	typeref:typename:void G_SMACSolver::
+check_nan_all	old/SMACSolver.cpp	/^void SMACSolver::check_nan_all(const char* tag)$/;"	f	class:SMACSolver	typeref:typename:void
+check_pressure_jump_by_radius	SMACSolver.cpp	/^void SMACSolver::check_pressure_jump_by_radius(){$/;"	f	class:SMACSolver	typeref:typename:void
+check_pressure_jump_by_radius	old/SMACSolver.cpp	/^void SMACSolver::check_pressure_jump_by_radius(){$/;"	f	class:SMACSolver	typeref:typename:void
+clean	makefile	/^clean:$/;"	t
+clean	old/makefile	/^clean:$/;"	t
+clear_alpha_flux	SMACSolver.cpp	/^void SMACSolver::clear_alpha_flux()$/;"	f	class:SMACSolver	typeref:typename:void
+clear_alpha_flux	old/G_SMACSolver.cu	/^void G_SMACSolver::clear_alpha_flux(){$/;"	f	typeref:typename:void G_SMACSolver::
+clear_alpha_flux	old/SMACSolver.cpp	/^void SMACSolver::clear_alpha_flux()$/;"	f	class:SMACSolver	typeref:typename:void
+clear_alpha_flux_accum	old/G_SMACSolver.cu	/^void G_SMACSolver::clear_alpha_flux_accum(){$/;"	f	typeref:typename:void G_SMACSolver::
+coarse_zero_clear	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::coarse_zero_clear(){$/;"	f	typeref:typename:void G_GMGSolver::
+compute_mass_flux_from_alpha_flux	SMACSolver.cpp	/^void SMACSolver::compute_mass_flux_from_alpha_flux(){$/;"	f	class:SMACSolver	typeref:typename:void
+compute_mass_flux_from_alpha_flux	old/G_SMACSolver.cu	/^void G_SMACSolver::compute_mass_flux_from_alpha_flux(SMACSolver solv){$/;"	f	typeref:typename:void G_SMACSolver::
+compute_mass_flux_from_alpha_flux	old/SMACSolver.cpp	/^void SMACSolver::compute_mass_flux_from_alpha_flux(){$/;"	f	class:SMACSolver	typeref:typename:void
+copyData	old/pressure_solver/G_PressureSolverBase.cu	/^void G_PressureSolverBase::copyData(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PressureSolverBase::
+copyData	pressure_solver/G_PressureSolverBase.cu	/^void G_PressureSolverBase::copyData(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PressureSolverBase::
+correct_velocity	SMACSolver.cpp	/^void SMACSolver::correct_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+correct_velocity	old/SMACSolver.cpp	/^void SMACSolver::correct_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+correct_vof_velocity	SMACSolver.cpp	/^void SMACSolver::correct_vof_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+correct_vof_velocity	old/G_SMACSolver.cu	/^void G_SMACSolver::correct_vof_velocity(SMACSolver solv){$/;"	f	typeref:typename:void G_SMACSolver::
+correct_vof_velocity	old/SMACSolver.cpp	/^void SMACSolver::correct_vof_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+cpuTogpu	old/G_SMACSolver.cu	/^void G_SMACSolver::cpuTogpu(StaggeredGrid h_grid){$/;"	f	typeref:typename:void G_SMACSolver::
+create_coeffs	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::create_coeffs(G_StaggeredGrid& grid){$/;"	f	typeref:typename:void G_GMGSolver::
+cub_temp_storage_	old/G_SMACSolver.h	/^    void* cub_temp_storage_;$/;"	m	struct:G_SMACSolver	typeref:typename:void *
+cub_temp_storage_	old/pressure_solver/G_PressureSolverBase.h	/^    void* cub_temp_storage_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:void *
+cub_temp_storage_	pressure_solver/G_PressureSolverBase.h	/^    void* cub_temp_storage_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:void *
+cub_temp_storage_bytes_	old/G_SMACSolver.h	/^    size_t cub_temp_storage_bytes_;$/;"	m	struct:G_SMACSolver	typeref:typename:size_t
+cub_temp_storage_bytes_	old/pressure_solver/G_PressureSolverBase.h	/^    size_t cub_temp_storage_bytes_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:size_t
+cub_temp_storage_bytes_	pressure_solver/G_PressureSolverBase.h	/^    size_t cub_temp_storage_bytes_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:size_t
+current_steps_	CFDTime.h	/^    int current_steps_;$/;"	m	struct:CFDTime	typeref:typename:int
+current_steps_	old/CFDTime.h	/^    int current_steps_;$/;"	m	struct:CFDTime	typeref:typename:int
+current_time_	CFDTime.h	/^    double current_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+current_time_	old/CFDTime.h	/^    double current_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+d_dot_	old/G_SMACSolver.h	/^    double* d_dot_;$/;"	m	struct:G_SMACSolver	typeref:typename:double *
+d_dot_	old/pressure_solver/G_PressureSolverBase.h	/^    double* d_dot_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_dot_	pressure_solver/G_PressureSolverBase.h	/^    double* d_dot_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_pcg_scalars_	old/G_SMACSolver.h	/^    double *d_pcg_scalars_;$/;"	m	struct:G_SMACSolver	typeref:typename:double *
+d_pcg_scalars_	old/pressure_solver/G_PressureSolverBase.h	/^    double *d_pcg_scalars_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_pcg_scalars_	pressure_solver/G_PressureSolverBase.h	/^    double *d_pcg_scalars_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_r2_	old/G_SMACSolver.h	/^    double* d_r2_;$/;"	m	struct:G_SMACSolver	typeref:typename:double *
+d_r2_	old/pressure_solver/G_PressureSolverBase.h	/^    double* d_r2_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_r2_	pressure_solver/G_PressureSolverBase.h	/^    double* d_r2_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+data_	MyArray.h	/^    T* data_=nullptr;$/;"	m	struct:MyArray	typeref:typename:T *
+data_	old/MyArray.h	/^    T* data_=nullptr;$/;"	m	struct:MyArray	typeref:typename:T *
+dt_	CFDTime.h	/^    double dt_;$/;"	m	struct:CFDTime	typeref:typename:double
+dt_	SMACSolver.h	/^    double dt_;$/;"	m	struct:SMACSolver	typeref:typename:double
+dt_	old/CFDTime.h	/^    double dt_;$/;"	m	struct:CFDTime	typeref:typename:double
+dt_	old/G_SMACSolver.h	/^    double dt_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+dt_	old/SMACSolver.h	/^    double dt_;$/;"	m	struct:SMACSolver	typeref:typename:double
+dx_	G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dx_	StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+dx_	old/G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dx_	old/StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+dy_	G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dy_	StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+dy_	old/G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dy_	old/StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+dz_	G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dz_	StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+dz_	old/G_StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+dz_	old/StaggeredGrid.h	/^    double dx_, dy_,dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+end_time_	CFDTime.h	/^    double end_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+end_time_	old/CFDTime.h	/^    double end_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+f_bx_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> f_bx_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+f_by_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> f_by_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+final_ms	old/pressure_solver/G_PCGSolver.h	/^    float final_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+find_xi0_analytic	SMACSolver.cpp	/^static double find_xi0_analytic(double alpha, double gamma){$/;"	f	typeref:typename:double	file:
+find_xi0_analytic	old/G_SMACSolver.cu	/^static __device__ __forceinline__ double find_xi0_analytic(double alpha, double gamma){$/;"	f	typeref:typename:double	file:
+find_xi0_analytic	old/SMACSolver.cpp	/^static double find_xi0_analytic(double alpha, double gamma){$/;"	f	typeref:typename:double	file:
+fix_pressure	old/G_SMACSolver.cu	/^void G_SMACSolver::fix_pressure(){$/;"	f	typeref:typename:void G_SMACSolver::
+fix_pressure	old/SMACSolver.cpp	/^void SMACSolver::fix_pressure(){$/;"	f	class:SMACSolver	typeref:typename:void
+free	old/pressure_solver/G_Levels.cu	/^void G_Levels::free(){$/;"	f	typeref:typename:void G_Levels::
+get_cell_coord	StaggeredGrid.h	/^inline void StaggeredGrid::get_cell_coord(){$/;"	f	class:StaggeredGrid	typeref:typename:void
+get_cell_coord	old/StaggeredGrid.h	/^inline void StaggeredGrid::get_cell_coord(){$/;"	f	class:StaggeredGrid	typeref:typename:void
+get_ustar	SMACSolver.cpp	/^void SMACSolver::get_ustar(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_ustar	old/SMACSolver.cpp	/^void SMACSolver::get_ustar(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar	SMACSolver.cpp	/^void SMACSolver::get_vof_ustar(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar	old/SMACSolver.cpp	/^void SMACSolver::get_vof_ustar(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar_rhouu_upwind	SMACSolver.cpp	/^void SMACSolver::get_vof_ustar_rhouu_upwind(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar_rhouu_upwind	old/SMACSolver.cpp	/^void SMACSolver::get_vof_ustar_rhouu_upwind(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar_rhouu_upwind_consistent	SMACSolver.cpp	/^void SMACSolver::get_vof_ustar_rhouu_upwind_consistent(){$/;"	f	class:SMACSolver	typeref:typename:void
+get_vof_ustar_rhouu_upwind_consistent	old/G_SMACSolver.cu	/^void G_SMACSolver::get_vof_ustar_rhouu_upwind_consistent(SMACSolver solv){$/;"	f	typeref:typename:void G_SMACSolver::
+get_vof_ustar_rhouu_upwind_consistent	old/SMACSolver.cpp	/^void SMACSolver::get_vof_ustar_rhouu_upwind_consistent(){$/;"	f	class:SMACSolver	typeref:typename:void
+gmg_	old/pressure_solver/G_PCGSolver.h	/^    G_GMGSolver* gmg_;$/;"	m	struct:G_PCGSolver	typeref:typename:G_GMGSolver *
+gpuTocpu	old/G_SMACSolver.cu	/^void G_SMACSolver::gpuTocpu(StaggeredGrid h_grid){$/;"	f	typeref:typename:void G_SMACSolver::
+grid_	SMACSolver.h	/^    StaggeredGrid grid_;$/;"	m	struct:SMACSolver	typeref:typename:StaggeredGrid
+grid_	old/G_SMACSolver.h	/^    G_StaggeredGrid grid_;$/;"	m	struct:G_SMACSolver	typeref:typename:G_StaggeredGrid
+grid_	old/SMACSolver.h	/^    StaggeredGrid grid_;$/;"	m	struct:SMACSolver	typeref:typename:StaggeredGrid
+grid_dim_	old/G_SMACSolver.h	/^    dim3 grid_dim_; \/\/grid size for cuda$/;"	m	struct:G_SMACSolver	typeref:typename:dim3
+grid_dim_	old/pressure_solver/G_PressureSolverBase.h	/^    dim3 grid_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+grid_dim_	pressure_solver/G_PressureSolverBase.h	/^    dim3 grid_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+gx_	SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+gx_	old/G_SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:G_SMACSolver	typeref:typename:double
+gx_	old/SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+gy_	SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+gy_	old/G_SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:G_SMACSolver	typeref:typename:double
+gy_	old/SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+gz_	SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+gz_	old/G_SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:G_SMACSolver	typeref:typename:double
+gz_	old/SMACSolver.h	/^    double gx_,gy_,gz_; \/\/gravity$/;"	m	struct:SMACSolver	typeref:typename:double
+ind	MyArray.h	/^        int ind(int x, int y)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ int
+ind	MyArray.h	/^        int ind(int x, int y, int z)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ int
+ind	old/MyArray.h	/^        int ind(int x, int y)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ int
+ind	old/MyArray.h	/^        int ind(int x, int y, int z)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ int
+init_ms	old/pressure_solver/G_PCGSolver.h	/^    float init_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+initdt_	CFDTime.h	/^    double initdt_;$/;"	m	struct:CFDTime	typeref:typename:double
+initdt_	old/CFDTime.h	/^    double initdt_;$/;"	m	struct:CFDTime	typeref:typename:double
+initialize	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::initialize(G_SMACSolver& solv,int max_levels){$/;"	f	typeref:typename:void G_GMGSolver::
+initialize	old/pressure_solver/G_Levels.cu	/^void G_Levels::initialize(G_SMACSolver &solv,int levels){$/;"	f	typeref:typename:void G_Levels::
+initialize_disk	SMACSolver.cpp	/^void SMACSolver::initialize_disk()$/;"	f	class:SMACSolver	typeref:typename:void
+initialize_disk	old/SMACSolver.cpp	/^void SMACSolver::initialize_disk()$/;"	f	class:SMACSolver	typeref:typename:void
+initialize_zalesak_disk	SMACSolver.cpp	/^void SMACSolver::initialize_zalesak_disk(){$/;"	f	class:SMACSolver	typeref:typename:void
+initialize_zalesak_disk	old/SMACSolver.cpp	/^void SMACSolver::initialize_zalesak_disk(){$/;"	f	class:SMACSolver	typeref:typename:void
+integrate_thinc	SMACSolver.cpp	/^static double integrate_thinc(double a, double b, double gamma,double xi){$/;"	f	typeref:typename:double	file:
+integrate_thinc	old/G_SMACSolver.cu	/^static  __device__ __forceinline__ double integrate_thinc(double a, double b, double gamma,doubl/;"	f	typeref:typename:double	file:
+integrate_thinc	old/SMACSolver.cpp	/^static double integrate_thinc(double a, double b, double gamma,double xi){$/;"	f	typeref:typename:double	file:
+inv_2dx_	G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dx_	StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_2dx_	old/G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dx_	old/StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_2dy_	G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dy_	StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_2dy_	old/G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dy_	old/StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_2dz_	G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dz_	StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_2dz_	old/G_StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_, inv_2dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_2dz_	old/StaggeredGrid.h	/^    double inv_2dx_, inv_2dy_,inv_2dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dt_	SMACSolver.h	/^    double inv_dt_;$/;"	m	struct:SMACSolver	typeref:typename:double
+inv_dt_	old/G_SMACSolver.h	/^    double inv_dt_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+inv_dt_	old/SMACSolver.h	/^    double inv_dt_;$/;"	m	struct:SMACSolver	typeref:typename:double
+inv_dx2_	G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dx2_	StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dx2_	old/G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dx2_	old/StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dx2_	old/pressure_solver/G_Levels.h	/^    double inv_dx2_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:double[]
+inv_dx_	G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dx_	StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dx_	old/G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dx_	old/StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dy2_	G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dy2_	StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dy2_	old/G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dy2_	old/StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dy2_	old/pressure_solver/G_Levels.h	/^    double inv_dy2_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:double[]
+inv_dy_	G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dy_	StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dy_	old/G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dy_	old/StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dz2_	G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dz2_	StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dz2_	old/G_StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_, inv_dz2_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dz2_	old/StaggeredGrid.h	/^    double inv_dx2_, inv_dy2_,inv_dz2_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dz_	G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dz_	StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+inv_dz_	old/G_StaggeredGrid.h	/^    double inv_dx_, inv_dy_, inv_dz_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+inv_dz_	old/StaggeredGrid.h	/^    double inv_dx_, inv_dy_,inv_dz_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+isOutStep_	CFDTime.h	/^    bool isOutStep_;$/;"	m	struct:CFDTime	typeref:typename:bool
+isOutStep_	old/CFDTime.h	/^    bool isOutStep_;$/;"	m	struct:CFDTime	typeref:typename:bool
+iter	old/pressure_solver/G_PCGSolver.h	/^    int iter;$/;"	m	struct:PCGProfile	typeref:typename:int
+k_alpha_flux_accum	old/G_SMACSolver.cu	/^static __global__ void k_alpha_flux_accum(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_alpha_flux_thincwlic_x	old/G_SMACSolver.cu	/^static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid_, double dt, int Nx, int Ny/;"	f	typeref:typename:void	file:
+k_alpha_flux_thincwlic_y	old/G_SMACSolver.cu	/^static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid_, double dt, int Nx, int Ny/;"	f	typeref:typename:void	file:
+k_build_vof_poisson_Ap	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_build_vof_poisson_Ap(G_StaggeredGrid grid_,const double *p, int Nx, int/;"	f	typeref:typename:void	file:
+k_build_vof_poisson_Ap	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_build_vof_poisson_Ap(G_StaggeredGrid grid_,const double *p, int Nx, int/;"	f	typeref:typename:void	file:
+k_build_vof_poisson_invdiag	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_build_vof_poisson_invdiag(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_build_vof_poisson_invdiag	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_build_vof_poisson_invdiag(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_calc_alpha_s	old/G_SMACSolver.cu	/^static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){$/;"	f	typeref:typename:void	file:
+k_calc_cfl	old/G_SMACSolver.cu	/^static __global__  void  k_calc_cfl(G_StaggeredGrid grid_,double dt, int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_calc_curvature	old/G_SMACSolver.cu	/^static __global__ void k_calc_curvature(G_StaggeredGrid grid){$/;"	f	typeref:typename:void	file:
+k_calc_interface_normal	old/G_SMACSolver.cu	/^static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){$/;"	f	typeref:typename:void	file:
+k_calc_surface_tension_face	old/G_SMACSolver.cu	/^static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){$/;"	f	typeref:typename:void	file:
+k_compute_mass_flux_from_alpha_flux	old/G_SMACSolver.cu	/^static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_StaggeredGrid grid_/;"	f	typeref:typename:void	file:
+k_correct_vof_velocity	old/G_SMACSolver.cu	/^static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid grid_, int Nx, in/;"	f	typeref:typename:void	file:
+k_create_level0_coeffs	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_create_level0_coeffs(G_StaggeredGrid grid_,G_Levels levels_){$/;"	f	typeref:typename:void	file:
+k_create_level_coeffs	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_create_level_coeffs(G_Levels levels_, int cur_level){$/;"	f	typeref:typename:void	file:
+k_get_r	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_get_r(G_StaggeredGrid grid_,double* const mean_b, double* const tmp, in/;"	f	typeref:typename:void	file:
+k_get_r	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_get_r(G_StaggeredGrid grid_,double* const mean_b, double* const tmp, in/;"	f	typeref:typename:void	file:
+k_get_r2_to_tmp	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_get_r2_to_tmp(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_get_r2_to_tmp	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_get_r2_to_tmp(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_get_res	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_get_res(G_StaggeredGrid grid_){$/;"	f	typeref:typename:void	file:
+k_get_res_general	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_get_res_general(G_StaggeredGrid grid_, MyArray<double,3> p, MyArray<dou/;"	f	typeref:typename:void	file:
+k_get_res_levels	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_get_res_levels(G_Levels levels,int current_levels){$/;"	f	typeref:typename:void	file:
+k_get_sqr_to_tmp	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_get_sqr_to_tmp(const MyArray<double,3> q,MyArray<double,3> tmp){$/;"	f	typeref:typename:void	file:
+k_get_vof_ustar_rhouu_upwind_consistent	old/G_SMACSolver.cu	/^static __global__ void k_get_vof_ustar_rhouu_upwind_consistent(SMACSolver solv,G_StaggeredGrid g/;"	f	typeref:typename:void	file:
+k_jacobi_iteration	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_jacobi_iteration(G_StaggeredGrid grid_){$/;"	f	typeref:typename:void	file:
+k_jacobi_iteration_general	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_jacobi_iteration_general(G_StaggeredGrid grid_,MyArray<double,3> p, MyA/;"	f	typeref:typename:void	file:
+k_jacobi_level_iteration	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_jacobi_level_iteration(G_Levels levels_, int cur_level){$/;"	f	typeref:typename:void	file:
+k_make_pAp	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_make_pAp(G_StaggeredGrid grid_,int Nx,int Ny){$/;"	f	typeref:typename:void	file:
+k_make_pAp	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_make_pAp(G_StaggeredGrid grid_,int Nx,int Ny){$/;"	f	typeref:typename:void	file:
+k_propagate_level0_to_array	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_propagate_level0_to_array(G_Levels levels_, MyArray<double,3> array){$/;"	f	typeref:typename:void	file:
+k_propagate_level0_to_grid	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_propagate_level0_to_grid(G_Levels levels_, G_StaggeredGrid grid_){$/;"	f	typeref:typename:void	file:
+k_propagate_level_to_level	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_propagate_level_to_level(G_Levels levels_, int base_level){$/;"	f	typeref:typename:void	file:
+k_restrict_grid_to_level0	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid grid_, G_Levels levels_){$/;"	f	typeref:typename:void	file:
+k_restrict_level_to_level	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_restrict_level_to_level(G_Levels levels_, int base_level){$/;"	f	typeref:typename:void	file:
+k_set_boundary_and_fix_general	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_set_boundary_and_fix_general(MyArray<double,3> q){$/;"	f	typeref:typename:void	file:
+k_set_boundary_cell	old/G_SMACSolver.cu	/^static __global__ void k_set_boundary_cell(MyArray<double,3> q){$/;"	f	typeref:typename:void	file:
+k_set_boundary_star	old/G_SMACSolver.cu	/^static __global__ void k_set_boundary_star(G_StaggeredGrid grid_,int Nx,int Ny){$/;"	f	typeref:typename:void	file:
+k_set_boundary_velocity	old/G_SMACSolver.cu	/^static __global__ void k_set_boundary_velocity(G_StaggeredGrid grid_, int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_set_level_boundary_and_fix	old/pressure_solver/G_GMGSolver.cu	/^static __global__ void k_set_level_boundary_and_fix(G_Levels levels_, int cur_level){$/;"	f	typeref:typename:void	file:
+k_swap_rz	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_swap_rz(double *s){$/;"	f	typeref:typename:void	file:
+k_transport_alpha	old/G_SMACSolver.cu	/^static __global__ void k_transport_alpha(G_StaggeredGrid grid_, int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_update_cell_properties_by_alpha	old/G_SMACSolver.cu	/^static __global__ void k_update_cell_properties_by_alpha(G_StaggeredGrid grid_,double rho0, doub/;"	f	typeref:typename:void	file:
+k_update_dir	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_update_dir(G_StaggeredGrid grid_,double *const pcg_scalars_,int Nx, int/;"	f	typeref:typename:void	file:
+k_update_dir	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_update_dir(G_StaggeredGrid grid_,double *const pcg_scalars_,int Nx, int/;"	f	typeref:typename:void	file:
+k_update_p_r	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_update_p_r(G_StaggeredGrid grid,const double* scalars,int Nx,int Ny,int/;"	f	typeref:typename:void	file:
+k_update_p_r_z_make_rz_tmp	old/pressure_solver/G_PCGSolver.cu	/^static __global__ void k_update_p_r_z_make_rz_tmp(G_StaggeredGrid grid,const double* scalars,int/;"	f	typeref:typename:void	file:
+k_update_p_r_z_make_rz_tmp	old/pressure_solver/G_PCGSolver_prof.cu	/^static __global__ void k_update_p_r_z_make_rz_tmp(G_StaggeredGrid grid,const double* scalars,int/;"	f	typeref:typename:void	file:
+k_update_x_face_properties_by_alpha	old/G_SMACSolver.cu	/^static __global__ void k_update_x_face_properties_by_alpha(G_StaggeredGrid grid_,double rho0, do/;"	f	typeref:typename:void	file:
+k_update_y_face_properties_by_alpha	old/G_SMACSolver.cu	/^static __global__ void k_update_y_face_properties_by_alpha(G_StaggeredGrid grid_,double rho0, do/;"	f	typeref:typename:void	file:
+levels_	old/pressure_solver/G_GMGSolver.h	/^    G_Levels levels_;$/;"	m	struct:G_GMGSolver	typeref:typename:G_Levels
+main	main.cu	/^int main(){$/;"	f	typeref:typename:int
+main	old/main.cu	/^int main(){$/;"	f	typeref:typename:int
+make_poisson_rhs	SMACSolver.cpp	/^void SMACSolver::make_poisson_rhs(){$/;"	f	class:SMACSolver	typeref:typename:void
+make_poisson_rhs	old/SMACSolver.cpp	/^void SMACSolver::make_poisson_rhs(){$/;"	f	class:SMACSolver	typeref:typename:void
+max_abs_double	SMACSolver.cpp	/^static double max_abs_double(double *array, int size){$/;"	f	typeref:typename:double	file:
+max_abs_double	old/SMACSolver.cpp	/^static double max_abs_double(double *array, int size){$/;"	f	typeref:typename:double	file:
+max_dt_	CFDTime.h	/^    double max_dt_;$/;"	m	struct:CFDTime	typeref:typename:double
+max_dt_	old/CFDTime.h	/^    double max_dt_;$/;"	m	struct:CFDTime	typeref:typename:double
+mode_	CFDTime.h	/^    int mode_;$/;"	m	struct:CFDTime	typeref:typename:int
+mode_	old/CFDTime.h	/^    int mode_;$/;"	m	struct:CFDTime	typeref:typename:int
+mu0_	SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+mu0_	old/G_SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+mu0_	old/SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+mu1_	SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+mu1_	old/G_SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+mu1_	old/SMACSolver.h	/^    double mu1_,mu0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+nextOut_	CFDTime.h	/^    double nextOut_;$/;"	m	struct:CFDTime	typeref:typename:double
+nextOut_	old/CFDTime.h	/^    double nextOut_;$/;"	m	struct:CFDTime	typeref:typename:double
+nu_	SMACSolver.h	/^    double nu_;$/;"	m	struct:SMACSolver	typeref:typename:double
+nu_	old/G_SMACSolver.h	/^    double nu_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+nu_	old/SMACSolver.h	/^    double nu_;$/;"	m	struct:SMACSolver	typeref:typename:double
+num_iter_coarse_	old/pressure_solver/G_Levels.h	/^    int num_iter_coarse_ =30; $/;"	m	struct:G_Levels	typeref:typename:int
+num_iter_fine_	old/pressure_solver/G_Levels.h	/^    int num_iter_fine_ = 2;$/;"	m	struct:G_Levels	typeref:typename:int
+num_levels_	old/pressure_solver/G_Levels.h	/^    int num_levels_;$/;"	m	struct:G_Levels	typeref:typename:int
+operator ()	MyArray.h	/^        T& operator ()(int x, int y, int z)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator ()	MyArray.h	/^        T& operator()(int x)const{$/;"	f	struct:MyArray	typeref:typename:T &
+operator ()	MyArray.h	/^        T& operator()(int x)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator ()	MyArray.h	/^        T& operator()(int x, int y)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator ()	old/MyArray.h	/^        T& operator ()(int x, int y, int z)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator ()	old/MyArray.h	/^        T& operator()(int x)const{$/;"	f	struct:MyArray	typeref:typename:T &
+operator ()	old/MyArray.h	/^        T& operator()(int x)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator ()	old/MyArray.h	/^        T& operator()(int x, int y)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator []	MyArray.h	/^        T& operator[](int id)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+operator []	old/MyArray.h	/^        T& operator[](int id)const{$/;"	f	struct:MyArray	typeref:typename:__host__ __device__ __forceinline__ T &
+outStepFreq_	CFDTime.h	/^    int outStepFreq_;$/;"	m	struct:CFDTime	typeref:typename:int
+outStepFreq_	old/CFDTime.h	/^    int outStepFreq_;$/;"	m	struct:CFDTime	typeref:typename:int
+outTime_	CFDTime.h	/^    double outTime_;$/;"	m	struct:CFDTime	typeref:typename:double
+outTime_	old/CFDTime.h	/^    double outTime_;$/;"	m	struct:CFDTime	typeref:typename:double
+out_freq_time_	CFDTime.h	/^    double out_freq_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+out_freq_time_	old/CFDTime.h	/^    double out_freq_time_;$/;"	m	struct:CFDTime	typeref:typename:double
+output_vtk	main.cu	/^void output_vtk(const StaggeredGrid& grid, int step,const char* folderName)$/;"	f	typeref:typename:void
+output_vtk	old/main.cu	/^void output_vtk(const StaggeredGrid& grid, int step,const char* folderName)$/;"	f	typeref:typename:void
+pAp_reduce_ms	old/pressure_solver/G_PCGSolver.h	/^    float pAp_reduce_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+pcg_prof_start	old/pressure_solver/G_PCGSolver.h	/^static void pcg_prof_start(cudaEvent_t ev_start){$/;"	f	typeref:typename:void
+pcg_prof_stop	old/pressure_solver/G_PCGSolver.h	/^static void pcg_prof_stop(cudaEvent_t ev_start,cudaEvent_t ev_stop,float& accum_ms){$/;"	f	typeref:typename:void
+place_vof	StaggeredGrid.h	/^inline void StaggeredGrid::place_vof(double minx,double maxx, double miny, double maxy,double mi/;"	f	class:StaggeredGrid	typeref:typename:void
+place_vof	old/StaggeredGrid.h	/^inline void StaggeredGrid::place_vof(double minx,double maxx, double miny, double maxy,double mi/;"	f	class:StaggeredGrid	typeref:typename:void
+pres_k_add_scalar_to_array	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_add_scalar_to_array(const double a, const double* const b,double* const q/;"	f	typeref:typename:void
+pres_k_add_scalar_to_array	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_add_scalar_to_array(const double a, const double* const b,double* const q/;"	f	typeref:typename:void
+pres_k_copy_to_tmp	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_copy_to_tmp(const double* const q,double* const tmp, int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_copy_to_tmp	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_copy_to_tmp(const double* const q,double* const tmp, int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_divide	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_divide(double* const num,const double div){$/;"	f	typeref:typename:void
+pres_k_divide	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_divide(double* const num,const double div){$/;"	f	typeref:typename:void
+pres_k_fix_pressure_reference	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_fix_pressure_reference(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_fix_pressure_reference	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_fix_pressure_reference(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_make_poisson_rhs	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){$/;"	f	typeref:typename:void
+pres_k_make_poisson_rhs	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){$/;"	f	typeref:typename:void
+pres_k_mult_elementwise_array	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_mult_elementwise_array(double* const b,double* const q,double* const resu/;"	f	typeref:typename:void
+pres_k_mult_elementwise_array	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_mult_elementwise_array(double* const b,double* const q,double* const resu/;"	f	typeref:typename:void
+pres_k_mult_elementwise_array_to_tmp	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_mult_elementwise_array_to_tmp(double* const b,double* const q,double* con/;"	f	typeref:typename:void
+pres_k_mult_elementwise_array_to_tmp	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_mult_elementwise_array_to_tmp(double* const b,double* const q,double* con/;"	f	typeref:typename:void
+pres_k_set_boundary_array	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_set_boundary_array(double* const q, int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_set_boundary_array	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_set_boundary_array(double* const q, int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_shift_pressure_reference	old/pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_shift_pressure_reference(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void
+pres_k_shift_pressure_reference	pressure_solver/G_PressureSolverBase.cu	/^__global__ void pres_k_shift_pressure_reference(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void
+pressure_solver_	old/G_SMACSolver.h	/^    G_PressureSolverBase* pressure_solver_;$/;"	m	struct:G_SMACSolver	typeref:typename:G_PressureSolverBase *
+print_array	main.cu	/^inline void print_array(double *array, int Nx, int Ny){$/;"	f	typeref:typename:void
+print_array	old/main.cu	/^inline void print_array(double *array, int Nx, int Ny){$/;"	f	typeref:typename:void
+q_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> q_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+q_tmp_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> q_tmp_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+reset_pcg_profile	old/pressure_solver/G_PCGSolver.h	/^static void reset_pcg_profile(PCGProfile& p){$/;"	f	typeref:typename:void
+residual_check_ms	old/pressure_solver/G_PCGSolver.h	/^    float residual_check_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+residue_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> residue_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+rho0_	SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rho0_	old/G_SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+rho0_	old/SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rho1_	SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rho1_	old/G_SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+rho1_	old/SMACSolver.h	/^    double rho1_,rho0_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rho_	SMACSolver.h	/^    double rho_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rho_	old/G_SMACSolver.h	/^    double rho_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+rho_	old/SMACSolver.h	/^    double rho_;$/;"	m	struct:SMACSolver	typeref:typename:double
+rhs_	old/pressure_solver/G_Levels.h	/^    MyArray<double,3> rhs_[MAX_LEVELS];$/;"	m	struct:G_Levels	typeref:typename:MyArray<double,3>[]
+rz_reduce_ms	old/pressure_solver/G_PCGSolver.h	/^    float rz_reduce_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+set_block_grid	old/G_SMACSolver.h	/^    inline void set_block_grid(int Nx, int Ny){$/;"	f	struct:G_SMACSolver	typeref:typename:void
+set_boundary_alpha	old/G_SMACSolver.cu	/^void G_SMACSolver::set_boundary_alpha(int Nx, int Ny){$/;"	f	typeref:typename:void G_SMACSolver::
+set_boundary_array	SMACSolver.cpp	/^void SMACSolver::set_boundary_array(double* const q){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_array	old/SMACSolver.cpp	/^void SMACSolver::set_boundary_array(double* const q){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_neumann	SMACSolver.cpp	/^void SMACSolver::set_boundary_neumann(MyArray<double,3>& alpha){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_neumann	old/SMACSolver.cpp	/^void SMACSolver::set_boundary_neumann(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_pressure	SMACSolver.cpp	/^void SMACSolver::set_boundary_pressure(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_pressure	old/SMACSolver.cpp	/^void SMACSolver::set_boundary_pressure(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_star	SMACSolver.cpp	/^void SMACSolver::set_boundary_star(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_star	old/G_SMACSolver.cu	/^void G_SMACSolver::set_boundary_star(){$/;"	f	typeref:typename:void G_SMACSolver::
+set_boundary_star	old/SMACSolver.cpp	/^void SMACSolver::set_boundary_star(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_velocity	SMACSolver.cpp	/^void SMACSolver::set_boundary_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_boundary_velocity	old/G_SMACSolver.cu	/^void G_SMACSolver::set_boundary_velocity(SMACSolver solv){$/;"	f	typeref:typename:void G_SMACSolver::
+set_boundary_velocity	old/SMACSolver.cpp	/^void SMACSolver::set_boundary_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_calc_properties	SMACSolver.cpp	/^void SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex/;"	f	class:SMACSolver	typeref:typename:void
+set_calc_properties	old/G_SMACSolver.cu	/^void G_SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double siz/;"	f	typeref:typename:void G_SMACSolver::
+set_calc_properties	old/SMACSolver.cpp	/^void SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex/;"	f	class:SMACSolver	typeref:typename:void
+set_gmg	old/pressure_solver/G_PCGSolver.cu	/^void G_PCGSolver::set_gmg(G_GMGSolver & gmg){$/;"	f	typeref:typename:void G_PCGSolver::
+set_gravity	SMACSolver.cpp	/^void SMACSolver::set_gravity(double gx, double gy, double gz){$/;"	f	class:SMACSolver	typeref:typename:void
+set_gravity	old/SMACSolver.cpp	/^void SMACSolver::set_gravity(double gx, double gy, double gz){$/;"	f	class:SMACSolver	typeref:typename:void
+set_mus	SMACSolver.cpp	/^void SMACSolver::set_mus(double mu0, double mu1){$/;"	f	class:SMACSolver	typeref:typename:void
+set_mus	old/SMACSolver.cpp	/^void SMACSolver::set_mus(double mu0, double mu1){$/;"	f	class:SMACSolver	typeref:typename:void
+set_rhos	SMACSolver.cpp	/^void SMACSolver::set_rhos(double rho0, double rho1){$/;"	f	class:SMACSolver	typeref:typename:void
+set_rhos	old/SMACSolver.cpp	/^void SMACSolver::set_rhos(double rho0, double rho1){$/;"	f	class:SMACSolver	typeref:typename:void
+set_zalesak_rotation_velocity	SMACSolver.cpp	/^void SMACSolver::set_zalesak_rotation_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+set_zalesak_rotation_velocity	old/SMACSolver.cpp	/^void SMACSolver::set_zalesak_rotation_velocity(){$/;"	f	class:SMACSolver	typeref:typename:void
+sgn	SMACSolver.cpp	/^static inline double sgn(double a){$/;"	f	typeref:typename:double	file:
+sgn	old/G_SMACSolver.cu	/^static __device__ __forceinline__ double sgn(double a){$/;"	f	typeref:typename:double	file:
+sgn	old/SMACSolver.cpp	/^static inline double sgn(double a){$/;"	f	typeref:typename:double	file:
+shift_pressure_reference	old/SMACSolver.cpp	/^void SMACSolver::shift_pressure_reference()$/;"	f	class:SMACSolver	typeref:typename:void
+size_	MyArray.h	/^    int size_=0;$/;"	m	struct:MyArray	typeref:typename:int
+size_	old/MyArray.h	/^    int size_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizex_	G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizex_	MyArray.h	/^    int sizex_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizex_	StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+sizex_	old/G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizex_	old/MyArray.h	/^    int sizex_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizex_	old/StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+sizey_	G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizey_	MyArray.h	/^    int sizey_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizey_	StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+sizey_	old/G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizey_	old/MyArray.h	/^    int sizey_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizey_	old/StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+sizez_	G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizez_	MyArray.h	/^    int sizez_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizez_	StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+sizez_	old/G_StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+sizez_	old/MyArray.h	/^    int sizez_=0;$/;"	m	struct:MyArray	typeref:typename:int
+sizez_	old/StaggeredGrid.h	/^    double sizex_, sizey_,sizez_;$/;"	m	struct:StaggeredGrid	typeref:typename:double
+solve	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::solve(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_GMGSolver::
+solve	old/pressure_solver/G_PCGSolver.cu	/^void G_PCGSolver::solve(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PCGSolver::
+solve	old/pressure_solver/G_PCGSolver_prof.cu	/^void G_PCGSolver::solve(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PCGSolver::
+solve_pcg	old/pressure_solver/G_PCGSolver.cu	/^void G_PCGSolver::solve_pcg(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PCGSolver::
+solve_poisson	SMACSolver.cpp	/^void SMACSolver::solve_poisson(){$/;"	f	class:SMACSolver	typeref:typename:void
+solve_poisson	old/G_SMACSolver.cu	/^void G_SMACSolver::solve_poisson(){$/;"	f	typeref:typename:void G_SMACSolver::
+solve_poisson	old/SMACSolver.cpp	/^void SMACSolver::solve_poisson(){$/;"	f	class:SMACSolver	typeref:typename:void
+solve_vof_poisson	SMACSolver.cpp	/^void SMACSolver::solve_vof_poisson(){$/;"	f	class:SMACSolver	typeref:typename:void
+solve_vof_poisson	old/SMACSolver.cpp	/^void SMACSolver::solve_vof_poisson(){$/;"	f	class:SMACSolver	typeref:typename:void
+solve_vof_poisson_pcg	SMACSolver.cpp	/^void SMACSolver::solve_vof_poisson_pcg(){$/;"	f	class:SMACSolver	typeref:typename:void
+solve_vof_poisson_pcg	old/SMACSolver.cpp	/^void SMACSolver::solve_vof_poisson_pcg(){$/;"	f	class:SMACSolver	typeref:typename:void
+solver_free	SMACSolver.cpp	/^void SMACSolver::solver_free(){$/;"	f	class:SMACSolver	typeref:typename:void
+solver_free	old/G_SMACSolver.cu	/^void G_SMACSolver::solver_free(){$/;"	f	typeref:typename:void G_SMACSolver::
+solver_free	old/SMACSolver.cpp	/^void SMACSolver::solver_free(){$/;"	f	class:SMACSolver	typeref:typename:void
+solver_malloc	SMACSolver.cpp	/^void SMACSolver::solver_malloc(){$/;"	f	class:SMACSolver	typeref:typename:void
+solver_malloc	old/G_SMACSolver.cu	/^void G_SMACSolver::solver_malloc(){$/;"	f	typeref:typename:void G_SMACSolver::
+solver_malloc	old/SMACSolver.cpp	/^void SMACSolver::solver_malloc(){$/;"	f	class:SMACSolver	typeref:typename:void
+solver_output_init	main.cu	/^int solver_output_init(const char* dir)$/;"	f	typeref:typename:int
+solver_output_init	old/main.cu	/^int solver_output_init(const char* dir)$/;"	f	typeref:typename:int
+subtract_cell_mean	SMACSolver.cpp	/^void SMACSolver::subtract_cell_mean(double *p)$/;"	f	class:SMACSolver	typeref:typename:void
+subtract_cell_mean	old/SMACSolver.cpp	/^void SMACSolver::subtract_cell_mean(double *p)$/;"	f	class:SMACSolver	typeref:typename:void
+subtract_cell_mean	old/pressure_solver/G_PressureSolverBase.cu	/^void G_PressureSolverBase::subtract_cell_mean(G_StaggeredGrid& grid_,double *p, int Nx, int Ny){$/;"	f	typeref:typename:void G_PressureSolverBase::
+subtract_cell_mean	pressure_solver/G_PressureSolverBase.cu	/^void G_PressureSolverBase::subtract_cell_mean(G_StaggeredGrid& grid_,double *p, int Nx, int Ny){$/;"	f	typeref:typename:void G_PressureSolverBase::
+swap_rz_ms	old/pressure_solver/G_PCGSolver.h	/^    float swap_rz_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+t_now_	SMACSolver.h	/^    double t_now_;$/;"	m	struct:SMACSolver	typeref:typename:double
+t_now_	old/G_SMACSolver.h	/^    double t_now_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+t_now_	old/SMACSolver.h	/^    double t_now_;$/;"	m	struct:SMACSolver	typeref:typename:double
+total_ms	old/pressure_solver/G_PCGSolver.h	/^    float total_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+transport_alpha	SMACSolver.cpp	/^void SMACSolver::transport_alpha(){$/;"	f	class:SMACSolver	typeref:typename:void
+transport_alpha	old/G_SMACSolver.cu	/^void G_SMACSolver::transport_alpha(int Nx, int Ny){$/;"	f	typeref:typename:void G_SMACSolver::
+transport_alpha	old/SMACSolver.cpp	/^void SMACSolver::transport_alpha(){$/;"	f	class:SMACSolver	typeref:typename:void
+u_lid_	SMACSolver.h	/^    double u_lid_;$/;"	m	struct:SMACSolver	typeref:typename:double
+u_lid_	old/G_SMACSolver.h	/^    double u_lid_;$/;"	m	struct:G_SMACSolver	typeref:typename:double
+u_lid_	old/SMACSolver.h	/^    double u_lid_;$/;"	m	struct:SMACSolver	typeref:typename:double
+updateTime	CFDTime.cpp	/^void CFDTime::updateTime(double cfl){$/;"	f	class:CFDTime	typeref:typename:void
+updateTime	old/CFDTime.cpp	/^void CFDTime::updateTime(double cfl){$/;"	f	class:CFDTime	typeref:typename:void
+update_dir_ms	old/pressure_solver/G_PCGSolver.h	/^    float update_dir_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+update_properties_by_alpha	SMACSolver.cpp	/^void SMACSolver::update_properties_by_alpha(){$/;"	f	class:SMACSolver	typeref:typename:void
+update_properties_by_alpha	old/G_SMACSolver.cu	/^void G_SMACSolver::update_properties_by_alpha(SMACSolver solv){$/;"	f	typeref:typename:void G_SMACSolver::
+update_properties_by_alpha	old/SMACSolver.cpp	/^void SMACSolver::update_properties_by_alpha(){$/;"	f	class:SMACSolver	typeref:typename:void
+update_properties_by_alpha_initial	SMACSolver.cpp	/^void SMACSolver::update_properties_by_alpha_initial(){$/;"	f	class:SMACSolver	typeref:typename:void
+update_properties_by_alpha_initial	old/SMACSolver.cpp	/^void SMACSolver::update_properties_by_alpha_initial(){$/;"	f	class:SMACSolver	typeref:typename:void
+update_prz_ms	old/pressure_solver/G_PCGSolver.h	/^    float update_prz_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+v_b_1_	G_StaggeredGrid.h	/^    double v_b_1_; \/\/ velocity at the boundary$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+v_b_1_	StaggeredGrid.h	/^    double v_b_1_; \/\/ velocity at the boundary$/;"	m	struct:StaggeredGrid	typeref:typename:double
+v_b_1_	old/G_StaggeredGrid.h	/^    double v_b_1_; \/\/ velocity at the boundary$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+v_b_1_	old/StaggeredGrid.h	/^    double v_b_1_; \/\/ velocity at the boundary$/;"	m	struct:StaggeredGrid	typeref:typename:double
+v_b_2_	G_StaggeredGrid.h	/^    double v_b_2_; \/\/ velocity at the boundary$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+v_b_2_	StaggeredGrid.h	/^    double v_b_2_; \/\/ velocity at the boundary$/;"	m	struct:StaggeredGrid	typeref:typename:double
+v_b_2_	old/G_StaggeredGrid.h	/^    double v_b_2_; \/\/ velocity at the boundary$/;"	m	struct:G_StaggeredGrid	typeref:typename:double
+v_b_2_	old/StaggeredGrid.h	/^    double v_b_2_; \/\/ velocity at the boundary$/;"	m	struct:StaggeredGrid	typeref:typename:double
+v_cycle	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::v_cycle(G_StaggeredGrid& grid){$/;"	f	typeref:typename:void G_GMGSolver::
+v_cycle_as_preconditioner	old/pressure_solver/G_GMGSolver.cu	/^void G_GMGSolver::v_cycle_as_preconditioner(G_StaggeredGrid& grid, MyArray<double,3> &q,MyArray</;"	f	typeref:typename:void G_GMGSolver::
+~CFDTime	CFDTime.cpp	/^CFDTime::~CFDTime(){}$/;"	f	class:CFDTime
+~CFDTime	old/CFDTime.cpp	/^CFDTime::~CFDTime(){}$/;"	f	class:CFDTime
+~G_PCGSolver	old/pressure_solver/G_PCGSolver.cu	/^G_PCGSolver::~G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+~G_PCGSolver	old/pressure_solver/G_PCGSolver_prof.cu	/^G_PCGSolver::~G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+~G_PressureSolverBase	old/pressure_solver/G_PressureSolverBase.h	/^    virtual ~G_PressureSolverBase(){}$/;"	f	struct:G_PressureSolverBase
+~G_PressureSolverBase	pressure_solver/G_PressureSolverBase.h	/^    virtual ~G_PressureSolverBase(){}$/;"	f	struct:G_PressureSolverBase

@@ -1,0 +1,79 @@
+/* the inputs are MEMBER(type, name,sizex,sizey,sizez,SAVEFLAG) */
+
+/* single scalars */
+
+MEMBER(double,sigma_,1,1,1,SAVE_OFF)
+
+/* cell center parameters*/
+
+MEMBER(double, rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, rho_old_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, inv_rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+
+MEMBER(double, alpha_s_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, ny_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, kappa_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+    
+MEMBER(double, mu_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, residue_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, rhs_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, p_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, p_tmp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, x_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, y_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, z_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, cfl_, (Nx),(Ny),(Nz),SAVE_OFF)
+
+/* == for PCG == */
+MEMBER(double, pcg_r_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_z_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_dir_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_tmp_, (Nx),(Ny),(Nz),SAVE_OFF)
+MEMBER(double, pcg_Ap_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_invDiag_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+
+
+/* === faces === */
+
+/* alpha flux */
+MEMBER(double, Fx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, Fy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, Fz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+MEMBER(double, Fx_accum_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, Fy_accum_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, Fz_accum_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* mass flux */
+MEMBER(double, f_mfx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_mfy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_mfz_, (Nx+2),(Ny+3),(Nz+3),SAVE_OFF)
+
+/* rho */
+MEMBER(double, f_rhox_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_rhoy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_rhoz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* inverse rho */
+MEMBER(double, f_bx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_by_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_bz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* surface tension */
+MEMBER(double, f_sx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_sy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_sz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* velocity */
+
+MEMBER(double, vx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, vy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, vz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+MEMBER(double, vx_star_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, vy_star_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, vz_star_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+
