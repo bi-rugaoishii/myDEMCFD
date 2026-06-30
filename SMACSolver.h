@@ -17,7 +17,9 @@ struct SMACSolver{
 
     /* == functions == */
 
-    void set_calc_properties(double rho,double dt, double u_lid, double nu, double sizex, double sizey, int Nx, int Ny, int Nz);
+    void set_calc_properties(double rho,double dt, double u_lid, double nu, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz);
+
+    void set_face_type();
 
     void solve_poisson();
     void solve_vof_poisson();
@@ -33,7 +35,7 @@ struct SMACSolver{
 
     void clear_alpha_flux();
     void compute_mass_flux_from_alpha_flux();
-    double calc_alpha_area() ;
+    double calc_alpha_vol() ;
     void alpha_flux_upwind();
     void alpha_flux_thinc_x();
     void alpha_flux_thinc_y();
@@ -52,7 +54,7 @@ struct SMACSolver{
     void build_vof_poisson_invdiag();
     void make_poisson_rhs();
     void subtract_cell_mean(double *p);
-    void set_gravity(double gx, double gy);
+    void set_gravity(double gx, double gy, double gz);
     void set_rhos(double rho0, double rho1);
     void set_mus(double mu0, double mu1);
 
@@ -61,6 +63,7 @@ struct SMACSolver{
     void set_boundary_pressure();
     void set_boundary_array(double *const q);
     void set_boundary_alpha();
+    void set_boundary_neumann(MyArray<double,3>& alpha);
 
     void get_vof_ustar_rhouu_upwind_consistent();
 

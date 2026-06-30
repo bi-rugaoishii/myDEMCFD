@@ -7,7 +7,6 @@
 #include "G_StaggeredGrid.h"
 #include "SMACSolver.h"
 #include "G_SMACSolver.h"
-#include "pressure_solver/G_PressureSolverBase.h"
 #include "CFDTime.h"
 #include "omp.h"
 #include <sys/stat.h>
@@ -17,9 +16,7 @@
 #define GPU_ON 1
 
 
-
-int solver_output_init(const char* dir)
-{
+int solver_output_init(const char* dir){
     struct stat st;
 
     /* 既に存在するか確認 */
@@ -46,127 +43,101 @@ int solver_output_init(const char* dir)
     return -1;
 }
 
-void output_vtk(const StaggeredGrid& grid, int step,const char* folderName)
-{
+void output_vti(const StaggeredGrid& grid, int step, const char* folderName){
     char filename[256];
-
-    sprintf(filename, "%s/result_%06d.vtk",folderName, step);
+    sprintf(filename, "%s/result_%06d.vti", folderName, step);
 
     FILE* fp = fopen(filename, "w");
-
     if (fp == NULL) {
-        printf("Cannot open VTK file: %s\n", filename);
+        printf("Cannot open VTI file: %s\n", filename);
         abort();
     }
 
     int Nx = grid.Nx_;
     int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
 
     double dx = grid.dx_;
     double dy = grid.dy_;
+    double dz = grid.dz_;
 
-    int pitch_p  = Nx + 2;
-    int pitch_vx = Nx + 3;
-    int pitch_vy = Nx + 2;
+    const MyArray<double,3>& p     = grid.p_;
+    const MyArray<double,3>& alpha = grid.alpha_;
+    const MyArray<double,3>& vx    = grid.f_vx_;
+    const MyArray<double,3>& vy    = grid.f_vy_;
+    const MyArray<double,3>& vz    = grid.f_vz_;
 
-    fprintf(fp, "# vtk DataFile Version 3.0\n");
-    fprintf(fp, "SMAC  result step %d\n", step);
-    fprintf(fp, "ASCII\n");
-    fprintf(fp, "DATASET STRUCTURED_POINTS\n");
+    fprintf(fp, "<?xml version=\"1.0\"?>\n");
+    fprintf(fp, "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
 
-    /*
-       セル中心データとして出力する。
-       点の位置はセル中心：
-       x = (j - 0.5) dx
-       y = (i - 0.5) dy
-       */
-    fprintf(fp, "DIMENSIONS %d %d %d\n", Nx, Ny, 1);
-    fprintf(fp, "ORIGIN %.15e %.15e %.15e\n", 0.5 * dx, 0.5 * dy, 0.0);
-    fprintf(fp, "SPACING %.15e %.15e %.15e\n", dx, dy, 1.0);
+    fprintf(fp,
+        "  <ImageData WholeExtent=\"0 %d 0 %d 0 %d\" "
+        "Origin=\"%.15e %.15e %.15e\" "
+        "Spacing=\"%.15e %.15e %.15e\">\n",
+        Nx - 1, Ny - 1, Nz - 1,
+        0.5 * dx, 0.5 * dy, 0.5 * dz,
+        dx, dy, dz);
 
-    fprintf(fp, "POINT_DATA %d\n", Nx * Ny);
+    fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx - 1, Ny - 1, Nz - 1);
+    fprintf(fp, "      <PointData Scalars=\"alpha\" Vectors=\"velocity\">\n");
 
-    /* pressure */
-    fprintf(fp, "SCALARS pressure double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-
-    for (int i = 1; i < Ny + 1; i++) {
-        for (int j = 1; j < Nx + 1; j++) {
-            double p = grid.p_[i * pitch_p + j];
-            fprintf(fp, "%.15e\n", p);
+    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"pressure\" format=\"ascii\">\n");
+    for (int iz = 1; iz <= Nz; iz++) {
+        for (int iy = 1; iy <= Ny; iy++) {
+            for (int ix = 1; ix <= Nx; ix++) {
+                fprintf(fp, "%.15e\n", p(ix, iy, iz));
+            }
         }
     }
+    fprintf(fp, "        </DataArray>\n");
 
-    /* alpha*/
-    fprintf(fp, "SCALARS alpha double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-
-    for (int i = 1; i < Ny + 1; i++) {
-        for (int j = 1; j < Nx + 1; j++) {
-            double alpha = grid.alpha_[i * pitch_p + j];
-            fprintf(fp, "%.15e\n", alpha);
+    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"alpha\" format=\"ascii\">\n");
+    for (int iz = 1; iz <= Nz; iz++) {
+        for (int iy = 1; iy <= Ny; iy++) {
+            for (int ix = 1; ix <= Nx; ix++) {
+                fprintf(fp, "%.15e\n", alpha(ix, iy, iz));
+            }
         }
     }
+    fprintf(fp, "        </DataArray>\n");
 
+    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"ascii\">\n");
+    for (int iz = 1; iz <= Nz; iz++) {
+        for (int iy = 1; iy <= Ny; iy++) {
+            for (int ix = 1; ix <= Nx; ix++) {
+                double ux = 0.5 * (vx(ix - 1, iy, iz) + vx(ix, iy, iz));
+                double uy = 0.5 * (vy(ix, iy - 1, iz) + vy(ix, iy, iz));
+                double uz = 0.5 * (vz(ix, iy, iz - 1) + vz(ix, iy, iz));
 
-    /* velocity */
-    fprintf(fp, "VECTORS velocity double\n");
-
-    for (int i = 1; i < Ny + 1; i++) {
-        for (int j = 1; j < Nx + 1; j++) {
-
-            double ux =
-                0.5 *
-                (
-                 grid.vx_[i * pitch_vx + j - 1]
-                 + grid.vx_[i * pitch_vx + j]
-                );
-
-            double uy =
-                0.5 *
-                (
-                 grid.vy_[(i - 1) * pitch_vy + j]
-                 + grid.vy_[i * pitch_vy + j]
-                );
-
-            fprintf(fp, "%.15e %.15e %.15e\n", ux, uy, 0.0);
+                fprintf(fp, "%.15e %.15e %.15e\n", ux, uy, uz);
+            }
         }
     }
+    fprintf(fp, "        </DataArray>\n");
 
-    /* divergence */
-    fprintf(fp, "SCALARS divergence double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
+    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"divergence\" format=\"ascii\">\n");
+    for (int iz = 1; iz <= Nz; iz++) {
+        for (int iy = 1; iy <= Ny; iy++) {
+            for (int ix = 1; ix <= Nx; ix++) {
+                double div =
+                    (vx(ix, iy, iz) - vx(ix - 1, iy, iz)) * grid.inv_dx_
+                  + (vy(ix, iy, iz) - vy(ix, iy - 1, iz)) * grid.inv_dy_
+                  + (vz(ix, iy, iz) - vz(ix, iy, iz - 1)) * grid.inv_dz_;
 
-    for (int i = 1; i < Ny + 1; i++) {
-        for (int j = 1; j < Nx + 1; j++) {
-
-            double div =
-                (
-                 grid.vx_[i * pitch_vx + j]
-                 - grid.vx_[i * pitch_vx + j - 1]
-                ) * grid.inv_dx_
-                + (
-                        grid.vy_[i * pitch_vy + j]
-                        - grid.vy_[(i - 1) * pitch_vy + j]
-                  ) * grid.inv_dy_;
-
-            fprintf(fp, "%.15e\n", div);
+                fprintf(fp, "%.15e\n", div);
+            }
         }
     }
+    fprintf(fp, "        </DataArray>\n");
+
+    fprintf(fp, "      </PointData>\n");
+    fprintf(fp, "      <CellData></CellData>\n");
+    fprintf(fp, "    </Piece>\n");
+    fprintf(fp, "  </ImageData>\n");
+    fprintf(fp, "</VTKFile>\n");
 
     fclose(fp);
-
-    printf("VTK output: %s\n", filename);
-}
-
-
-inline void print_array(double *array, int Nx, int Ny){
-    for (int i=0; i<Ny; i++){
-        for (int j=0; j<Nx; j++){
-            printf("%3.2e ",array[i*Nx+j]);
-        }
-        printf("\n");
-    }
+    printf("VTI output: %s\n", filename);
 }
 
 
@@ -235,7 +206,7 @@ int main(){
 
     solv.solver_malloc();
 
-    solv.grid_.sigma_[0] =sigma; // temporal implementation
+    solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
@@ -248,36 +219,15 @@ int main(){
     /*for zalesak test*/
     /*
     solv.initialize_zalesak_disk();
-    solv.set_zalesak_rotation_velocity();
     */
+    solv.set_zalesak_rotation_velocity();
 
-    solv.set_boundary_velocity();
-    solv.set_boundary_pressure();
-    solv.set_boundary_alpha();
+    solv.set_boundary_neumann(solv.grid_.p_);
+    solv.set_boundary_neumann(solv.grid_.alpha_);
     solv.update_properties_by_alpha_initial();
 
 
-    //solv.fix_pressure();
-    solv.shift_pressure_reference();
 
-    /* output initial data */
-    output_vtk(solv.grid_,0.,outdir);
-
-    G_SMACSolver g_solv;
-    g_solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez,Nx, Ny,Nz);
-
-    if(GPU_ON ==1){
-
-        printf("Allocating memory for gpu\n");
-        g_solv.solver_malloc();
-        printf("Allocated!\n");
-
-        printf("Copying data to gpu\n");
-        g_solv.cpuTogpu(solv.grid_);
-        printf("Copying data done\n");
-
-        g_solv.set_block_grid(Nx,Ny);
-    }
 
     /* === calc time measurement === */
     double h_start, h_end;
@@ -295,6 +245,26 @@ int main(){
 
     CFDTime cfdtime(dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
+    /* output initial data */
+    output_vti(solv.grid_,0.,outdir);
+
+    /* == gpu initialization == */
+    G_SMACSolver g_solv;
+    g_solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey,sizez, Nx, Ny, Nz);
+
+    if(GPU_ON ==1){
+
+        printf("Allocating memory for gpu\n");
+        g_solv.solver_malloc();
+        printf("Allocated!\n");
+
+        printf("Copying data to gpu\n");
+        g_solv.cpuTogpu(solv.grid_);
+        printf("Copying data done\n");
+
+        g_solv.set_block_grid(Nx,Ny,Nz);
+    }
+
 
 
 
@@ -303,8 +273,60 @@ int main(){
        ============================= */
 
 
-    solv.solver_free();
+    if (GPU_ON==1){
+        while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
 
+            /* == setup time == */
+            double cfl=g_solv.calc_cfl();
+            cfdtime.updateTime(cfl);
+
+            g_solv.dt_ = cfdtime.dt_;
+            g_solv.inv_dt_ = 1./cfdtime.dt_;
+
+            printf("dt = %3.2e, current time = %f\n",cfdtime.dt_,cfdtime.current_time_);
+
+            /* == transport alpha == */
+            g_solv.clear_alpha_flux_accum();
+
+
+            double sub_dt = cfdtime.dt_/(double)alpha_substeps;
+            for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
+                printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
+                g_solv.clear_alpha_flux();
+                g_solv.alpha_flux_thincwlic(sub_dt);
+                g_solv.transport_alpha();
+                g_solv.alpha_flux_accum();
+            }
+
+
+            /* == transport alpha done == */
+
+            if(cfdtime.isOutStep_){
+                g_solv.gpuTocpu(solv.grid_);
+                printf("total alpha = %f\n",solv.calc_alpha_vol());
+                //solv.check_divergence();
+                //solv.check_pressure_jump_by_radius();
+                output_vti(solv.grid_,cfdtime.current_steps_,outdir);
+                h_end = omp_get_wtime();
+                ms = (float)(h_end-h_start);
+
+                int step= cfdtime.current_steps_;
+                double current_time= cfdtime.current_time_;
+                printf("Output step %d, dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
+                cfdtime.isOutStep_=false;
+            }else{
+                h_end = omp_get_wtime();
+                ms = (float)(h_end-h_start);
+
+                int step= cfdtime.current_steps_;
+                double current_time= cfdtime.current_time_;
+                printf("step %d,next dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
+            }
+            printf("\n");
+        }
+    }
+
+    solv.solver_free();
     if(GPU_ON==1){
         g_solv.solver_free();
         //gmgSolver.levels_.free();

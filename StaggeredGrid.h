@@ -15,16 +15,13 @@ struct StaggeredGrid{
     double v_b_1_; // velocity at the boundary
     double v_b_2_; // velocity at the boundary
 
-    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) type* name;
+
+
+    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> name;
     #include "memberList/gridMembers.def"
     #undef MEMBER
 
-
-    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> wew_##name;
-    #include "memberList/gridMembers.def"
-    #undef MEMBER
-
-    void place_vof(double minx,double maxx, double miny, double maxy,double alpha);
+    void place_vof(double minx,double maxx, double miny, double maxy,double minz, double maxz, double alpha);
     void get_cell_coord();
 };
 
@@ -35,9 +32,9 @@ inline void StaggeredGrid::get_cell_coord(){
     double dx=dx_;
     double dy=dy_;
     double dz=dz_;
-    MyArray<double,3> x = wew_x_;
-    MyArray<double,3> y = wew_y_;
-    MyArray<double,3> z = wew_z_;
+    MyArray<double,3> x = x_;
+    MyArray<double,3> y = y_;
+    MyArray<double,3> z = z_;
 
     for(int iz=0; iz<Nz+2; iz++){
         for(int iy=0; iy<Ny+2; iy++){
@@ -56,13 +53,13 @@ inline void StaggeredGrid::place_vof(double minx,double maxx, double miny, doubl
     int Ny = Ny_;
     int Nz = Nz_;
 
-    for(int iz=1; j<Nx+1; j++){
+    for(int iz=1; iz<Nz+1; iz++){
         for(int iy=1; iy<Ny+1; iy++){
             for(int ix=1; ix<Nx+1; ix++){
-                if(wew_x_(ix,iy,iz)<maxx && wew_x_(ix,iy,iz)>minx){
-                    if(wew_y_(ix,iy,iz)<maxy && wew_y_(ix,iy,iz)>miny){
-                        if(wew_z_(ix,iy,iz)<maxz && wew_z_(ix,iy,iz)>minz){
-                            wew_alpha_(ix,iy,iz)=alpha;
+                if(x_(ix,iy,iz)<maxx && x_(ix,iy,iz)>minx){
+                    if(y_(ix,iy,iz)<maxy && y_(ix,iy,iz)>miny){
+                        if(z_(ix,iy,iz)<maxz && z_(ix,iy,iz)>minz){
+                            alpha_(ix,iy,iz)=alpha;
                         }
                     }
                 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "MyArray.h"
+#include "Enums.h"
 /* === grid class === */
 
 struct G_StaggeredGrid{
@@ -15,12 +16,9 @@ struct G_StaggeredGrid{
     double v_b_1_; // velocity at the boundary
     double v_b_2_; // velocity at the boundary
 
-    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) type* name;
-    #include "memberList/gridMembers.def"
-    #undef MEMBER
 
 
-    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> wew_##name;
+    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> name;
     #include "memberList/gridMembers.def"
     #undef MEMBER
 

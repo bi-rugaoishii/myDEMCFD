@@ -9,8 +9,8 @@ GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false
 #CFLAGS = -Xcompiler "-fsanitize=address -fno-omit-frame-pointer" -O0  -g  
 CONLYFLAGS = -O3  
 LIBS = -lm 
-OBJS =  main.o SMACSolver.o G_SMACSolver.o CFDTime.o\
-	   	pressure_solver/G_PCGSolver.o pressure_solver/G_PressureSolverBase.o pressure_solver/G_GMGSolver.o pressure_solver/G_Levels.o
+OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o
+	   
 
 PROGRAM = myCFD
 
