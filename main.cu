@@ -159,9 +159,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=64;
-    int Ny=64;
-    int Nz=64;
+    int Nx=48;
+    int Ny=48;
+    int Nz=48;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -199,27 +199,31 @@ int main(){
     /* == set properties ==*/
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
-    solv.set_gravity(0., -9.81, 0.);
-    //solv.set_gravity(0., 0.);
+    //solv.set_gravity(0., -9.81, 0.);
+    solv.set_gravity(0., 0.,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
 
     solv.solver_malloc();
 
+    solv.set_face_type();
+
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.6,0.,1.5,0.,0.6,1.0);
+    //solv.grid_.place_vof(0.,0.6,0.,1.5,0.,0.6,1.0);
     //solv.grid_.place_vof(0.,1.0,0.,0.5,1.0);
 
     /*for surface tension test*/
    // solv.initialize_disk();
 
+
     /*for zalesak test*/
     /*
     solv.initialize_zalesak_disk();
     */
+    solv.set_sphere();
     solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
@@ -240,7 +244,7 @@ int main(){
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
-    double endTime = 2.0;
+    double endTime = 1.0;
     double max_dt = 1e-2;
 
     CFDTime cfdtime(dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
@@ -248,6 +252,7 @@ int main(){
     /* output initial data */
     output_vti(solv.grid_,0.,outdir);
 
+    //printf("output initial\n");
     /* == gpu initialization == */
     G_SMACSolver g_solv;
     g_solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey,sizez, Nx, Ny, Nz);

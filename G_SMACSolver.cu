@@ -111,10 +111,11 @@ static __global__ void k_alpha_flux_accum(G_StaggeredGrid grid_){
     }
 }
 
+
 static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt){
-    int ix = blockIdx.x*blockDim.x + threadIdx.x;
-    int iy = blockIdx.y*blockDim.y + threadIdx.y;
-    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+2;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
 
     int Nx = grid.Nx_;
     int Ny = grid.Ny_;
@@ -123,6 +124,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& a  = grid.alpha_;
     MyArray<double,3>& vx = grid.f_vx_;
     MyArray<double,3>& Fx = grid.f_Fx_;
+    MyArray<unsigned char,3>& f_xtype = grid.f_xtype_;
 
     double inv_dx  = grid.inv_dx_;
     double inv_2dx = grid.inv_2dx_;
@@ -132,47 +134,34 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     double dtbydx = dt*inv_dx;
 
     // x-face index:
-    // ix = 0..Nx, iy = 0..Ny-1, iz = 0..Nz-1
-    if(ix > Nx || iy >= Ny || iz >= Nz){
+    // ix = 2..Nx, iy = 1..Ny, iz = 1..Nz
+    if(ix > Nx || iy > Ny || iz > Nz){
         return;
     }
 
-    // x boundary  face
-    if(ix == 0 || ix == Nx){
+    // x ghost  face
+    if (f_xtype(ix,iy,iz)==GHOST || f_xtype(ix,iy,iz)==WALL_NOSLIP){
         Fx(ix,iy,iz) = 0.0;
-        return;
+        return ;
     }
+
 
     double vxf = vx(ix,iy,iz);
 
     int donorInd = vxf > 0.0 ? ix-1 : ix;
 
-    if(donorInd < 0 || donorInd >= Nx){
-        Fx(ix,iy,iz) = 0.0;
-        return;
-    }
 
     double axf = a(donorInd,iy,iz);
 
-    bool near_boundary = false;
 
-    if(donorInd == 0 || donorInd == Nx-1){
-        near_boundary = true;
-    }
-
-    if(iy == 0 || iy == Ny-1){
-        near_boundary = true;
-    }
-
-    if(iz == 0 || iz == Nz-1){
-        near_boundary = true;
-    }
-
-    // upwind near boundary
-    if(near_boundary){
+    /* if near ghost cell */
+    if (donorInd <= 1 || donorInd >= Nx ||
+            iy <= 1 || iy >= Ny ||
+            iz <= 1 || iz >= Nz) {
         Fx(ix,iy,iz) = vxf*axf*dtbydx;
         return;
     }
+
 
     double gamma_x = a(donorInd+1,iy,iz) - a(donorInd-1,iy,iz);
 
@@ -194,7 +183,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = nz_abs*inv_s;
+    double wz = 1.-(wx+wy);
 
     double gamma = sgn(gamma_x);
 
@@ -215,9 +204,9 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 }
 
 static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt){
-    int ix = blockIdx.x*blockDim.x + threadIdx.x;
-    int iy = blockIdx.y*blockDim.y + threadIdx.y;
-    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+2;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
 
     int Nx = grid.Nx_;
     int Ny = grid.Ny_;
@@ -226,6 +215,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& a  = grid.alpha_;
     MyArray<double,3>& vy = grid.f_vy_;
     MyArray<double,3>& Fy = grid.f_Fy_;
+    MyArray<unsigned char,3>& f_ytype = grid.f_ytype_;
 
     double inv_dy  = grid.inv_dy_;
     double inv_2dx = grid.inv_2dx_;
@@ -235,47 +225,35 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     double dtbydy = dt*inv_dy;
 
     // y-face index:
-    // ix = 0..Nx-1, iy = 0..Ny, iz = 0..Nz-1
-    if(ix >= Nx || iy > Ny || iz >= Nz){
+    // ix = 1..Nx, iy = 2..Ny, iz = 1..Nz
+
+    if(ix > Nx || iy > Ny || iz > Nz){
         return;
     }
 
-    // y boundary face
-    if(iy == 0 || iy == Ny){
+    // y ghost  face
+    if (f_ytype(ix,iy,iz)==GHOST || f_ytype(ix,iy,iz)==WALL_NOSLIP){
         Fy(ix,iy,iz) = 0.0;
-        return;
+        return ;
     }
 
     double vyf = vy(ix,iy,iz);
 
     int donorInd = vyf > 0.0 ? iy-1 : iy;
 
-    if(donorInd < 0 || donorInd >= Ny){
-        Fy(ix,iy,iz) = 0.0;
-        return;
-    }
 
     double ayf = a(ix,donorInd,iz);
 
-    bool near_boundary = false;
 
-    if(ix == 0 || ix == Nx-1){
-        near_boundary = true;
-    }
-
-    if(donorInd == 0 || donorInd == Ny-1){
-        near_boundary = true;
-    }
-
-    if(iz == 0 || iz == Nz-1){
-        near_boundary = true;
-    }
 
     // upwind near boundary
-    if(near_boundary){
+    if (ix <= 1 || ix >= Nx ||
+            donorInd <= 1 || donorInd >= Ny ||
+            iz <= 1 || iz >= Nz) {
         Fy(ix,iy,iz) = vyf*ayf*dtbydy;
         return;
     }
+
 
     double gamma_y = a(ix,donorInd+1,iz) - a(ix,donorInd-1,iz);
 
@@ -297,7 +275,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = nz_abs*inv_s;
+    double wz = 1.-(wx+wy);
 
     double gamma = sgn(gamma_y);
 
@@ -318,9 +296,9 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 }
 
 static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt){
-    int ix = blockIdx.x*blockDim.x + threadIdx.x;
-    int iy = blockIdx.y*blockDim.y + threadIdx.y;
-    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+2;
 
     int Nx = grid.Nx_;
     int Ny = grid.Ny_;
@@ -329,6 +307,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& a  = grid.alpha_;
     MyArray<double,3>& vz = grid.f_vz_;
     MyArray<double,3>& Fz = grid.f_Fz_;
+    MyArray<unsigned char,3>& f_ztype = grid.f_ztype_;
 
     double inv_dz  = grid.inv_dz_;
     double inv_2dx = grid.inv_2dx_;
@@ -338,44 +317,29 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     double dtbydz = dt*inv_dz;
 
     // z-face index:
-    // ix = 0..Nx-1, iy = 0..Ny-1, iz = 0..Nz
-    if(ix >= Nx || iy >= Ny || iz > Nz){
+    // ix = 1..Nx, iy = 1..Ny, iz = 2..Nz
+    if(ix > Nx || iy > Ny || iz > Nz){
         return;
     }
 
-    // z boundary face
-    if(iz == 0 || iz == Nz){
+    // z ghost  face
+    if (f_ztype(ix,iy,iz)==GHOST || f_ztype(ix,iy,iz)==WALL_NOSLIP){
         Fz(ix,iy,iz) = 0.0;
-        return;
+        return ;
     }
 
     double vzf = vz(ix,iy,iz);
 
     int donorInd = vzf > 0.0 ? iz-1 : iz;
 
-    if(donorInd < 0 || donorInd >= Nz){
-        Fz(ix,iy,iz) = 0.0;
-        return;
-    }
 
     double azf = a(ix,iy,donorInd);
 
-    bool near_boundary = false;
-
-    if(ix == 0 || ix == Nx-1){
-        near_boundary = true;
-    }
-
-    if(iy == 0 || iy == Ny-1){
-        near_boundary = true;
-    }
-
-    if(donorInd == 0 || donorInd == Nz-1){
-        near_boundary = true;
-    }
 
     // upwind near boundary
-    if(near_boundary){
+    if (ix <= 1 || ix >= Nx ||
+            iy <= 1 || iy >= Ny ||
+            donorInd <= 1 || donorInd >= Nz) {
         Fz(ix,iy,iz) = vzf*azf*dtbydz;
         return;
     }
@@ -400,7 +364,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = nz_abs*inv_s;
+    double wz = 1-(wx+wy);
 
     double gamma = sgn(gamma_z);
 
@@ -421,7 +385,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 }
 
 static __global__ void k_transport_alpha(G_StaggeredGrid grid_){
-    int iz = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
 
@@ -466,6 +430,7 @@ void G_SMACSolver::transport_alpha(){
 
 void G_SMACSolver::alpha_flux_thincwlic(double dt){
 
+    //k_alpha_flux_upwind<<<grid_dim_,block_dim_>>>(grid_, dt);
     k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
     k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
     k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
@@ -524,7 +489,7 @@ static __global__  void  k_calc_cfl(G_StaggeredGrid grid_,double dt){
     double vy_yp = fabs(vy(ix,iy+1,iz));
     double vy_ym = fabs(vy(ix,iy,iz));
     double vz_zp = fabs(vz(ix,iy,iz+1));
-    double vz_zm = fabs(vz(ix,iy,iz+1));
+    double vz_zm = fabs(vz(ix,iy,iz));
 
     double max_vx= vx_xp>vx_xm ? vx_xp: vx_xm;
     double max_vy= vy_yp>vy_ym ? vy_yp: vy_ym;

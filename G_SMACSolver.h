@@ -87,7 +87,7 @@ struct G_SMACSolver{
         block_dim_ = dim3(BLOCK_X,BLOCK_Y,BLOCK_Z);
 
         grid_dim_ = dim3( (Nx+3 + block_dim_.x -1)/block_dim_.x,
-               (Ny+3 + block_dim_.y-1)/block_dim_.y,(Nx+3+block_dim_.z-1)/block_dim_.z);
+               (Ny+3 + block_dim_.y-1)/block_dim_.y,(Nz+3+block_dim_.z-1)/block_dim_.z);
 
     }
 

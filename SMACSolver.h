@@ -75,6 +75,7 @@ struct SMACSolver{
     /* == for debugging ==*/
     void check_nan_all(const char* tag);
 
+    void set_sphere();
     void initialize_zalesak_disk();
     void initialize_disk();
     void set_zalesak_rotation_velocity();

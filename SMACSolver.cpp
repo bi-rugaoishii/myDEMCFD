@@ -144,7 +144,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
 
     /* == update rho == */
     for (int iz=1; iz<Nz+1; iz++){
-        for (int iy=1; iy<Nx+1; iy++){
+        for (int iy=1; iy<Ny+1; iy++){
             for (int ix=1; ix<Nx+1; ix++){
                 double alpha = a(ix,iy,iz);
                 rho(ix,iy,iz) = (1.-alpha)*rho0+alpha*rho1;
@@ -153,7 +153,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
     }
 
     for (int iz=1; iz<Nz+1; iz++){
-        for (int iy=1; iy<Nx+1; iy++){
+        for (int iy=1; iy<Ny+1; iy++){
             for (int ix=1; ix<Nx+1; ix++){
                 rho_old(ix,iy,iz) = rho(ix,iy,iz);
             }
@@ -162,7 +162,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
 
     /* == update inv_rho == */
     for (int iz=1; iz<Nz+1; iz++){
-        for (int iy=1; iy<Nx+1; iy++){
+        for (int iy=1; iy<Ny+1; iy++){
             for (int ix=1; ix<Nx+1; ix++){
                 inv_rho(ix,iy,iz) = 1./rho(ix,iy,iz);
             }
@@ -171,7 +171,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
 
     /* == update mu == */
     for (int iz=1; iz<Nz+1; iz++){
-        for (int iy=1; iy<Nx+1; iy++){
+        for (int iy=1; iy<Ny+1; iy++){
             for (int ix=1; ix<Nx+1; ix++){
                 double alpha = a(ix,iy,iz);
                 mu(ix,iy,iz) = (1.-alpha)*mu0+alpha*mu1;
@@ -186,7 +186,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
     MyArray<double,3>& f_bx = grid_.f_bx_;
 
     for (int iz=0; iz<Nz+2; iz++){
-        for (int iy=0; iy<Nx+2; iy++){
+        for (int iy=0; iy<Ny+2; iy++){
             for (int ix=0; ix<Nx+3; ix++){
                 unsigned char face_type = grid_.f_xtype_(ix,iy,iz);
                 switch(face_type){
@@ -208,7 +208,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
     MyArray<double,3>& f_by = grid_.f_by_;
 
     for (int iz=0; iz<Nz+2; iz++){
-        for (int iy=0; iy<Nx+3; iy++){
+        for (int iy=0; iy<Ny+3; iy++){
             for (int ix=0; ix<Nx+2; ix++){
                 unsigned char face_type = grid_.f_ytype_(ix,iy,iz);
                 switch(face_type){
@@ -230,7 +230,7 @@ void SMACSolver::update_properties_by_alpha_initial(){
     MyArray<double,3>& f_bz = grid_.f_bz_;
 
     for (int iz=0; iz<Nz+3; iz++){
-        for (int iy=0; iy<Nx+2; iy++){
+        for (int iy=0; iy<Ny+2; iy++){
             for (int ix=0; ix<Nx+2; ix++){
                 unsigned char face_type = grid_.f_ztype_(ix,iy,iz);
                 switch(face_type){
@@ -313,10 +313,59 @@ void SMACSolver::set_boundary_neumann(MyArray<double,3>& alpha){
     for (int iy=0; iy<Ny+2; iy++){
         for (int ix=0; ix<Nx+2; ix++){
             alpha(ix,iy,0) =alpha(ix,iy,1);
-            alpha(ix,iy,Nx+1) =alpha(ix,iy,Nx);
+            alpha(ix,iy,Nz+1) =alpha(ix,iy,Nx);
         }
     }
 }
+
+void SMACSolver::set_sphere(){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+
+    MyArray<double,3> x = grid_.x_;
+    MyArray<double,3> y = grid_.y_;
+    MyArray<double,3> z = grid_.z_;
+    MyArray<double,3> a = grid_.alpha_;
+
+    double center_x = 0.5;
+    double center_y = 0.5;
+    double center_z = 0.5;
+    double r = 0.3;
+    double rsq = r*r;
+
+    // Zalesak-like slot
+    double slot_half_width = 0.04;       
+    double slot_y_min = center_y;       
+    double slot_y_max = center_y + r;  
+
+    for(int iz=1; iz<Nz+1; iz++){
+        for(int iy=1; iy<Ny+1; iy++){
+            for(int ix=1; ix<Nx+1; ix++){
+
+                double dx = x(ix,iy,iz) - center_x;
+                double dy = y(ix,iy,iz) - center_y;
+                double dz = z(ix,iy,iz) - center_z;
+
+                bool inside_sphere = dx*dx + dy*dy + dz*dz < rsq;
+
+                bool inside_slot =
+                    fabs(dx) < slot_half_width &&
+                    y(ix,iy,iz) > slot_y_min &&
+                    y(ix,iy,iz) < slot_y_max;
+
+                if (inside_sphere && !inside_slot) {
+                    a(ix,iy,iz) = 1.0;
+                } else {
+                    a(ix,iy,iz) = 0.0;
+                }
+            }
+
+        }
+    }
+}
+
 
 
 void SMACSolver::set_zalesak_rotation_velocity(){

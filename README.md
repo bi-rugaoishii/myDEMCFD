@@ -1,7 +1,7 @@
 # CFD/VOF Solver TODO
 
 This repository contains a custom CFD/VOF solver under active development.
-The current solver is a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface tension modeling.
+The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface tension modeling. It is now being extended to 3D, with boundary handling organized around per-cell attributes and boundary-adjacent cell flags.
 
 The long-term goal is to extend the solver toward 3D free-surface simulations such as water crown and milk crown problems.
 
@@ -25,13 +25,14 @@ Major implemented features include:
 - CFL-based variable time step
 - Alpha substepping for VOF transport
 - Surface tension implementation
+- Face/cell indexing convention cleanup
 
 The main remaining work is no longer basic implementation, but rather:
 
 - better software organization and scheme switching
 - fixed-dt / variable-dt mode switching
 - parameter ownership cleanup
-- face/cell indexing cleanup
+- 3D cell-attribute / boundary-adjacent-cell based boundary handling
 - pressure-solver validation and benchmarking
 - higher-order momentum advection
 - viscous-term correction for variable viscosity
@@ -74,6 +75,7 @@ The main remaining work is no longer basic implementation, but rather:
 - [x] Zalesak slotted disk test
 - [x] Upwind / THINC / WLIC comparison
 - [x] Basic diagnostics for alpha conservation and divergence
+- [x] Face/cell indexing convention cleanup
 
 ---
 
@@ -84,7 +86,7 @@ The next major goals are:
 1. Make numerical methods switchable.
 2. Support both fixed time step and CFL-based variable time step modes.
 3. Organize solver parameters such as `dt`, `Nx`, `Ny`, material properties, and scheme settings.
-4. Rework face/cell indexing from the current `f0 c1 f1 c2 f2` convention to a cleaner `f0 c0 f1 c1` convention.
+4. Complete the 3D boundary-cell attribute system for boundary-adjacent cells and boundary-condition handling.
 5. Validate and benchmark GPU PCG, GMG, and GMG-preconditioned pressure solvers.
 6. Improve momentum advection using MUSCL-TVD schemes.
 7. Replace the approximate viscous term with the full variable-viscosity stress-divergence form.
@@ -247,7 +249,7 @@ MaterialConfig:
 
 ---
 
-## 0.4 Face/Cell Indexing Convention Cleanup
+## 0.4 Face/Cell Indexing Convention Cleanup Completed
 
 The current face/cell indexing convention is based on a pattern like:
 
@@ -265,17 +267,17 @@ The goal is to make cell and face indices easier to reason about, reduce off-by-
 
 TODO:
 
-- [ ] Document the current `f0 c1 f1 c2 f2` indexing convention
-- [ ] Define the target `f0 c0 f1 c1` indexing convention for 2D MAC grids
-- [ ] Decide the exact valid index ranges for cell-centered variables `p`, `alpha`, `rho`, and `mu`
-- [ ] Decide the exact valid index ranges for x-face velocity `vx` / `u`
-- [ ] Decide the exact valid index ranges for y-face velocity `vy` / `v`
-- [ ] Update pitch definitions if needed
-- [ ] Update boundary-condition kernels for the new face indexing
-- [ ] Update divergence, gradient, Poisson RHS, and velocity correction kernels
-- [ ] Update VOF flux kernels and WLIC/THINC face access
-- [ ] Update momentum advection and viscous-term kernels
-- [ ] Update surface-tension force placement if needed
+- [x] Document the current `f0 c1 f1 c2 f2` indexing convention
+- [x] Define the target `f0 c0 f1 c1` indexing convention for 2D MAC grids
+- [x] Decide the exact valid index ranges for cell-centered variables `p`, `alpha`, `rho`, and `mu`
+- [x] Decide the exact valid index ranges for x-face velocity `vx` / `u`
+- [x] Decide the exact valid index ranges for y-face velocity `vy` / `v`
+- [x] Update pitch definitions if needed
+- [x] Update boundary-condition kernels for the new face indexing
+- [x] Update divergence, gradient, Poisson RHS, and velocity correction kernels
+- [x] Update VOF flux kernels and WLIC/THINC face access
+- [x] Update momentum advection and viscous-term kernels
+- [x] Update surface-tension force placement if needed
 - [ ] Add debug assertions or test kernels to verify valid index ranges
 - [ ] Re-run lid-driven cavity, dam-break, static droplet, and Zalesak tests after the indexing change
 - [ ] Keep the old indexing branch or commit available until the new convention is validated
@@ -294,7 +296,7 @@ cell c0 uses left face f0 and right face f1
 cell c1 uses left face f1 and right face f2
 ```
 
-Priority: medium to high, because this change affects many kernels and should be done before large-scale 3D refactoring.
+Status: core implementation completed. Remaining work is mainly validation after the 3D boundary-cell attribute system is integrated.
 
 ---
 
@@ -620,8 +622,60 @@ surface tension force = sigma * kappa * grad(alpha)
 
 The long-term target is 3D water crown / milk crown simulation.
 
+## 8.0 3D Boundary-Cell Attribute System Highest Priority
+
+The current 3D refactoring should prioritize boundary handling based on per-cell attributes.
+Each cell should know whether it is a normal fluid cell, ghost/solid cell, or adjacent to a physical boundary.
+This boundary metadata should be used consistently by boundary-condition kernels, divergence/RHS construction, Poisson stencils, velocity correction, VOF transport, viscous terms, surface tension, and later GMG coarse levels.
+
+Recommended initial design:
+
+```cpp
+enum class CellFlag : unsigned char{
+    Fluid      = 0,
+    Ghost      = 1 << 0,
+    Solid      = 1 << 1,
+    BndXMinus  = 1 << 2,
+    BndXPlus   = 1 << 3,
+    BndYMinus  = 1 << 4,
+    BndYPlus   = 1 << 5,
+    BndZMinus  = 1 << 6,
+    BndZPlus   = 1 << 7
+};
+```
+
+If more states are needed later, use `uint16_t` instead of `unsigned char`.
+The important point is to keep boundary checks readable and centralized, not scattered as ad-hoc index checks in every kernel.
+
 TODO:
 
+- [ ] Define the 3D cell attribute / cell flag representation
+- [ ] Add `cell_flag` or `cell_type` array to `StaggeredGrid`
+- [ ] Decide whether flags are stored as `unsigned char`, `uint8_t`, or `uint16_t`
+- [ ] Define flags for fluid, ghost, solid/obstacle, and boundary-adjacent cells
+- [ ] Define directional boundary-adjacent flags: `x-`, `x+`, `y-`, `y+`, `z-`, `z+`
+- [ ] Add a function such as `build_cell_flags_3d()`
+- [ ] Initialize flags from domain boundaries and ghost-cell ranges
+- [ ] Keep boundary-condition type information separate from geometric flags if possible
+- [ ] Use cell flags in 3D velocity boundary-condition kernels
+- [ ] Use cell flags in 3D pressure / Neumann boundary-condition handling
+- [ ] Use cell flags in 3D divergence and Poisson RHS construction
+- [ ] Use cell flags in the 3D variable-coefficient Poisson stencil
+- [ ] Use cell flags in the 3D velocity correction step
+- [ ] Use cell flags in 3D VOF transport so that boundary faces do not create invalid fluxes
+- [ ] Use cell flags in the 3D viscous stress-divergence operator
+- [ ] Use cell flags in 3D surface-tension force placement if needed
+- [ ] Add small-grid debug tests such as `Nx=2, Ny=2, Nz=2` and `Nx=4, Ny=3, Nz=2`
+- [ ] Print or dump `cell_flag` for a small grid to verify boundary-adjacent cells
+- [ ] Confirm that kernels no longer need scattered hard-coded boundary index checks
+- [ ] Extend the same flag logic to embedded boundaries later if needed
+- [ ] Decide how cell flags are restricted/coarsened for GMG levels
+
+Priority: highest. This should be completed before large-scale 3D solver validation, because the 3D divergence, Poisson operator, velocity correction, and boundary-condition code will all depend on it.
+
+TODO:
+
+- [ ] Complete the 3D boundary-cell attribute system described in Phase 8.0
 - [ ] Decide the 3D MAC-grid layout
 - [ ] Add the z-velocity component `w`
 - [ ] Design z-face arrays
@@ -687,25 +741,32 @@ TODO:
 
 # Current Short-Term Priorities
 
-1. Implement switching between fixed time step and CFL-based variable time step.
-2. Add alpha-substep settings to `SolverConfig` and keep `alpha_substeps = 1` available for comparison.
-3. Organize `SolverConfig`.
-4. Clarify ownership of `dt`, `Nx`, `Ny`, grid spacing, material properties, and solver parameters.
-5. Implement the basic switching structure for numerical methods.
-6. Validate and benchmark GPU PCG, GMG, and GMG-preconditioned pressure solvers.
-7. Decide which pressure solver should be the default.
-8. Add MUSCL-TVD momentum advection.
-9. Start with the minmod limiter.
-10. Add van Leer and MC limiters.
-11. Identify the current viscous-term approximation.
-12. Replace the viscous term with the variable-viscosity stress-divergence form.
-13. Validate the implemented surface tension model.
-14. Add the static droplet test.
-15. Measure spurious currents.
-16. Investigate a balanced-force surface-tension formulation.
-17. Add rising bubble and Rayleigh-Taylor tests.
-18. Add restart and binary output.
-19. Prepare for 3D extension.
+1. Complete the 3D boundary-cell attribute system for boundary-adjacent cells.
+2. Add `cell_flag` / `cell_type` to `StaggeredGrid` and initialize it for 3D ghost cells and physical boundaries.
+3. Use the cell attributes in 3D boundary-condition kernels.
+4. Use the cell attributes in 3D divergence, Poisson RHS, Poisson stencil, and velocity correction.
+5. Use the cell attributes in VOF transport and momentum/viscous updates near boundaries.
+6. Decide how the cell flags should be restricted or rebuilt on GMG coarse levels.
+7. Validate the new 3D boundary handling on very small grids with printed flags.
+8. Validate the new 3D boundary handling using divergence checks and simple projection tests.
+9. Implement switching between fixed time step and CFL-based variable time step.
+10. Add alpha-substep settings to `SolverConfig` and keep `alpha_substeps = 1` available for comparison.
+11. Organize `SolverConfig`.
+12. Clarify ownership of `dt`, `Nx`, `Ny`, `Nz`, grid spacing, material properties, and solver parameters.
+13. Implement the basic switching structure for numerical methods.
+14. Validate and benchmark GPU PCG, GMG, and GMG-preconditioned pressure solvers.
+15. Decide which pressure solver should be the default.
+16. Add MUSCL-TVD momentum advection.
+17. Start with the minmod limiter.
+18. Add van Leer and MC limiters.
+19. Identify the current viscous-term approximation.
+20. Replace the viscous term with the variable-viscosity stress-divergence form.
+21. Validate the implemented surface tension model.
+22. Add the static droplet test.
+23. Measure spurious currents.
+24. Investigate a balanced-force surface-tension formulation.
+25. Add rising bubble and Rayleigh-Taylor tests.
+26. Add restart and binary output.
 
 ---
 
@@ -725,11 +786,11 @@ Already implemented:
     surface tension
 
 Main remaining work:
+    3D boundary-cell attribute system
     scheme switching design
     fixed-dt / variable-dt switching
     alpha-substep configuration cleanup
     parameter ownership cleanup
-    face/cell indexing cleanup
     pressure-solver validation and benchmarking
     higher-order momentum advection
     viscous-term correction
