@@ -125,6 +125,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& vx = grid.f_vx_;
     MyArray<double,3>& Fx = grid.f_Fx_;
     MyArray<unsigned char,3>& f_xtype = grid.f_xtype_;
+    MyArray<unsigned char,3>& celltype = grid.celltype_;
 
     double inv_dx  = grid.inv_dx_;
     double inv_2dx = grid.inv_2dx_;
@@ -140,7 +141,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     }
 
     // x ghost  face
-    if (f_xtype(ix,iy,iz)==GHOST || f_xtype(ix,iy,iz)==WALL_NOSLIP){
+    if (f_xtype(ix,iy,iz)==F_GHOST || f_xtype(ix,iy,iz)==F_WALL_NOSLIP){
         Fx(ix,iy,iz) = 0.0;
         return ;
     }
@@ -152,12 +153,11 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
 
     double axf = a(donorInd,iy,iz);
+    unsigned char ctype = celltype(donorInd,iy,iz);
 
 
-    /* if near ghost cell */
-    if (donorInd <= 1 || donorInd >= Nx ||
-            iy <= 1 || iy >= Ny ||
-            iz <= 1 || iz >= Nz) {
+    /* if near boundary */
+    if (ctype == C_NEAR_BOUNDARY) {
         Fx(ix,iy,iz) = vxf*axf*dtbydx;
         return;
     }
@@ -216,6 +216,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& vy = grid.f_vy_;
     MyArray<double,3>& Fy = grid.f_Fy_;
     MyArray<unsigned char,3>& f_ytype = grid.f_ytype_;
+    MyArray<unsigned char,3>& celltype = grid.celltype_;
 
     double inv_dy  = grid.inv_dy_;
     double inv_2dx = grid.inv_2dx_;
@@ -232,7 +233,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     }
 
     // y ghost  face
-    if (f_ytype(ix,iy,iz)==GHOST || f_ytype(ix,iy,iz)==WALL_NOSLIP){
+    if (f_ytype(ix,iy,iz)==F_GHOST || f_ytype(ix,iy,iz)==F_WALL_NOSLIP){
         Fy(ix,iy,iz) = 0.0;
         return ;
     }
@@ -244,12 +245,12 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double ayf = a(ix,donorInd,iz);
 
+    unsigned char ctype = celltype(ix,donorInd,iz);
 
 
     // upwind near boundary
-    if (ix <= 1 || ix >= Nx ||
-            donorInd <= 1 || donorInd >= Ny ||
-            iz <= 1 || iz >= Nz) {
+
+    if (ctype == C_NEAR_BOUNDARY) {
         Fy(ix,iy,iz) = vyf*ayf*dtbydy;
         return;
     }
@@ -308,6 +309,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     MyArray<double,3>& vz = grid.f_vz_;
     MyArray<double,3>& Fz = grid.f_Fz_;
     MyArray<unsigned char,3>& f_ztype = grid.f_ztype_;
+    MyArray<unsigned char,3>& celltype = grid.celltype_;
 
     double inv_dz  = grid.inv_dz_;
     double inv_2dx = grid.inv_2dx_;
@@ -323,7 +325,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     }
 
     // z ghost  face
-    if (f_ztype(ix,iy,iz)==GHOST || f_ztype(ix,iy,iz)==WALL_NOSLIP){
+    if (f_ztype(ix,iy,iz)==F_GHOST || f_ztype(ix,iy,iz)==F_WALL_NOSLIP){
         Fz(ix,iy,iz) = 0.0;
         return ;
     }
@@ -334,12 +336,11 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
 
     double azf = a(ix,iy,donorInd);
+    unsigned char ctype = celltype(ix,iy,donorInd);
 
 
     // upwind near boundary
-    if (ix <= 1 || ix >= Nx ||
-            iy <= 1 || iy >= Ny ||
-            donorInd <= 1 || donorInd >= Nz) {
+    if (ctype == C_NEAR_BOUNDARY) {
         Fz(ix,iy,iz) = vzf*azf*dtbydz;
         return;
     }
@@ -428,6 +429,157 @@ void G_SMACSolver::transport_alpha(){
     std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 }
 
+
+static __global__ void k_update_cell_properties_by_alpha(G_StaggeredGrid grid_,double rho0, double rho1, double mu0, double mu1){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+
+    int Nx=grid_.Nx_;
+    int Ny=grid_.Ny_;
+    int Nz=grid_.Nz_;
+
+    MyArray<double,3> a = grid_.alpha_;
+    MyArray<double,3> rho = grid_.rho_;
+    MyArray<double,3> inv_rho = grid_.inv_rho_;
+    MyArray<double,3> mu = grid_.mu_;
+
+    MyArray<unsigned char,3>& celltype = grid_.celltype_;
+
+    if (ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    unsigned char ctype = celltype(ix,iy,iz);
+
+    if(ctype != C_INTERIOR) return;
+
+    /* == update rho == */
+    double alpha = a(ix,iy,iz);
+    rho(ix,iy,iz)= (1.-alpha)*rho0+alpha*rho1;
+
+    /* == update inv_rho == */
+    inv_rho(ix,iy,iz)= 1./rho(ix,iy,iz);
+
+    /* == update mu == */
+    mu(ix,iy,iz) = (1.-alpha)*mu0+alpha*mu1;
+}
+
+static __global__ void k_update_x_face_properties_by_alpha(G_StaggeredGrid grid_,double rho0, double rho1){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx=grid_.Nx_;
+    int Ny=grid_.Ny_;
+    int Nz=grid_.Nz_;
+
+
+    if (ix >=Nx+3 || iy >= Ny+2 || iz >= Nz+2) return;
+
+
+    MyArray<double,3> rho = grid_.rho_;
+    MyArray<double,3> mu = grid_.mu_;
+
+    /* == update inv rho at face== */
+    /* == x faces == */
+    MyArray<double,3>  f_bx = grid_.f_bx_;
+
+
+    /* == update rho at face== */
+    MyArray<double,3>  f_rhox = grid_.f_rhox_;
+    f_rhox(ix,iy,iz) = 0.5*(rho(ix,iy,iz)+rho(ix-1,iy,iz));
+
+    //f_bx[ind] = (inv_rho[ind1]+inv_rho[ind0])*0.5;
+    f_bx(ix,iy,iz) = 1./f_rhox(ix,iy,iz);
+
+    /* == update mu at face== */
+    MyArray<double,3>  f_mux = grid_.f_mux_;
+    f_mux(ix,iy,iz) = 0.5*(mu(ix,iy,iz)+mu(ix-1,iy,iz));
+}
+
+
+static __global__ void k_update_y_face_properties_by_alpha(G_StaggeredGrid grid_,double rho0, double rho1){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx=grid_.Nx_;
+    int Ny=grid_.Ny_;
+    int Nz=grid_.Nz_;
+
+
+    if (ix >=Nx+2 || iy >= Ny+3 || iz >= Nz+2) return;
+
+
+    MyArray<double,3> rho = grid_.rho_;
+    MyArray<double,3> mu = grid_.mu_;
+
+    /* == update inv rho at face== */
+    /* == x faces == */
+    MyArray<double,3>  f_by = grid_.f_by_;
+
+
+    /* == update rho at face== */
+    MyArray<double,3>  f_rhoy = grid_.f_rhoy_;
+    f_rhoy(ix,iy,iz) = 0.5*(rho(ix,iy,iz)+rho(ix,iy-1,iz));
+
+    f_by(ix,iy,iz) = 1./f_rhoy(ix,iy,iz);
+
+    /* == update mu at face== */
+    MyArray<double,3>  f_muy = grid_.f_muy_;
+    f_muy(ix,iy,iz) = 0.5*(mu(ix,iy,iz)+mu(ix,iy-1,iz));
+}
+
+static __global__ void k_update_z_face_properties_by_alpha(G_StaggeredGrid grid_,double rho0, double rho1){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx=grid_.Nx_;
+    int Ny=grid_.Ny_;
+    int Nz=grid_.Nz_;
+
+
+    if (ix >=Nx+2 || iy >= Ny+3 || iz >= Nz+2) return;
+
+
+    MyArray<double,3> rho = grid_.rho_;
+    MyArray<double,3> mu = grid_.mu_;
+
+    /* == update inv rho at face== */
+    /* == x faces == */
+    MyArray<double,3>  f_bz = grid_.f_bz_;
+
+
+    /* == update rho at face== */
+    MyArray<double,3>  f_rhoz = grid_.f_rhoz_;
+    f_rhoz(ix,iy,iz) = 0.5*(rho(ix,iy,iz)+rho(ix,iy,iz-1));
+
+    f_bz(ix,iy,iz) = 1./f_rhoz(ix,iy,iz);
+
+    /* == update mu at face== */
+    MyArray<double,3>  f_muz = grid_.f_muz_;
+    f_muz(ix,iy,iz) = 0.5*(mu(ix,iy,iz)+mu(ix,iy,iz-1));
+}
+
+
+
+void G_SMACSolver::update_properties_by_alpha(SMACSolver solv){
+
+    const double rho1 = solv.rho1_;
+    const double rho0 = solv.rho0_;
+
+    const double mu1 = solv.mu1_;
+    const double mu0 = solv.mu0_;
+
+    std::swap(grid_.rho_old_.data_,grid_.rho_.data_);
+    k_update_cell_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1, mu0, mu1);
+    k_update_x_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
+    k_update_y_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
+    k_update_z_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
+
+}
+
 void G_SMACSolver::alpha_flux_thincwlic(double dt){
 
     //k_alpha_flux_upwind<<<grid_dim_,block_dim_>>>(grid_, dt);
@@ -459,6 +611,180 @@ void G_SMACSolver::clear_alpha_flux(){
     cudaMemset(Fx.data_, 0, sizeof(double) * Fx.size_);
     cudaMemset(Fy.data_, 0, sizeof(double) * Fy.size_);
     cudaMemset(Fz.data_, 0, sizeof(double) * Fz.size_);
+}
+
+/* === vstar calculation === */
+static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G_StaggeredGrid grid_){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+    if(ix >=Nx+3 || iy >= Ny+3 || iz >= Nz+3) return;
+
+    double inv_dx = grid_.inv_dx_;
+    double inv_dy = grid_.inv_dy_;
+    double inv_dz = grid_.inv_dz_;
+    double inv_dx2 = grid_.inv_dx2_;
+    double inv_dy2 = grid_.inv_dy2_;
+    double inv_dz2 = grid_.inv_dz2_;
+    double dt= solv.dt_;
+
+    double gx = solv.gx_;
+    double gy = solv.gy_;
+    double gz = solv.gz_;
+
+
+
+    MyArray<double,3>  mfx = grid_.f_mfx_;
+    MyArray<double,3>  mfy = grid_.f_mfy_;
+    MyArray<double,3>  mfz = grid_.f_mfz_;
+
+    MyArray<double,3>  rho = grid_.rho_;
+    MyArray<double,3>  rho_old = grid_.rho_old_;
+    MyArray<double,3>  mu = grid_.mu_;
+
+    MyArray<double,3>  vx = grid_.vx_;
+    MyArray<double,3>  vy = grid_.vy_;
+    MyArray<double,3>  vz = grid_.vz_;
+
+    MyArray<double,3>  vx_star = grid_.vx_star_;
+    MyArray<double,3>  vy_star = grid_.vy_star_;
+    MyArray<double,3>  vz_star = grid_.vz_star_;
+
+    MyArray<unsigned char,3>& celltype = grid_.celltype_;
+    MyArray<unsigned char,3>& f_xtype = grid_.f_xtype_;
+    MyArray<unsigned char,3>& f_ytype = grid_.f_ytype_;
+    MyArray<unsigned char,3>& f_ztype = grid_.f_ztype_;
+
+    /* == check cell types == */
+
+    /* == vx == */
+    if(f_xtype(ix,iy,iz) == F_BOUNDARY || f_xtype(ix,iy,iz)== F_GHOST){
+        /* do nothing */
+    }else{
+        unsigned char ftype_121 = f_xtype(ix,iy+1,iz);
+        unsigned char ftype_101 = f_xtype(ix,iy-1,iz);
+        unsigned char ftype_112 = f_xtype(ix,iy,iz+1);
+        unsigned char ftype_110 = f_xtype(ix,iy,iz-1);
+
+        
+        double vx_211 =vx(ix+1,iy,iz);
+        double vx_111 =vx(ix,iy,iz);
+        double vx_011 =vx(ix-1,iy,iz);
+        double vx_121 = ftype_121 != F_INTERIOR? -1.*vx(ix,iy,iz):vx(ix,iy+1,iz);
+        double vx_101 = ftype_101 != F_INTERIOR? -1.*vx(ix,iy,iz):vx(ix,iy-1,iz);
+
+
+        /* === vx === */
+        double tmp_vx = 0.;
+
+        /* viscous */
+        double tau_xp = mu(ix,iy,iz)*(vx_211-vx_111);
+        double tau_xm = mu(ix-1,iy,iz)*(vx_111-vx_011);
+
+        tmp_vx =  2.*(tau_xp - tau_xm)*inv_dx2;
+
+        double mu_yp = 0.5*(f_muy(ix+1,iy+1,iz+1)+f_muy(ix,iy+1,iz+1));
+        double tau_yp = mu_yp*((vy_222-vy_122)*inv_dx+(vx_121-vx_111)*inv_dy);
+
+        double mu_ym = 0.5*(f_muy(j+1,i)+f_muy(j,i));
+        double tau_ym = mu_ym*((vy_21-vy_11)*inv_dx+(vx_11-vx_10)*inv_dy);
+
+        tmp_vx +=  (tau_yp-tau_ym)*inv_dy;
+
+        /* convection */
+        double vx_xp= 0.5*(mfx[i*pitch_vx+j]+mfx[i*pitch_vx+j+1]);
+        double vx_xm= 0.5*(mfx[i*pitch_vx+j-1]+mfx[i*pitch_vx+j]);
+
+
+        /* == upwind == */
+        double ux_xp= vx_xp > 0. ? vx[i*pitch_vx+j]: vx[i*pitch_vx+j+1];
+        double ux_xm= vx_xm > 0. ? vx[i*pitch_vx+j-1]: vx[i*pitch_vx+j];
+
+        double M_xp = vx_xp * ux_xp;
+        double M_xm = vx_xm * ux_xm;
+
+        tmp_vx -= (M_xp - M_xm)*inv_dx;
+
+        /* == y direction == */
+        double vy_yp= 0.5*(mfy[(i+1)*pitch_vy+j]+mfy[(i+1)*pitch_vy+j-1]);
+        double vy_ym= 0.5*(mfy[(i)*pitch_vy+j]+mfy[(i)*pitch_vy+j-1]);
+
+
+        /* == upwind == */
+        double uy_yp= vy_yp > 0. ? vx[i*pitch_vx+j]: vx[(i+1)*pitch_vx+j];
+        double uy_ym= vy_ym > 0. ? vx[(i-1)*pitch_vx+j]: vx[(i)*pitch_vx+j];
+
+        double M_yp = vy_yp * uy_yp;
+        double M_ym = vy_ym * uy_ym;
+
+        tmp_vx -= (M_yp - M_ym)*inv_dy;
+
+
+        double f_inv_rho = 1./(0.5*(rho[i*pitch_c+j]+rho[i*pitch_c+j-1]));
+        double f_rho_old= (0.5*(rho_old[i*pitch_c+j]+rho_old[i*pitch_c+j-1]));
+
+        vx_star[i*(pitch_vx)+j]=f_inv_rho*vx_11*f_rho_old+dt*(f_inv_rho*tmp_vx+gx);
+
+    }
+
+    /* == vy == */
+    if(i >= Ny+1|| j >= Nx+1 || i<2 || j<1){
+        /* do nothing */
+    }else{
+
+        double vy_21 = vy[i*(pitch_vy)+j+1];
+        double vy_11 = vy[i*(pitch_vy)+j];
+        double vy_11_2 = 2.*vy_11;
+        double vy_01 = vy[(i)*(pitch_vy)+j-1];
+        double vy_10 = vy[(i-1)*(pitch_vy)+j];
+        double vy_12 = vy[(i+1)*(pitch_vy)+j];
+
+        double tmp_vy = 0.;
+        /* viscous */
+
+        tmp_vy +=  (vy_21-vy_11_2+vy_01)*inv_dx2;
+        tmp_vy +=  (vy_12-vy_11_2+vy_10)*inv_dy2;
+
+        /* calculate face nu */
+        double f_mu = (mu[(i)*(pitch_c)+j]+mu[(i-1)*pitch_c+j])*0.5;
+        tmp_vy *= f_mu;
+
+        /* convection */
+        double vy_yp = 0.5*(mfy[i*pitch_vy+j]+mfy[(i+1)*pitch_vy+j]);
+        double vy_ym = 0.5*(mfy[i*pitch_vy+j]+mfy[(i-1)*pitch_vy+j]);
+
+        /* == upwind == */
+        double uy_yp= vy_yp > 0. ? vy[i*pitch_vy+j]: vy[(i+1)*pitch_vy+j];
+        double uy_ym= vy_ym > 0. ? vy[(i-1)*pitch_vy+j]: vy[i*pitch_vy+j];
+
+        double M_yp = vy_yp * uy_yp;
+        double M_ym = vy_ym * uy_ym;
+
+        tmp_vy -= (M_yp - M_ym)*inv_dy;
+
+        /* == x direction == */
+        double vx_xp = 0.5*(mfx[i*pitch_vx+j+1]+mfx[(i-1)*pitch_vx+j+1]);
+        double vx_xm = 0.5*(mfx[i*pitch_vx+j]+mfx[(i-1)*pitch_vx+j]);
+
+        /* == upwind == */
+        double ux_xp= vx_xp > 0. ? vy[i*pitch_vy+j]: vy[(i)*pitch_vy+j+1];
+        double ux_xm= vx_xm > 0. ? vy[(i)*pitch_vy+j-1]: vy[(i)*pitch_vy+j];
+
+        double M_xp = vx_xp * ux_xp;
+        double M_xm = vx_xm * ux_xm;
+
+        tmp_vy -= (M_xp - M_xm)*inv_dx;
+
+
+        double f_inv_rho = 1./(0.5*(rho[i*pitch_c+j]+rho[(i-1)*pitch_c+j]));
+        double f_rho_old= (0.5*(rho_old[i*pitch_c+j]+rho_old[(i-1)*pitch_c+j]));
+        vy_star[i*(pitch_vy)+j]=f_inv_rho*vy_11*f_rho_old+dt*(f_inv_rho*tmp_vy+gy);
+    }
 }
 
 

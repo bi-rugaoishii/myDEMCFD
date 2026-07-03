@@ -37,7 +37,6 @@ void SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double 
     grid_.v_b_2_ = 0.;
 }
 
-
 void SMACSolver::set_face_type(){
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
@@ -51,7 +50,7 @@ void SMACSolver::set_face_type(){
     for(int iz=0; iz<Nz+2; iz++){
         for(int iy=0; iy<Ny+2; iy++){
             for(int ix=0; ix<Nx+3; ix++){
-                f_xtype(ix,iy,iz) = GHOST;
+                f_xtype(ix,iy,iz) = F_GHOST;
             }
         }
     }
@@ -60,7 +59,7 @@ void SMACSolver::set_face_type(){
     for(int iz=0; iz<Nz+2; iz++){
         for(int iy=0; iy<Ny+3; iy++){
             for(int ix=0; ix<Nx+2; ix++){
-                f_ytype(ix,iy,iz) = GHOST;
+                f_ytype(ix,iy,iz) = F_GHOST;
             }
         }
     }
@@ -69,7 +68,7 @@ void SMACSolver::set_face_type(){
     for(int iz=0; iz<Nz+3; iz++){
         for(int iy=0; iy<Ny+2; iy++){
             for(int ix=0; ix<Nx+2; ix++){
-                f_ztype(ix,iy,iz) = GHOST;
+                f_ztype(ix,iy,iz) = F_GHOST;
             }
         }
     }
@@ -78,7 +77,7 @@ void SMACSolver::set_face_type(){
     for(int iz=1; iz<=Nz; iz++){
         for(int iy=1; iy<=Ny; iy++){
             for(int ix=1; ix<=Nx+1; ix++){
-                f_xtype(ix,iy,iz) = INTERIOR;
+                f_xtype(ix,iy,iz) = F_INTERIOR;
             }
         }
     }
@@ -86,8 +85,8 @@ void SMACSolver::set_face_type(){
     // x-wall faces
     for(int iz=1; iz<=Nz; iz++){
         for(int iy=1; iy<=Ny; iy++){
-            f_xtype(1,iy,iz) = WALL_NOSLIP;
-            f_xtype(Nx+1,iy,iz) = WALL_NOSLIP;
+            f_xtype(1,iy,iz) = F_WALL_NOSLIP;
+            f_xtype(Nx+1,iy,iz) = F_WALL_NOSLIP;
         }
     }
 
@@ -95,7 +94,7 @@ void SMACSolver::set_face_type(){
     for(int iz=1; iz<=Nz; iz++){
         for(int iy=1; iy<=Ny+1; iy++){
             for(int ix=1; ix<=Nx; ix++){
-                f_ytype(ix,iy,iz) = INTERIOR;
+                f_ytype(ix,iy,iz) = F_INTERIOR;
             }
         }
     }
@@ -103,8 +102,8 @@ void SMACSolver::set_face_type(){
     // y-wall faces
     for(int iz=1; iz<=Nz; iz++){
         for(int ix=1; ix<=Nx; ix++){
-            f_ytype(ix,1,iz) = WALL_NOSLIP;
-            f_ytype(ix,Ny+1,iz) = WALL_NOSLIP;
+            f_ytype(ix,1,iz) = F_WALL_NOSLIP;
+            f_ytype(ix,Ny+1,iz) = F_WALL_NOSLIP;
         }
     }
 
@@ -112,7 +111,7 @@ void SMACSolver::set_face_type(){
     for(int iz=1; iz<=Nz+1; iz++){
         for(int iy=1; iy<=Ny; iy++){
             for(int ix=1; ix<=Nx; ix++){
-                f_ztype(ix,iy,iz) = INTERIOR;
+                f_ztype(ix,iy,iz) = F_INTERIOR;
             }
         }
     }
@@ -120,11 +119,55 @@ void SMACSolver::set_face_type(){
     // z-wall faces
     for(int iy=1; iy<=Ny; iy++){
         for(int ix=1; ix<=Nx; ix++){
-            f_ztype(ix,iy,1) = WALL_NOSLIP;
-            f_ztype(ix,iy,Nz+1) = WALL_NOSLIP;
+            f_ztype(ix,iy,1) = F_WALL_NOSLIP;
+            f_ztype(ix,iy,Nz+1) = F_WALL_NOSLIP;
         }
     }
 }
+
+void SMACSolver::set_cell_type(){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+    MyArray<unsigned char,3>& ctype= grid_.celltype_;
+    MyArray<unsigned char,3>& fxtype= grid_.f_xtype_;
+    MyArray<unsigned char,3>& fytype= grid_.f_ytype_;
+    MyArray<unsigned char,3>& fztype= grid_.f_ztype_;
+
+    /* initialize with ghost */
+    for(int iz=0; iz<Nz+2; iz++){
+        for(int iy=0; iy<Ny+2; iy++){
+            for(int ix=0; ix<Nx+2; ix++){
+                ctype(ix,iy,iz) = C_GHOST;
+            }
+        }
+    }
+
+    /* initialize check near boundary cell*/
+    for(int iz=1; iz<Nz+1; iz++){
+        for(int iy=1; iy<Ny+1; iy++){
+            for(int ix=1; ix<Nx+1; ix++){
+                unsigned char xp = fxtype(ix+1,iy,iz);
+                unsigned char yp = fytype(ix,iy+1,iz);
+                unsigned char zp = fztype(ix,iy,iz+1);
+
+                unsigned char xm = fxtype(ix,iy,iz);
+                unsigned char ym = fytype(ix,iy,iz);
+                unsigned char zm = fztype(ix,iy,iz);
+
+                if(xp != F_INTERIOR || yp != F_INTERIOR || zp != F_INTERIOR || 
+                    xm != F_INTERIOR || ym != F_INTERIOR || zm != F_INTERIOR){
+                    
+                    ctype(ix,iy,iz) = C_NEAR_BOUNDARY;
+                }else{
+                    ctype(ix,iy,iz) = C_INTERIOR;
+                }
+            }
+        }
+    }
+}
+
 void SMACSolver::update_properties_by_alpha_initial(){
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
@@ -190,13 +233,13 @@ void SMACSolver::update_properties_by_alpha_initial(){
             for (int ix=0; ix<Nx+3; ix++){
                 unsigned char face_type = grid_.f_xtype_(ix,iy,iz);
                 switch(face_type){
-                    case INTERIOR:
+                    case F_INTERIOR:
                         f_bx(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix-1,iy,iz));
                         break;
-                    case WALL_NOSLIP:
+                    case F_WALL_NOSLIP:
                         f_bx(ix,iy,iz) = 0.;
                         break;
-                    case GHOST:
+                    case F_GHOST:
                         f_bx(ix,iy,iz) = 0.;
                         break;
                 }
@@ -212,13 +255,13 @@ void SMACSolver::update_properties_by_alpha_initial(){
             for (int ix=0; ix<Nx+2; ix++){
                 unsigned char face_type = grid_.f_ytype_(ix,iy,iz);
                 switch(face_type){
-                    case INTERIOR:
+                    case F_INTERIOR:
                         f_by(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix,iy-1,iz));
                         break;
-                    case WALL_NOSLIP:
+                    case F_WALL_NOSLIP:
                         f_by(ix,iy,iz) = 0.;
                         break;
-                    case GHOST:
+                    case F_GHOST:
                         f_by(ix,iy,iz) = 0.;
                         break;
                 }
@@ -234,13 +277,13 @@ void SMACSolver::update_properties_by_alpha_initial(){
             for (int ix=0; ix<Nx+2; ix++){
                 unsigned char face_type = grid_.f_ztype_(ix,iy,iz);
                 switch(face_type){
-                    case INTERIOR:
+                    case F_INTERIOR:
                         f_bz(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix,iy,iz-1));
                         break;
-                    case WALL_NOSLIP:
+                    case F_WALL_NOSLIP:
                         f_bz(ix,iy,iz) = 0.;
                         break;
-                    case GHOST:
+                    case F_GHOST:
                         f_bz(ix,iy,iz) = 0.;
                         break;
                 }

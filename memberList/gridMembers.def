@@ -15,7 +15,10 @@ MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, alpha_s_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, ny_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, nz_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, kappa_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+
+MEMBER(unsigned char, celltype_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
     
 MEMBER(double, mu_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, residue_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
@@ -55,6 +58,16 @@ MEMBER(double, f_Fz_accum_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
 MEMBER(double, f_mfx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, f_mfy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
 MEMBER(double, f_mfz_, (Nx+2),(Ny+3),(Nz+3),SAVE_OFF)
+
+/* mu*/
+MEMBER(double, f_mux_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_muy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_muz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/*  rho */
+MEMBER(double, f_rhox_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_rhoy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_rhoz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
 
 
 /* inverse rho */

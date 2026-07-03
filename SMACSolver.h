@@ -33,6 +33,8 @@ struct SMACSolver{
     void transport_alpha_thinc_x();
     void transport_alpha_thinc_y();
 
+    void set_cell_type();
+
     void clear_alpha_flux();
     void compute_mass_flux_from_alpha_flux();
     double calc_alpha_vol() ;

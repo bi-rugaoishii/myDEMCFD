@@ -207,6 +207,7 @@ int main(){
     solv.solver_malloc();
 
     solv.set_face_type();
+    solv.set_cell_type();
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
@@ -302,6 +303,8 @@ int main(){
                 g_solv.transport_alpha();
                 g_solv.alpha_flux_accum();
             }
+
+            g_solv.update_properties_by_alpha(solv);
 
 
             /* == transport alpha done == */
