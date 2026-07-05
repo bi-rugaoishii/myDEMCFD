@@ -33,8 +33,73 @@ void SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double 
     grid_.inv_dy2_ = 1./(grid_.dy_*grid_.dy_);
     grid_.inv_dz2_ = 1./(grid_.dz_*grid_.dz_);
 
-    grid_.v_b_1_ = 2.*u_lid;
-    grid_.v_b_2_ = 0.;
+}
+
+void SMACSolver::set_face_internal_direction(){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+    MyArray<unsigned char,3>& ctype= grid_.celltype_;
+    MyArray<unsigned char,3>& f_xtype = grid_.f_xtype_;
+    MyArray<unsigned char,3>& f_ytype = grid_.f_ytype_;
+    MyArray<unsigned char,3>& f_ztype = grid_.f_ztype_;
+
+    MyArray<int,3>& f_xinternal_id = grid_.f_xinternal_id_;
+    MyArray<int,3>& f_yinternal_id = grid_.f_yinternal_id_;
+    MyArray<int,3>& f_zinternal_id = grid_.f_zinternal_id_;
+
+    /* == get direction of internal faces == */
+    /* == assuming no internal wall exists == */
+
+    // valid x-faces
+    for(int iz=1; iz<=Nz; iz++){
+        for(int iy=1; iy<=Ny; iy++){
+            for(int ix=1; ix<=Nx+1; ix++){
+                if(f_xtype(ix,iy,iz)==F_BOUNDARY){
+                    unsigned char ctypep = ctype(ix,iy,iz);
+                    if(ctypep == C_INTERIOR ||ctypep==  C_NEAR_BOUNDARY){
+                        f_xinternal_id(ix,iy,iz)=0;
+                    }else{
+                        f_xinternal_id(ix,iy,iz)=-1;
+                    }
+                }
+            }
+        }
+    }
+
+    // valid y-faces
+    for(int iz=1; iz<=Nz; iz++){
+        for(int iy=1; iy<=Ny+1; iy++){
+            for(int ix=1; ix<=Nx; ix++){
+                if(f_ytype(ix,iy,iz)==F_BOUNDARY){
+                    unsigned char ctypep = ctype(ix,iy,iz);
+                    if(ctypep == C_INTERIOR || ctypep== C_NEAR_BOUNDARY){
+                        f_yinternal_id(ix,iy,iz)=0;
+                    }else{
+                        f_yinternal_id(ix,iy,iz)=-1;
+                    }
+                }
+            }
+        }
+    }
+
+    // valid z-faces
+    for(int iz=1; iz<=Nz+1; iz++){
+        for(int iy=1; iy<=Ny; iy++){
+            for(int ix=1; ix<=Nx; ix++){
+                if(f_ytype(ix,iy,iz)==F_BOUNDARY){
+                    unsigned char ctypep = ctype(ix,iy,iz);
+                    if(ctypep == C_INTERIOR || ctypep== C_NEAR_BOUNDARY){
+                        f_zinternal_id(ix,iy,iz)=0;
+                    }else{
+                        f_zinternal_id(ix,iy,iz)=-1;
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 void SMACSolver::set_face_type(){
@@ -45,6 +110,14 @@ void SMACSolver::set_face_type(){
     MyArray<unsigned char,3>& f_xtype = grid_.f_xtype_;
     MyArray<unsigned char,3>& f_ytype = grid_.f_ytype_;
     MyArray<unsigned char,3>& f_ztype = grid_.f_ztype_;
+
+    MyArray<unsigned char,3>& f_xbcid = grid_.f_xbcid_;
+    MyArray<unsigned char,3>& f_ybcid = grid_.f_ybcid_;
+    MyArray<unsigned char,3>& f_zbcid = grid_.f_zbcid_;
+
+    MyArray<int,3>& f_xinternal_id = grid_.f_xinternal_id_;
+    MyArray<int,3>& f_yinternal_id = grid_.f_yinternal_id_;
+    MyArray<int,3>& f_zinternal_id = grid_.f_zinternal_id_;
 
     // x-face: size = (Nx+3, Ny+2, Nz+2)
     for(int iz=0; iz<Nz+2; iz++){
@@ -85,8 +158,8 @@ void SMACSolver::set_face_type(){
     // x-wall faces
     for(int iz=1; iz<=Nz; iz++){
         for(int iy=1; iy<=Ny; iy++){
-            f_xtype(1,iy,iz) = F_WALL_NOSLIP;
-            f_xtype(Nx+1,iy,iz) = F_WALL_NOSLIP;
+            f_xtype(1,iy,iz) = F_BOUNDARY;
+            f_xtype(Nx+1,iy,iz) = F_BOUNDARY;
         }
     }
 
@@ -102,8 +175,12 @@ void SMACSolver::set_face_type(){
     // y-wall faces
     for(int iz=1; iz<=Nz; iz++){
         for(int ix=1; ix<=Nx; ix++){
-            f_ytype(ix,1,iz) = F_WALL_NOSLIP;
-            f_ytype(ix,Ny+1,iz) = F_WALL_NOSLIP;
+            f_ytype(ix,1,iz) = F_BOUNDARY;
+            f_ytype(ix,Ny+1,iz) = F_BOUNDARY;
+
+            /* === debug === */
+            f_ybcid(ix,Ny+1,iz) = 1;
+
         }
     }
 
@@ -119,11 +196,15 @@ void SMACSolver::set_face_type(){
     // z-wall faces
     for(int iy=1; iy<=Ny; iy++){
         for(int ix=1; ix<=Nx; ix++){
-            f_ztype(ix,iy,1) = F_WALL_NOSLIP;
-            f_ztype(ix,iy,Nz+1) = F_WALL_NOSLIP;
+            f_ztype(ix,iy,1) = F_BOUNDARY;
+            f_ztype(ix,iy,Nz+1) = F_BOUNDARY;
         }
     }
+
+
 }
+
+
 
 void SMACSolver::set_cell_type(){
     int Nx = grid_.Nx_;
@@ -167,6 +248,39 @@ void SMACSolver::set_cell_type(){
         }
     }
 }
+
+void SMACSolver::check_divergence(){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+    MyArray<double,3> p = grid_.p_;
+    MyArray<double,3> vx = grid_.f_vx_;
+    MyArray<double,3> vy = grid_.f_vy_;
+    MyArray<double,3> vz = grid_.f_vz_;
+
+    double div_max=0.0;
+    double inv_dx = grid_.inv_dx_;
+    double inv_dy = grid_.inv_dy_;
+    double inv_dz = grid_.inv_dz_;
+
+    for (int iz=1; iz<Nz+1; iz++){
+        for (int iy=1; iy<Ny+1; iy++){
+            for (int ix=1; ix<Nx+1; ix++){
+
+                double div = (vx(ix+1,iy,iz)-vx(ix,iy,iz))*inv_dx
+                    + (vy(ix,iy+1,iz)-vy(ix,iy,iz))*inv_dy
+                    + (vz(ix,iy,iz+1)-vz(ix,iy,iz))*inv_dz;
+
+                div = fabs(div);
+                div_max = div_max<div? div:div_max; 
+            }
+        }
+    }
+
+    printf("div_max = %e , div_max*dt = %e\n", div_max, div_max*dt_);
+}
+
 
 void SMACSolver::update_properties_by_alpha_initial(){
     int Nx = grid_.Nx_;
@@ -234,9 +348,15 @@ void SMACSolver::update_properties_by_alpha_initial(){
                 unsigned char face_type = grid_.f_xtype_(ix,iy,iz);
                 switch(face_type){
                     case F_INTERIOR:
+                        /* debug */
+                        if (ix <= 0 || ix >= Nx+2) {
+                            printf("bad x F_INTERIOR: ix=%d iy=%d iz=%d\n",ix,iy,iz);
+                            abort();
+                        }
+
                         f_bx(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix-1,iy,iz));
                         break;
-                    case F_WALL_NOSLIP:
+                    case F_BOUNDARY:
                         f_bx(ix,iy,iz) = 0.;
                         break;
                     case F_GHOST:
@@ -256,9 +376,13 @@ void SMACSolver::update_properties_by_alpha_initial(){
                 unsigned char face_type = grid_.f_ytype_(ix,iy,iz);
                 switch(face_type){
                     case F_INTERIOR:
+                        if (iy <= 0 || iy >= Ny+2) {
+                            printf("bad y F_INTERIOR: ix=%d iy=%d iz=%d\n",ix,iy,iz);
+                            abort();
+                        }
                         f_by(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix,iy-1,iz));
                         break;
-                    case F_WALL_NOSLIP:
+                    case F_BOUNDARY:
                         f_by(ix,iy,iz) = 0.;
                         break;
                     case F_GHOST:
@@ -278,9 +402,15 @@ void SMACSolver::update_properties_by_alpha_initial(){
                 unsigned char face_type = grid_.f_ztype_(ix,iy,iz);
                 switch(face_type){
                     case F_INTERIOR:
+                        /* debug */
+                        if (iz <= 0 || iz >= Nz+2) {
+                            printf("bad z F_INTERIOR: ix=%d iy=%d iz=%d\n",ix,iy,iz);
+                            abort();
+                        }
+
                         f_bz(ix,iy,iz) = 2./(rho(ix,iy,iz)+rho(ix,iy,iz-1));
                         break;
-                    case F_WALL_NOSLIP:
+                    case F_BOUNDARY:
                         f_bz(ix,iy,iz) = 0.;
                         break;
                     case F_GHOST:
@@ -305,12 +435,19 @@ void SMACSolver::solver_malloc(){
     #include "memberList/gridMembers.def"
     #undef MEMBER
 
+    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) grid_.bc_.name.data_ = (type*)calloc(grid_.bc_.num_boundary_id_,sizeof(type));
+    #include "memberList/boundaryConditionMembers.def"
+    #undef MEMBER
 
 }
 
 void SMACSolver::solver_free(){
     #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) free(grid_.name.data_);
     #include "memberList/gridMembers.def"
+    #undef MEMBER
+
+    #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) free(grid_.bc_.name.data_);
+    #include "memberList/boundaryConditionMembers.def"
     #undef MEMBER
 
 }
@@ -356,7 +493,7 @@ void SMACSolver::set_boundary_neumann(MyArray<double,3>& alpha){
     for (int iy=0; iy<Ny+2; iy++){
         for (int ix=0; ix<Nx+2; ix++){
             alpha(ix,iy,0) =alpha(ix,iy,1);
-            alpha(ix,iy,Nz+1) =alpha(ix,iy,Nx);
+            alpha(ix,iy,Nz+1) =alpha(ix,iy,Nz);
         }
     }
 }

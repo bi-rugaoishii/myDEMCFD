@@ -34,6 +34,7 @@ struct SMACSolver{
     void transport_alpha_thinc_y();
 
     void set_cell_type();
+    void set_face_internal_direction();
 
     void clear_alpha_flux();
     void compute_mass_flux_from_alpha_flux();

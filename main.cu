@@ -5,7 +5,10 @@
 #include "hardCodedParameters.h"
 #include "StaggeredGrid.h"
 #include "G_StaggeredGrid.h"
+#include "misc.h"
 #include "SMACSolver.h"
+#include "pressure_solver/G_PressureSolverBase.h"
+#include "pressure_solver/G_PCGSolver.h"
 #include "G_SMACSolver.h"
 #include "CFDTime.h"
 #include "omp.h"
@@ -159,13 +162,13 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=48;
-    int Ny=48;
-    int Nz=48;
+    int Nx=50;
+    int Ny=50;
+    int Nz=50;
 
     double rho = 1.;
     double rho_w = 1000.;
-    //double rho_w = 1.;
+   // double rho_w = 1.;
     double rho_g = 1.;
 
     double u_lid = 0.;
@@ -199,21 +202,32 @@ int main(){
     /* == set properties ==*/
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
-    //solv.set_gravity(0., -9.81, 0.);
-    solv.set_gravity(0., 0.,0.);
+
+    solv.set_gravity(0., -9.81, 0.);
+    //solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
+   
+    /* == set boundary id numbers == */
+    int num_bc_id = 2;
+    solv.grid_.set_num_bc_id(num_bc_id);
+
 
     solv.solver_malloc();
 
+    solv.grid_.set_boundary_velocity();
+
     solv.set_face_type();
+
     solv.set_cell_type();
+
+    solv.set_face_internal_direction();
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    //solv.grid_.place_vof(0.,0.6,0.,1.5,0.,0.6,1.0);
+    solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
     //solv.grid_.place_vof(0.,1.0,0.,0.5,1.0);
 
     /*for surface tension test*/
@@ -224,8 +238,9 @@ int main(){
     /*
     solv.initialize_zalesak_disk();
     */
-    solv.set_sphere();
-    solv.set_zalesak_rotation_velocity();
+
+    //solv.set_sphere();
+    //solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
     solv.set_boundary_neumann(solv.grid_.alpha_);
@@ -245,33 +260,52 @@ int main(){
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
-    double endTime = 1.0;
-    double max_dt = 1e-2;
+    double endTime = 10.0;
+    double max_dt = 5e-3;
+    double initial_dt = 1e-4;
 
-    CFDTime cfdtime(dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
+    CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
     /* output initial data */
     output_vti(solv.grid_,0.,outdir);
+    printf("output initial data done \n");
 
-    //printf("output initial\n");
     /* == gpu initialization == */
     G_SMACSolver g_solv;
     g_solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey,sizez, Nx, Ny, Nz);
 
     if(GPU_ON ==1){
 
+        
+        g_solv.grid_.bc_.num_boundary_id_ = solv.grid_.bc_.num_boundary_id_;
+
+
         printf("Allocating memory for gpu\n");
         g_solv.solver_malloc();
         printf("Allocated!\n");
 
+        
+
+
         printf("Copying data to gpu\n");
         g_solv.cpuTogpu(solv.grid_);
+
+
+        /* === need to make good function for this ==*/
+        g_solv.rho0_ = solv.rho0_;
+        g_solv.rho1_ = solv.rho1_;
+        g_solv.mu0_ = solv.mu0_;
+        g_solv.mu1_ = solv.mu1_;
+
         printf("Copying data done\n");
 
         g_solv.set_block_grid(Nx,Ny,Nz);
     }
 
 
+    G_PCGSolver pcgSolver;
+    pcgSolver.copyData(g_solv);
+    g_solv.pressure_solver_ = &pcgSolver;
 
 
     /* ============================= 
@@ -285,6 +319,9 @@ int main(){
             /* == setup time == */
             double cfl=g_solv.calc_cfl();
             cfdtime.updateTime(cfl);
+
+            solv.dt_ = cfdtime.dt_;
+            solv.inv_dt_ = 1./cfdtime.dt_;
 
             g_solv.dt_ = cfdtime.dt_;
             g_solv.inv_dt_ = 1./cfdtime.dt_;
@@ -303,16 +340,31 @@ int main(){
                 g_solv.transport_alpha();
                 g_solv.alpha_flux_accum();
             }
-
-            g_solv.update_properties_by_alpha(solv);
-
-
             /* == transport alpha done == */
+
+            g_solv.update_properties_by_alpha();
+            g_solv.update_boundary_faces();
+
+            g_solv.compute_mass_flux_from_alpha_flux(solv);
+            g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
+
+            /* == needs boundary condition in general ==*/
+            /* == we are skipping it since we assume stationary in normal direction ==*/
+
+
+            printf("starting poisson\n");
+            g_solv.solve_poisson();
+
+            g_solv.correct_vof_velocity(solv);
+
+            /* == needs boundary condition in general ==*/
+            /* == we are skipping it since we assume stationary in normal direction ==*/
+
 
             if(cfdtime.isOutStep_){
                 g_solv.gpuTocpu(solv.grid_);
                 printf("total alpha = %f\n",solv.calc_alpha_vol());
-                //solv.check_divergence();
+                solv.check_divergence();
                 //solv.check_pressure_jump_by_radius();
                 output_vti(solv.grid_,cfdtime.current_steps_,outdir);
                 h_end = omp_get_wtime();
@@ -334,10 +386,10 @@ int main(){
         }
     }
 
-    solv.solver_free();
-    if(GPU_ON==1){
-        g_solv.solver_free();
-        //gmgSolver.levels_.free();
+  solv.solver_free();
+  if(GPU_ON==1){
+      g_solv.solver_free();
+      //gmgSolver.levels_.free();
     }
 
     printf("my CFD Done!!!\n");

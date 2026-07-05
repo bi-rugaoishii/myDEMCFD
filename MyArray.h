@@ -50,6 +50,7 @@ struct MyArray<T,3>{
             return data_[(z*sizey_+y)*sizex_+x];
         }
 
+    __host__ __device__ __forceinline__
         T& operator()(int x)const{
             return data_[x];
         }

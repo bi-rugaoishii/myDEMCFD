@@ -1,5 +1,6 @@
 #pragma once
 #include "MyArray.h"
+#include "BoundaryCondition.h"
 /* === grid class === */
 
 struct StaggeredGrid{
@@ -11,9 +12,7 @@ struct StaggeredGrid{
     double sizex_, sizey_,sizez_;
 
     /* boundary condition */
-    /* for faces */
-    double v_b_1_; // velocity at the boundary
-    double v_b_2_; // velocity at the boundary
+    BoundaryCondition bc_;
 
 
 
@@ -21,9 +20,21 @@ struct StaggeredGrid{
     #include "memberList/gridMembers.def"
     #undef MEMBER
 
+    void set_boundary_velocity();
+    void set_num_bc_id(int num_bc_id);
     void place_vof(double minx,double maxx, double miny, double maxy,double minz, double maxz, double alpha);
     void get_cell_coord();
 };
+
+inline void StaggeredGrid::set_boundary_velocity(){
+    /* == temporarly for debug == */
+    int bc_id = 1;
+    bc_.vx_(bc_id)=2.0;
+}
+
+inline void StaggeredGrid::set_num_bc_id(int num_bc_id){
+    bc_.num_boundary_id_ = num_bc_id;
+}
 
 inline void StaggeredGrid::get_cell_coord(){
     int Nx = Nx_;

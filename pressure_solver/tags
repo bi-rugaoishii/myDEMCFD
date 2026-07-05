@@ -1,0 +1,63 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/dakahoshi/myProgram/myCFD3d/pressure_solver/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+Ap_kernel_ms	G_PCGSolver.h	/^    float Ap_kernel_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+Base	G_PCGSolver.h	/^    using Base=G_PressureSolverBase;$/;"	t	struct:G_PCGSolver	typeref:typename:G_PressureSolverBase
+G_PCGSolver	G_PCGSolver.h	/^struct G_PCGSolver:G_PressureSolverBase{$/;"	s
+G_PCGSolver	G_PCGSolver_prof.cu	/^G_PCGSolver::G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+G_PressureSolverBase	G_PressureSolverBase.h	/^struct G_PressureSolverBase{$/;"	s
+PCGProfile	G_PCGSolver.h	/^struct PCGProfile{$/;"	s
+PCG_PROFILE	G_PCGSolver.h	/^#define PCG_PROFILE /;"	d
+block_dim_	G_PressureSolverBase.h	/^    dim3 block_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+copyData	G_PressureSolverBase.cu	/^void G_PressureSolverBase::copyData(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PressureSolverBase::
+cub_temp_storage_	G_PressureSolverBase.h	/^    void* cub_temp_storage_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:void *
+cub_temp_storage_bytes_	G_PressureSolverBase.h	/^    size_t cub_temp_storage_bytes_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:size_t
+d_dot_	G_PressureSolverBase.h	/^    double* d_dot_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_pcg_scalars_	G_PressureSolverBase.h	/^    double *d_pcg_scalars_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+d_r2_	G_PressureSolverBase.h	/^    double* d_r2_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:double *
+final_ms	G_PCGSolver.h	/^    float final_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+gmg_	G_PCGSolver.h	/^    G_GMGSolver* gmg_;$/;"	m	struct:G_PCGSolver	typeref:typename:G_GMGSolver *
+grid_dim_	G_PressureSolverBase.h	/^    dim3 grid_dim_;$/;"	m	struct:G_PressureSolverBase	typeref:typename:dim3
+init_ms	G_PCGSolver.h	/^    float init_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+iter	G_PCGSolver.h	/^    int iter;$/;"	m	struct:PCGProfile	typeref:typename:int
+k_add_scalar_to_array	G_PressureSolverBase.cu	/^__global__ void k_add_scalar_to_array(const double a, const double* const b, MyArray<double,3> q/;"	f	typeref:typename:void
+k_build_vof_poisson_Ap	G_PCGSolver_prof.cu	/^static __global__ void k_build_vof_poisson_Ap(G_StaggeredGrid grid_,const double *p, int Nx, int/;"	f	typeref:typename:void	file:
+k_build_vof_poisson_invdiag	G_PCGSolver_prof.cu	/^static __global__ void k_build_vof_poisson_invdiag(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_copy_to_tmp	G_PressureSolverBase.cu	/^__global__ void k_copy_to_tmp(MyArray<double,3> q,MyArray<double,3> tmp, int Nx, int Ny, int Nz)/;"	f	typeref:typename:void
+k_divide	G_PressureSolverBase.cu	/^__global__ void k_divide(double* const num,const double div){$/;"	f	typeref:typename:void
+k_get_r	G_PCGSolver.cu	/^static __global__ void k_get_r(G_StaggeredGrid grid_,double* const mean_b, MyArray<double,3> tmp/;"	f	typeref:typename:void	file:
+k_get_r	G_PCGSolver_prof.cu	/^static __global__ void k_get_r(G_StaggeredGrid grid_,double* const mean_b, double* const tmp, in/;"	f	typeref:typename:void	file:
+k_get_r	G_PressureSolverBase.cu	/^static __global__ void k_get_r(G_StaggeredGrid grid_,double* const mean_b, MyArray<double,3> tmp/;"	f	typeref:typename:void	file:
+k_get_r2_to_tmp	G_PCGSolver.cu	/^static __global__ void k_get_r2_to_tmp(G_StaggeredGrid grid_){$/;"	f	typeref:typename:void	file:
+k_get_r2_to_tmp	G_PCGSolver_prof.cu	/^static __global__ void k_get_r2_to_tmp(G_StaggeredGrid grid_,int Nx, int Ny){$/;"	f	typeref:typename:void	file:
+k_make_pAp	G_PCGSolver.cu	/^static __global__ void k_make_pAp(G_StaggeredGrid grid_){$/;"	f	typeref:typename:void	file:
+k_make_pAp	G_PCGSolver_prof.cu	/^static __global__ void k_make_pAp(G_StaggeredGrid grid_,int Nx,int Ny){$/;"	f	typeref:typename:void	file:
+k_make_poisson_rhs	G_PressureSolverBase.cu	/^__global__ void k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){$/;"	f	typeref:typename:void
+k_mult_elementwise_array	G_PressureSolverBase.cu	/^__global__ void k_mult_elementwise_array(MyArray<double,3> b,MyArray<double,3> q,MyArray<double,/;"	f	typeref:typename:void
+k_swap_rz	G_PCGSolver_prof.cu	/^static __global__ void k_swap_rz(double *s){$/;"	f	typeref:typename:void	file:
+k_update_dir	G_PCGSolver_prof.cu	/^static __global__ void k_update_dir(G_StaggeredGrid grid_,double *const pcg_scalars_,int Nx, int/;"	f	typeref:typename:void	file:
+k_update_p_r	G_PCGSolver.cu	/^static __global__ void k_update_p_r(G_StaggeredGrid grid,const double* scalars,int rz_old_id){$/;"	f	typeref:typename:void	file:
+k_update_p_r_z_make_rz_tmp	G_PCGSolver.cu	/^static __global__ void k_update_p_r_z_make_rz_tmp(G_StaggeredGrid grid,const double* scalars,int/;"	f	typeref:typename:void	file:
+k_update_p_r_z_make_rz_tmp	G_PCGSolver_prof.cu	/^static __global__ void k_update_p_r_z_make_rz_tmp(G_StaggeredGrid grid,const double* scalars,int/;"	f	typeref:typename:void	file:
+pAp_reduce_ms	G_PCGSolver.h	/^    float pAp_reduce_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+pcg_prof_start	G_PCGSolver.h	/^static void pcg_prof_start(cudaEvent_t ev_start){$/;"	f	typeref:typename:void
+pcg_prof_stop	G_PCGSolver.h	/^static void pcg_prof_stop(cudaEvent_t ev_start,cudaEvent_t ev_stop,float& accum_ms){$/;"	f	typeref:typename:void
+reset_pcg_profile	G_PCGSolver.h	/^static void reset_pcg_profile(PCGProfile& p){$/;"	f	typeref:typename:void
+residual_check_ms	G_PCGSolver.h	/^    float residual_check_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+rz_reduce_ms	G_PCGSolver.h	/^    float rz_reduce_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+solve	G_PCGSolver_prof.cu	/^void G_PCGSolver::solve(G_SMACSolver& solv){$/;"	f	typeref:typename:void G_PCGSolver::
+subtract_cell_mean	G_PressureSolverBase.cu	/^void G_PressureSolverBase::subtract_cell_mean(G_StaggeredGrid& grid_,MyArray<double,3> p){$/;"	f	typeref:typename:void G_PressureSolverBase::
+swap_rz_ms	G_PCGSolver.h	/^    float swap_rz_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+total_ms	G_PCGSolver.h	/^    float total_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+update_dir_ms	G_PCGSolver.h	/^    float update_dir_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+update_prz_ms	G_PCGSolver.h	/^    float update_prz_ms;$/;"	m	struct:PCGProfile	typeref:typename:float
+~G_PCGSolver	G_PCGSolver_prof.cu	/^G_PCGSolver::~G_PCGSolver(){}$/;"	f	typeref:typename:G_PCGSolver::
+~G_PressureSolverBase	G_PressureSolverBase.h	/^    virtual ~G_PressureSolverBase(){}$/;"	f	struct:G_PressureSolverBase

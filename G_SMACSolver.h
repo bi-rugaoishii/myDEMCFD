@@ -20,6 +20,7 @@ struct G_SMACSolver{
     
     double *d_pcg_scalars_;
 
+
     dim3 block_dim_;
     dim3 grid_dim_; //grid size for cuda
 
@@ -48,7 +49,8 @@ struct G_SMACSolver{
     void alpha_flux_accum();
     void alpha_flux_thincwlic(double dt);
 
-    void update_properties_by_alpha(SMACSolver solv);
+    void update_boundary_faces();
+    void update_properties_by_alpha();
     void set_boundary_velocity(SMACSolver solv);
 
     double calc_cfl();
@@ -64,7 +66,7 @@ struct G_SMACSolver{
     void set_boundary_array(double *const q);
     void set_boundary_alpha(int Nx, int Ny);
 
-    void get_vof_ustar_rhouu_upwind_consistent(SMACSolver solv);
+    void get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv);
 
 
     void fix_pressure();

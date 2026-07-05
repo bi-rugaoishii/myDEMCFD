@@ -2,12 +2,16 @@
 
 enum FaceType: unsigned char{
     F_INTERIOR,
-    F_WALL_NOSLIP,
-    F_WALL_SLIP,
-    F_INLET,
-    F_OUTLET,
+    F_BOUNDARY,
     F_GHOST,
     F_NEAR_BOUNDARY
+};
+
+enum BoundaryType: unsigned char{
+    BC_NOSLIP,
+    BC_SLIP,
+    BC_INFLOW,
+    BC_OUTFLOW
 };
 
 enum CellType: unsigned char{

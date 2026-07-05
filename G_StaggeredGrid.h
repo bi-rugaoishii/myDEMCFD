@@ -1,6 +1,7 @@
 #pragma once
 #include "MyArray.h"
 #include "Enums.h"
+#include "G_BoundaryCondition.h"
 /* === grid class === */
 
 struct G_StaggeredGrid{
@@ -11,16 +12,14 @@ struct G_StaggeredGrid{
     int Nx_,Ny_,Nz_;
     double sizex_, sizey_,sizez_;
 
-    /* boundary condition */
-    /* for faces */
-    double v_b_1_; // velocity at the boundary
-    double v_b_2_; // velocity at the boundary
-
-
+    /* members */
 
     #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> name;
     #include "memberList/gridMembers.def"
     #undef MEMBER
+
+    /* boundary condition */
+    G_BoundaryCondition bc_;
 
 };
 
