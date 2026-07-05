@@ -24,6 +24,7 @@ struct G_PCGSolver:G_PressureSolverBase{
 
     void solve(G_SMACSolver& solv) override;
     void solve_pcg(G_SMACSolver& solv);
+    void solve_gmg(G_SMACSolver& solv);
     void set_gmg(G_GMGSolver& gmg) ;
 
     G_GMGSolver* gmg_;

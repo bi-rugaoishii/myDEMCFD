@@ -165,7 +165,7 @@ int main(){
 
     int Nx=64;
     int Ny=64;
-    int Nz=32;
+    int Nz=1;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -204,7 +204,7 @@ int main(){
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
 
-    solv.set_gravity(0., -9.81, 0.);
+    //solv.set_gravity(0., -9.81, 0.);
     //solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
@@ -228,7 +228,7 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
+   // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
     //solv.grid_.place_vof(0.,1.0,0.,0.5,1.0);
 
     /*for surface tension test*/
@@ -236,12 +236,10 @@ int main(){
 
 
     /*for zalesak test*/
-    /*
-    solv.initialize_zalesak_disk();
-    */
+    //solv.initialize_zalesak_disk();
 
-    //solv.set_sphere();
-    //solv.set_zalesak_rotation_velocity();
+    solv.set_sphere();
+    solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
     solv.set_boundary_neumann(solv.grid_.alpha_);
@@ -260,7 +258,7 @@ int main(){
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = 1.;
+    double outfreqtime = .05;
     double endTime = 10.0;
     double max_dt = 5e-3;
     double initial_dt = 1e-4;
@@ -308,11 +306,13 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
+    /*
     int num_levels = 3;
     G_GMGSolver gmgSolver;
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
     pcgSolver.set_gmg(gmgSolver);
+    */
 
     /* ============================= 
        ======== main loop ==========
@@ -352,16 +352,16 @@ int main(){
             g_solv.update_boundary_faces();
 
             g_solv.compute_mass_flux_from_alpha_flux(solv);
-            g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
+           // g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
 
             /* == needs boundary condition in general ==*/
             /* == we are skipping it since we assume stationary in normal direction ==*/
 
 
             printf("starting poisson\n");
-            g_solv.solve_poisson();
+            //g_solv.solve_poisson();
 
-            g_solv.correct_vof_velocity(solv);
+            //g_solv.correct_vof_velocity(solv);
 
             /* == needs boundary condition in general ==*/
             /* == we are skipping it since we assume stationary in normal direction ==*/
@@ -395,7 +395,7 @@ int main(){
   solv.solver_free();
   if(GPU_ON==1){
       g_solv.solver_free();
-      gmgSolver.free_levels();
+      //gmgSolver.free_levels();
     }
 
     printf("my CFD Done!!!\n");

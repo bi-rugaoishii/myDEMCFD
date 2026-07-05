@@ -151,11 +151,19 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
 
     double axf = a(donorInd,iy,iz);
-    unsigned char ctype = celltype(donorInd,iy,iz);
+
+    unsigned char ctyped = celltype(donorInd,iy,iz);
+    unsigned char ctypep = celltype(donorInd+1,iy,iz);
+    unsigned char ctypem = celltype(donorInd-1,iy,iz);
 
 
-    /* if near boundary */
-    if (ctype == C_NEAR_BOUNDARY) {
+    /* check if donor cell is near boundary in flow direction*/
+    /* if then give upwind*/
+    if(ctyped != C_INTERIOR){
+        Fx(ix,iy,iz) = 0.;
+    }
+
+    if (ctypep != C_INTERIOR || ctypem != C_INTERIOR ) {
         Fx(ix,iy,iz) = vxf*axf*dtbydx;
         return;
     }
@@ -169,8 +177,27 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     }
 
     double nx = -gamma_x*inv_2dx;
-    double ny = -(a(donorInd,iy+1,iz) - a(donorInd,iy-1,iz))*inv_2dy;
-    double nz = -(a(donorInd,iy,iz+1) - a(donorInd,iy,iz-1))*inv_2dz;
+
+    /* == check if stencil cells are boundary == */
+    bool is_boundaryy = false;
+    bool is_boundaryz = false;
+
+    unsigned char ctypeyp = celltype(donorInd,iy+1,iz);
+    unsigned char ctypeym= celltype(donorInd,iy-1,iz);
+
+    if(ctypeyp != C_INTERIOR || ctypeym != C_INTERIOR){
+        is_boundaryy = true;
+    }
+
+    unsigned char ctypezp = celltype(donorInd,iy,iz+1);
+    unsigned char ctypezm= celltype(donorInd,iy,iz-1);
+
+    if(ctypezp != C_INTERIOR || ctypezm != C_INTERIOR){
+        is_boundaryz = true;
+    }
+
+    double ny = is_boundaryy? 0.0:-(a(donorInd,iy+1,iz) - a(donorInd,iy-1,iz))*inv_2dy;
+    double nz = is_boundaryz? 0.0:-(a(donorInd,iy,iz+1) - a(donorInd,iy,iz-1))*inv_2dz;
 
     double nx_abs = fabs(nx);
     double ny_abs = fabs(ny);
@@ -181,7 +208,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = 1.-(wx+wy);
+    double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_x);
 
@@ -230,6 +257,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
         return;
     }
 
+
     // y ghost  face
     if (f_ytype(ix,iy,iz)==F_GHOST || f_ytype(ix,iy,iz)==F_BOUNDARY){
         Fy(ix,iy,iz) = 0.0;
@@ -243,12 +271,18 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double ayf = a(ix,donorInd,iz);
 
-    unsigned char ctype = celltype(ix,donorInd,iz);
 
+    unsigned char ctyped = celltype(ix,donorInd,iz);
+    unsigned char ctypep = celltype(ix,donorInd+1,iz);
+    unsigned char ctypem = celltype(ix,donorInd-1,iz);
 
     // upwind near boundary
 
-    if (ctype == C_NEAR_BOUNDARY) {
+    if(ctyped != C_INTERIOR){
+        Fy(ix,iy,iz) = 0.;
+    }
+
+    if (ctypep != C_INTERIOR || ctypem != C_INTERIOR ) {
         Fy(ix,iy,iz) = vyf*ayf*dtbydy;
         return;
     }
@@ -261,9 +295,28 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
         return;
     }
 
-    double nx = -(a(ix+1,donorInd,iz) - a(ix-1,donorInd,iz))*inv_2dx;
     double ny = -gamma_y*inv_2dy;
-    double nz = -(a(ix,donorInd,iz+1) - a(ix,donorInd,iz-1))*inv_2dz;
+
+    /* == check if stencil cells are boundary == */
+    bool is_boundaryx = false;
+    bool is_boundaryz = false;
+
+    unsigned char ctypexp = celltype(ix+1,donorInd,iz);
+    unsigned char ctypexm= celltype(ix-1,donorInd,iz);
+
+    if(ctypexp != C_INTERIOR || ctypexm != C_INTERIOR){
+        is_boundaryx = true;
+    }
+
+    unsigned char ctypezp = celltype(ix,donorInd,iz+1);
+    unsigned char ctypezm= celltype(ix,donorInd,iz-1);
+
+    if(ctypezp != C_INTERIOR || ctypezm != C_INTERIOR){
+        is_boundaryz = true;
+    }
+
+    double nx = is_boundaryx? 0.0: -(a(ix+1,donorInd,iz) - a(ix-1,donorInd,iz))*inv_2dx;
+    double nz =  is_boundaryz? 0.0:-(a(ix,donorInd,iz+1) - a(ix,donorInd,iz-1))*inv_2dz;
 
 
     double nx_abs = fabs(nx);
@@ -275,7 +328,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = 1.-(wx+wy);
+    double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_y);
 
@@ -335,11 +388,19 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
 
     double azf = a(ix,iy,donorInd);
-    unsigned char ctype = celltype(ix,iy,donorInd);
+
+    unsigned char ctyped = celltype(ix,iy,donorInd);
+    unsigned char ctypep = celltype(ix,iy,donorInd+1);
+    unsigned char ctypem = celltype(ix,iy,donorInd-1);
 
 
-    // upwind near boundary
-    if (ctype == C_NEAR_BOUNDARY) {
+    /* check if donor cell is near boundary in flow direction*/
+    /* if then give upwind*/
+    if(ctyped != C_INTERIOR){
+        Fz(ix,iy,iz) = 0.;
+    }
+
+    if (ctypep != C_INTERIOR || ctypem != C_INTERIOR) {
         Fz(ix,iy,iz) = vzf*azf*dtbydz;
         return;
     }
@@ -351,9 +412,29 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
         return;
     }
 
-    double nx = -(a(ix+1,iy,donorInd) - a(ix-1,iy,donorInd))*inv_2dx;
-    double ny = -(a(ix,iy+1,donorInd) - a(ix,iy-1,donorInd))*inv_2dy;
     double nz = -gamma_z*inv_2dz;
+
+    /* == check if stencil cells are boundary == */
+    bool is_boundaryx = false;
+    bool is_boundaryy = false;
+
+    unsigned char ctypeyp = celltype(ix,iy+1,donorInd);
+    unsigned char ctypeym= celltype(ix,iy-1,donorInd);
+
+    if(ctypeyp != C_INTERIOR || ctypeym != C_INTERIOR){
+       is_boundaryy = true;
+    }
+
+    unsigned char ctypexp = celltype(ix+1,iy,donorInd);
+    unsigned char ctypexm = celltype(ix-1,iy,donorInd);
+
+    if(ctypexp != C_INTERIOR || ctypexm != C_INTERIOR){
+        is_boundaryx = true;
+    }
+
+
+    double nx =is_boundaryx? 0.0: -(a(ix+1,iy,donorInd) - a(ix-1,iy,donorInd))*inv_2dx;
+    double ny =is_boundaryy? 0.0: -(a(ix,iy+1,donorInd) - a(ix,iy-1,donorInd))*inv_2dy;
 
     double nx_abs = fabs(nx);
     double ny_abs = fabs(ny);
@@ -364,7 +445,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
     double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = 1-(wx+wy);
+    double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_z);
 
@@ -1112,7 +1193,6 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
     MyArray<double,3>  vy_star = grid_.f_vy_star_;
     MyArray<double,3>  vz_star = grid_.f_vz_star_;
 
-    MyArray<unsigned char,3>& celltype = grid_.celltype_;
     MyArray<unsigned char,3>& f_xtype = grid_.f_xtype_;
     MyArray<unsigned char,3>& f_ytype = grid_.f_ytype_;
     MyArray<unsigned char,3>& f_ztype = grid_.f_ztype_;

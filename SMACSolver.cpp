@@ -240,7 +240,7 @@ void SMACSolver::set_cell_type(){
                 if(xp != F_INTERIOR || yp != F_INTERIOR || zp != F_INTERIOR || 
                     xm != F_INTERIOR || ym != F_INTERIOR || zm != F_INTERIOR){
                     
-                    ctype(ix,iy,iz) = C_NEAR_BOUNDARY;
+                    //ctype(ix,iy,iz) = C_NEAR_BOUNDARY;//disabled temporarily
                 }else{
                     ctype(ix,iy,iz) = C_INTERIOR;
                 }
