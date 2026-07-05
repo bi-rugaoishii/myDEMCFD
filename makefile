@@ -11,7 +11,9 @@ CONLYFLAGS = -O3
 LIBS = -lm 
 OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o\
 		pressure_solver/G_PressureSolverBase.o\
-		pressure_solver/G_PCGSolver.o
+		pressure_solver/G_PCGSolver.o\
+		pressure_solver/G_GMGSolver.o\
+		pressure_solver/G_Levels.o\
 		   
 
 PROGRAM = myCFD

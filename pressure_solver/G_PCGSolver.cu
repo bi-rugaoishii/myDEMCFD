@@ -1,4 +1,5 @@
 #include "G_PCGSolver.h"
+#include "G_GMGSolver.h"
 
 static __global__ void k_get_r2_to_tmp(G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
@@ -227,6 +228,147 @@ G_PCGSolver::G_PCGSolver(){}
 
 G_PCGSolver::~G_PCGSolver(){}
 
+//void G_PCGSolver::solve_pcg(G_SMACSolver& solv){
+//
+//    G_StaggeredGrid& grid_=solv.grid_;
+//
+//    int Nx = solv.grid_.Nx_;
+//    int Ny = solv.grid_.Ny_;
+//    int Nz = solv.grid_.Nz_;
+//
+//    int checkResidualFreq = 10;
+//
+//
+//
+//    MyArray<double,3> r       = grid_.pcg_r_;
+//    MyArray<double,3> z       = grid_.pcg_z_;
+//    MyArray<double,3> dir     = grid_.pcg_dir_;
+//    MyArray<double,3> invdiag     = grid_.invAdiag_;
+//
+//    int max_iter = 100000;
+//    double tol = 1e-6;
+//    double inv_dt_ = solv.inv_dt_;
+//
+//
+//    base_k_make_poisson_rhs<<<grid_dim_,block_dim_>>>(grid_,inv_dt_);
+//
+//
+//    k_build_vof_poisson_A<<<grid_dim_,block_dim_>>>(grid_);
+//    k_build_vof_poisson_Ap<<<grid_dim_,block_dim_>>>(grid_,grid_.p_delta_);
+//
+//    /* create mean_b*/
+//    base_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(grid_.rhs_,grid_.pcg_tmp_,Nx,Ny,Nz);
+//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
+//
+//    /* mean_b is in d_dot_ */
+//    base_k_divide<<<1,1>>>(d_dot_,(double)(Nx*Ny*Nz));
+//
+//    /* initial residual; r = b- Ap */
+//    k_get_r<<<grid_dim_,block_dim_>>>(grid_,d_dot_,grid_.pcg_tmp_);
+//
+//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
+//    /* norm_b2 is in d_dot_ */
+//
+//    double norm_b;
+//    cudaMemcpy(&norm_b,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
+//    if (norm_b < 1.0e-16) {
+//        norm_b = 1.0;
+//    }
+//    norm_b=sqrt(norm_b);
+//
+//    Base::subtract_cell_mean(grid_,r);
+//
+//    /* z = M^{-1} r */
+//
+//    base_k_mult_elementwise_array<<<grid_dim_,block_dim_>>>(invdiag,r,z,(Nx+2),(Ny+2),(Nz+2));
+//
+//
+//    Base::subtract_cell_mean(grid_,z);
+//    cudaMemcpy(dir.data_, z.data_, (Nx+2)*(Ny+2)*(Nz+2) * sizeof(double), cudaMemcpyDeviceToDevice);
+//
+//
+//    /* rz_old = r dot z */
+//    int rz_old_id = RZ_BUF0;
+//    int rz_new_id = RZ_BUF1;
+//    base_k_mult_elementwise_array_to_tmp<<<grid_dim_,block_dim_>>>(r,z,grid_.pcg_tmp_,Nx,Ny,Nz);
+//
+//    double *const rz_old=&d_pcg_scalars_[rz_old_id]; 
+//
+//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,rz_old,Nx*Ny*Nz);
+//
+//
+//    int iter = 0;
+//
+//    /* == start main loop ==*/
+//    for (iter = 0; iter < max_iter; ++iter){
+//
+//
+//        /*  Ap = A dir */
+//        k_make_pAp<<<grid_dim_,block_dim_>>>(grid_);
+//
+//        double* const pAp = &d_pcg_scalars_[PAP];
+//        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,pAp,Nx*Ny*Nz);
+//
+//        /* == debug == */
+//        /*
+//        double h_pAp;
+//        cudaMemcpy(&h_pAp,&d_pcg_scalars_[PAP],sizeof(double),cudaMemcpyDeviceToHost);
+//        printf("pAp = %f\n",h_pAp);
+//        */
+//
+//
+//
+//
+//        /*
+//           p = p + alpha dir
+//           r = r - alpha Ap
+//         */
+//
+//        k_update_p_r_z_make_rz_tmp<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,rz_old_id);
+//
+//        double* const rz_new = &d_pcg_scalars_[rz_new_id];
+//        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,rz_new,Nx*Ny*Nz);
+//
+//        if(iter%checkResidualFreq==0){
+//            /* get residual norm */
+//
+//            k_get_r2_to_tmp<<<grid_dim_,block_dim_>>>(grid_);
+//            cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
+//
+//            double r2;
+//            cudaMemcpy(&r2,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
+//            double rel_res = sqrt(r2) / norm_b;
+//
+//            if (rel_res < tol) {
+//                printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
+//                iter++;
+//                break;
+//            }
+//        }
+//
+//
+//        /*
+//           if (fabs(rz_old) < 1.0e-300) {
+//           break;
+//           }
+//         */
+//
+//        k_update_dir<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,rz_old_id,rz_new_id);
+//
+//
+//
+//        int tmp_id=rz_new_id;
+//        rz_new_id = rz_old_id;
+//        rz_old_id = tmp_id;
+//    }
+//
+//    printf("PCG iter = %d\n", iter);
+//}
+
+void G_PCGSolver::set_gmg(G_GMGSolver & gmg){
+    gmg_ = &gmg;
+}
+
 void G_PCGSolver::solve(G_SMACSolver& solv){
 
     G_StaggeredGrid& grid_=solv.grid_;
@@ -235,14 +377,13 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     int Ny = solv.grid_.Ny_;
     int Nz = solv.grid_.Nz_;
 
-    int checkResidualFreq = 10;
+    int checkResidualFreq = 5;
 
 
 
     MyArray<double,3> r       = grid_.pcg_r_;
     MyArray<double,3> z       = grid_.pcg_z_;
     MyArray<double,3> dir     = grid_.pcg_dir_;
-    MyArray<double,3> invdiag     = grid_.invAdiag_;
 
     int max_iter = 100000;
     double tol = 1e-6;
@@ -278,8 +419,10 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     Base::subtract_cell_mean(grid_,r);
 
     /* z = M^{-1} r */
+    gmg_->create_coeffs(grid_);
+    gmg_->v_cycle_as_preconditioner(grid_,grid_.pcg_z_,grid_.pcg_r_);
+    z = grid_.pcg_z_;
 
-    base_k_mult_elementwise_array<<<grid_dim_,block_dim_>>>(invdiag,r,z,(Nx+2),(Ny+2),(Nz+2));
 
 
     Base::subtract_cell_mean(grid_,z);
@@ -323,7 +466,17 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
            r = r - alpha Ap
          */
 
-        k_update_p_r_z_make_rz_tmp<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,rz_old_id);
+        k_update_p_r<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,rz_old_id);
+        Base::subtract_cell_mean(grid_, grid_.pcg_r_);
+
+        gmg_->v_cycle_as_preconditioner(grid_,grid_.pcg_z_, grid_.pcg_r_);
+        z = grid_.pcg_z_;
+
+        /*
+           rz_new = dot(r, z)
+         */
+        base_k_mult_elementwise_array_to_tmp<<<grid_dim_, block_dim_>>>(grid_.pcg_r_,grid_.pcg_z_,grid_.pcg_tmp_, Nx,Ny,Nz);
+
 
         double* const rz_new = &d_pcg_scalars_[rz_new_id];
         cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,rz_new,Nx*Ny*Nz);
@@ -338,6 +491,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
             cudaMemcpy(&r2,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
             double rel_res = sqrt(r2) / norm_b;
 
+                //printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
             if (rel_res < tol) {
                 printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
                 iter++;
@@ -363,165 +517,3 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
 
     printf("PCG iter = %d\n", iter);
 }
-
-//void G_PCGSolver::set_gmg(G_GMGSolver & gmg){
-//    gmg_ = &gmg;
-//}
-//
-//void G_PCGSolver::solve(G_SMACSolver& solv){
-//
-//    G_StaggeredGrid& grid_=solv.grid_;
-//
-//    int Nx = solv.grid_.Nx_;
-//    int Ny = solv.grid_.Ny_;
-//
-//    int checkResidualFreq = 1;
-//
-//
-//
-//    double* const r       = grid_.pcg_r_;
-//    double* z       = grid_.pcg_z_;
-//    double* const dir     = grid_.pcg_dir_;
-//
-//    int max_iter = 100000;
-//    double tol = 1e-6;
-//    double inv_dt_ = solv.inv_dt_;
-//
-//
-//    pres_k_make_poisson_rhs<<<grid_dim_,block_dim_>>>(grid_,inv_dt_);
-//
-//    int block_size=256;
-//    int n=max(Nx,Ny);
-//    int grid_size_boundary=(n+block_size-1)/block_size;
-//
-//
-//    pres_k_shift_pressure_reference<<<grid_dim_,block_dim_>>>(grid_,Nx,Ny);
-//    pres_k_fix_pressure_reference<<<1,1>>>(grid_,Nx,Ny);
-//    pres_k_set_boundary_array<<<grid_size_boundary,block_size>>>(grid_.p_,Nx, Ny);
-//
-//    k_build_vof_poisson_Ap<<<grid_dim_,block_dim_>>>(grid_,grid_.p_,Nx,Ny);
-//
-//    /* create mean_b*/
-//    pres_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(grid_.rhs_,grid_.pcg_tmp_,Nx,Ny);
-//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,d_dot_,Nx*Ny);
-//
-//    /* mean_b is in d_dot_ */
-//    pres_k_divide<<<1,1>>>(d_dot_,(double)(Nx*Ny));
-//
-//    /* initial residual; r = b- Ap */
-//    k_get_r<<<grid_dim_,block_dim_>>>(grid_,d_dot_,grid_.pcg_tmp_,Nx,Ny);
-//
-//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,d_dot_,Nx*Ny);
-//    /* norm_b2 is in d_dot_ */
-//
-//    double norm_b;
-//    cudaMemcpy(&norm_b,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
-//    if (norm_b < 1.0e-16) {
-//        norm_b = 1.0;
-//    }
-//    norm_b=sqrt(norm_b);
-//
-//    Base::subtract_cell_mean(grid_,r,Nx,Ny);
-//
-//    /* z = M^{-1} r */
-//
-//    gmg_->create_coeffs(grid_);
-//    gmg_->v_cycle_as_preconditioner(grid_,grid_.wew_pcg_z_,grid_.wew_pcg_r_);
-//    grid_.pcg_z_=grid_.wew_pcg_z_.data_;
-//    z = grid_.pcg_z_;
-//
-//
-//    Base::subtract_cell_mean(grid_,z,Nx,Ny);
-//    cudaMemcpy(dir, z, (Nx+2)*(Ny+2) * sizeof(double), cudaMemcpyDeviceToDevice);
-//
-//    pres_k_set_boundary_array<<<grid_size_boundary,block_size>>>(dir,Nx, Ny);
-//
-//    /* rz_old = r dot z */
-//    int rz_old_id = RZ_BUF0;
-//    int rz_new_id = RZ_BUF1;
-//    pres_k_mult_elementwise_array_to_tmp<<<grid_dim_,block_dim_>>>(r,z,grid_.pcg_tmp_,Nx,Ny);
-//
-//    double *const rz_old=&d_pcg_scalars_[rz_old_id]; 
-//
-//    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,rz_old,Nx*Ny);
-//
-//
-//    int iter = 0;
-//
-//    /* == start main loop ==*/
-//    for (iter = 0; iter < max_iter; ++iter){
-//
-//
-//        /*  Ap = A dir */
-//        k_make_pAp<<<grid_dim_,block_dim_>>>(grid_,Nx,Ny);
-//
-//        double* const pAp = &d_pcg_scalars_[PAP];
-//        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,pAp,Nx*Ny);
-//
-//
-//
-//
-//        /*
-//           p = p + alpha dir
-//           r = r - alpha Ap
-//         */
-//
-//        k_update_p_r<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,Nx,Ny,rz_old_id);
-//        Base::subtract_cell_mean(grid_, grid_.pcg_r_, Nx,Ny);
-//
-//        gmg_->v_cycle_as_preconditioner(grid_,grid_.wew_pcg_z_, grid_.wew_pcg_r_);
-//        grid_.pcg_z_=grid_.wew_pcg_z_.data_;
-//        z = grid_.pcg_z_;
-//
-//        Base::subtract_cell_mean(grid_, grid_.pcg_z_, Nx, Ny);
-//
-//        /*
-//           rz_new = dot(r, z)
-//         */
-//        pres_k_mult_elementwise_array_to_tmp<<<grid_dim_, block_dim_>>>(grid_.pcg_r_,grid_.pcg_z_,grid_.pcg_tmp_, Nx,Ny);
-//
-//        double* const rz_new = &d_pcg_scalars_[rz_new_id];
-//        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,rz_new,Nx*Ny);
-//
-//        if(iter%checkResidualFreq==0){
-//            /* get residual norm */
-//
-//            k_get_r2_to_tmp<<<grid_dim_,block_dim_>>>(grid_,Nx,Ny);
-//            cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_,d_dot_,Nx*Ny);
-//
-//            double r2;
-//            cudaMemcpy(&r2,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
-//            double rel_res = sqrt(r2) / norm_b;
-//
-//            if (rel_res < tol) {
-//                printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
-//                iter++;
-//                break;
-//            }
-//        }
-//
-//
-//        /*
-//           if (fabs(rz_old) < 1.0e-300) {
-//           break;
-//           }
-//         */
-//
-//        k_update_dir<<<grid_dim_,block_dim_>>>(grid_,d_pcg_scalars_,Nx,Ny,rz_old_id,rz_new_id);
-//
-//
-//        //Base::subtract_cell_mean(dir,Nx,Ny);
-//
-//        //    k_swap_rz<<<1,1>>>(d_pcg_scalars_);
-//        int tmp_id=rz_new_id;
-//        rz_new_id = rz_old_id;
-//        rz_old_id = tmp_id;
-//    }
-//
-//
-//    pres_k_shift_pressure_reference<<<grid_dim_,block_dim_>>>(grid_,Nx,Ny);
-//    pres_k_fix_pressure_reference<<<1,1>>>(grid_,Nx,Ny);
-//
-//    printf("PCG iter = %d\n", iter);
-//}
-//

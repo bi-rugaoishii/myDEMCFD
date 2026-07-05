@@ -1,0 +1,19 @@
+
+/* the inputs are MEMBER(type, name,Nx+input,Ny+input,Nz+input,SAVEFLAG) */
+
+MEMBER(double, q_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, q_tmp_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, f_bx_, (3),(2),(2),SAVE_OFF)
+MEMBER(double, f_by_, (2),(3),(2),SAVE_OFF)
+MEMBER(double, f_bz_, (2),(2),(3),SAVE_OFF)
+
+MEMBER(double, rhs_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, residue_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Axp_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Axm_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Ayp_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Aym_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Azp_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Azm_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, invAdiag_, (2),(2),(2),SAVE_OFF)
+MEMBER(double, Adiag_, (2),(2),(2),SAVE_OFF)

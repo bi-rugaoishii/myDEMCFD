@@ -9,6 +9,7 @@
 #include "SMACSolver.h"
 #include "pressure_solver/G_PressureSolverBase.h"
 #include "pressure_solver/G_PCGSolver.h"
+#include "pressure_solver/G_GMGSolver.h"
 #include "G_SMACSolver.h"
 #include "CFDTime.h"
 #include "omp.h"
@@ -162,9 +163,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=50;
-    int Ny=50;
-    int Nz=50;
+    int Nx=64;
+    int Ny=64;
+    int Nz=32;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -259,7 +260,7 @@ int main(){
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = 0.05;
+    double outfreqtime = 1.;
     double endTime = 10.0;
     double max_dt = 5e-3;
     double initial_dt = 1e-4;
@@ -307,6 +308,11 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
+    int num_levels = 3;
+    G_GMGSolver gmgSolver;
+    gmgSolver.initialize(g_solv,num_levels);
+    gmgSolver.copyData(g_solv);
+    pcgSolver.set_gmg(gmgSolver);
 
     /* ============================= 
        ======== main loop ==========
@@ -389,7 +395,7 @@ int main(){
   solv.solver_free();
   if(GPU_ON==1){
       g_solv.solver_free();
-      //gmgSolver.levels_.free();
+      gmgSolver.free_levels();
     }
 
     printf("my CFD Done!!!\n");

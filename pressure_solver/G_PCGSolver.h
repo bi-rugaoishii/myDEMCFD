@@ -5,7 +5,7 @@
 #include "../MyArray.h"
 #include "../hardCodedParameters.h"
 #include "../PCG_Scalars.h"
-//#include "G_GMGSolver.h"
+#include "G_GMGSolver.h"
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +24,9 @@ struct G_PCGSolver:G_PressureSolverBase{
 
     void solve(G_SMACSolver& solv) override;
     void solve_pcg(G_SMACSolver& solv);
-//    void set_gmg(G_GMGSolver& gmg) ;
+    void set_gmg(G_GMGSolver& gmg) ;
 
-//    G_GMGSolver* gmg_;
+    G_GMGSolver* gmg_;
 };
 
 
