@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include "MyArray.h"
 #include "BoundaryCondition.h"
 /* === grid class === */
@@ -20,17 +21,54 @@ struct StaggeredGrid{
     #include "memberList/gridMembers.def"
     #undef MEMBER
 
-    void set_boundary_velocity();
+    void set_boundary_id(int dir,unsigned char bid, int index); 
     void set_num_bc_id(int num_bc_id);
     void place_vof(double minx,double maxx, double miny, double maxy,double minz, double maxz, double alpha);
     void get_cell_coord();
 };
 
-inline void StaggeredGrid::set_boundary_velocity(){
-    /* == temporarly for debug == */
-    int bc_id = 1;
-    bc_.vx_(bc_id)=2.0;
-}
+
+inline void StaggeredGrid::set_boundary_id(int dir,unsigned char bid, int index){ 
+
+    if(dir==0){
+
+        if(index >= f_xbcid_.sizex_){
+            printf("index %d is over sizex %d!!!!!\n", index, f_xbcid_.sizex_);
+        }
+
+        for(int iz=1; iz<=Nz_; iz++){
+            for(int iy=1; iy<=Ny_; iy++){
+                f_xbcid_(index,iy,iz) = bid;
+            }
+        }
+    }
+
+    if(dir==1){
+
+        if(index >= f_ybcid_.sizey_){
+            printf("index %d is over sizey %d!!!!!\n", index, f_ybcid_.sizey_);
+        }
+
+        for(int iz=1; iz<=Nz_; iz++){
+            for(int ix=1; ix<=Nx_; ix++){
+                f_ybcid_(ix,index,iz) = bid;
+            }
+        }
+    }
+
+    if(dir==2){
+        if(index >= f_zbcid_.sizez_){
+            printf("index %d is over sizez %d!!!!!\n", index, f_zbcid_.sizez_);
+        }
+
+        for(int iy=1; iy<=Ny_; iy++){
+            for(int ix=1; ix<=Nx_; ix++){
+                f_zbcid_(ix,iy,index) = bid;
+            }
+        }
+    }
+
+} 
 
 inline void StaggeredGrid::set_num_bc_id(int num_bc_id){
     bc_.num_boundary_id_ = num_bc_id;

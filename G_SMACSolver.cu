@@ -207,8 +207,6 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     double inv_s = 1.0/s;
 
     double wx = nx_abs*inv_s;
-    double wy = ny_abs*inv_s;
-    double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_x);
 
@@ -225,7 +223,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
     double Fx_upwind = lambda*axf;
 
-    Fx(ix,iy,iz) = wx*Fx_thinc + (wy+wz)*Fx_upwind;
+    Fx(ix,iy,iz) = wx*Fx_thinc + (1.-wx)*Fx_upwind;
 }
 
 static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt){
@@ -326,9 +324,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     double s = nx_abs + ny_abs + nz_abs + EPS;
     double inv_s = 1.0/s;
 
-    double wx = nx_abs*inv_s;
     double wy = ny_abs*inv_s;
-    double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_y);
 
@@ -345,7 +341,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double Fy_upwind = lambda*ayf;
 
-    Fy(ix,iy,iz) = wy*Fy_thinc + (wx+wz)*Fy_upwind;
+    Fy(ix,iy,iz) = wy*Fy_thinc + (1.-wy)*Fy_upwind;
 }
 
 static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt){
@@ -443,8 +439,6 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     double s = nx_abs + ny_abs + nz_abs + EPS;
     double inv_s = 1.0/s;
 
-    double wx = nx_abs*inv_s;
-    double wy = ny_abs*inv_s;
     double wz = nz_abs*inv_s;
 
     double gamma = sgn(gamma_z);
@@ -462,7 +456,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
     double Fz_upwind = lambda*azf;
 
-    Fz(ix,iy,iz) = wz*Fz_thinc + (wx+wy)*Fz_upwind;
+    Fz(ix,iy,iz) = wz*Fz_thinc + (1.-wz)*Fz_upwind;
 }
 
 static __global__ void k_transport_alpha(G_StaggeredGrid grid_){
@@ -952,12 +946,21 @@ double d_get_vx_ydir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sy){
         count++;
     }
 
+
     if (count > 0) {
         vx_wall /= (double)count;
     }
 
+    unsigned char bid = grid.f_ybcid_(ix,iyf,iz);
+    unsigned char btype = bc.bcType_(bid);
 
-    return 2.0*vx_wall - vx_inside;
+    if(btype == BC_SLIP){
+        return vx_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vx_wall - vx_inside;
+
+    }
+
 }
 
 __device__ __forceinline__
@@ -994,7 +997,15 @@ double d_get_vx_zdir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sz){
         vx_wall /= (double)count;
     }
 
-    return 2.0*vx_wall - vx_inside;
+    unsigned char bid = grid.f_zbcid_(ix,iy,izf);
+    unsigned char btype = bc.bcType_(bid);
+
+    if(btype == BC_SLIP){
+        return vx_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vx_wall - vx_inside;
+
+    }
 }
 
 __device__ __forceinline__
@@ -1031,7 +1042,15 @@ double d_get_vy_xdir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sx){
         vy_wall /= (double)count;
     }
 
-    return 2.0*vy_wall - vy_inside;
+    unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
+    unsigned char btype = bc.bcType_(bid);
+
+    if(btype == BC_SLIP){
+        return vy_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vy_wall - vy_inside;
+
+    }
 }
 
 __device__ __forceinline__
@@ -1068,7 +1087,15 @@ double d_get_vy_zdir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sz){
         vy_wall /= (double)count;
     }
 
-    return 2.0*vy_wall - vy_inside;
+    unsigned char bid = grid.f_zbcid_(ix,iy,izf);
+    unsigned char btype = bc.bcType_(bid);
+
+    if(btype == BC_SLIP){
+        return vy_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vy_wall - vy_inside;
+    }
+
 }
 
 __device__ __forceinline__
@@ -1105,7 +1132,14 @@ double d_get_vz_xdir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sx){
         vz_wall /= (double)count;
     }
 
-    return 2.0*vz_wall - vz_inside;
+    unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
+    unsigned char btype = bc.bcType_(bid);
+
+    if(btype == BC_SLIP){
+        return vz_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vz_wall - vz_inside;
+    }
 }
 
 __device__ __forceinline__
@@ -1142,7 +1176,14 @@ double d_get_vz_ydir(G_StaggeredGrid &grid,int ix,int iy,int iz,int sy){
         vz_wall /= (double)count;
     }
 
-    return 2.0*vz_wall - vz_inside;
+    unsigned char bid =grid.f_ybcid_(ix,iyf,iz);
+    unsigned char btype = bc.bcType_(bid);
+
+    if(btype == BC_SLIP){
+        return vz_inside;
+    }else{   //assuming NO_SLIP for now
+        return 2.0*vz_wall - vz_inside;
+    }
 }
 
 

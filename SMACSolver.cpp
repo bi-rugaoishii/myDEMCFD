@@ -178,8 +178,6 @@ void SMACSolver::set_face_type(){
             f_ytype(ix,1,iz) = F_BOUNDARY;
             f_ytype(ix,Ny+1,iz) = F_BOUNDARY;
 
-            /* === debug === */
-            f_ybcid(ix,Ny+1,iz) = 1;
 
         }
     }
@@ -241,6 +239,7 @@ void SMACSolver::set_cell_type(){
                     xm != F_INTERIOR || ym != F_INTERIOR || zm != F_INTERIOR){
                     
                     //ctype(ix,iy,iz) = C_NEAR_BOUNDARY;//disabled temporarily
+                    ctype(ix,iy,iz) = C_INTERIOR;
                 }else{
                     ctype(ix,iy,iz) = C_INTERIOR;
                 }

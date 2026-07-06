@@ -204,31 +204,37 @@ int main(){
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
 
-    //solv.set_gravity(0., -9.81, 0.);
+    solv.set_gravity(0., -9.81, 0.);
     //solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
    
     /* == set boundary id numbers == */
-    int num_bc_id = 2;
+    int num_bc_id = 3;
     solv.grid_.set_num_bc_id(num_bc_id);
 
 
     solv.solver_malloc();
 
-    solv.grid_.set_boundary_velocity();
+    double wallvel=0.0;
 
     solv.set_face_type();
-
     solv.set_cell_type();
-
     solv.set_face_internal_direction();
+
+    solv.grid_.set_boundary_id(1,1,Ny+1); // dir bid index
+    solv.grid_.set_boundary_id(2,2,Nz+1);
+    solv.grid_.set_boundary_id(2,2,1);
+
+    solv.grid_.bc_.set_boundary_velocity(1, wallvel, 0., 0.);
+    solv.grid_.bc_.set_bctype(1, BC_NOSLIP);
+    solv.grid_.bc_.set_bctype(2, BC_NOSLIP);
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-   // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
+    solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
     //solv.grid_.place_vof(0.,1.0,0.,0.5,1.0);
 
     /*for surface tension test*/
@@ -238,8 +244,8 @@ int main(){
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-    solv.set_sphere();
-    solv.set_zalesak_rotation_velocity();
+  //  solv.set_sphere();
+   // solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
     solv.set_boundary_neumann(solv.grid_.alpha_);
@@ -260,7 +266,7 @@ int main(){
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = .05;
     double endTime = 10.0;
-    double max_dt = 5e-3;
+    double max_dt = 1e-2;
     double initial_dt = 1e-4;
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
@@ -352,16 +358,16 @@ int main(){
             g_solv.update_boundary_faces();
 
             g_solv.compute_mass_flux_from_alpha_flux(solv);
-           // g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
+            g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
 
             /* == needs boundary condition in general ==*/
             /* == we are skipping it since we assume stationary in normal direction ==*/
 
 
             printf("starting poisson\n");
-            //g_solv.solve_poisson();
+            g_solv.solve_poisson();
 
-            //g_solv.correct_vof_velocity(solv);
+            g_solv.correct_vof_velocity(solv);
 
             /* == needs boundary condition in general ==*/
             /* == we are skipping it since we assume stationary in normal direction ==*/
