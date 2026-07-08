@@ -245,7 +245,7 @@ void G_PCGSolver::solve_pcg(G_SMACSolver& solv){
     MyArray<double,3> dir     = grid_.pcg_dir_;
     MyArray<double,3> invdiag     = grid_.invAdiag_;
 
-    int max_iter = 100000;
+    int max_iter = 2000;
     double tol = 1e-6;
     double inv_dt_ = solv.inv_dt_;
 
@@ -385,7 +385,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     MyArray<double,3> z       = grid_.pcg_z_;
     MyArray<double,3> dir     = grid_.pcg_dir_;
 
-    int max_iter = 100000;
+    int max_iter = 2000;
     double tol = 1e-5;
     double inv_dt_ = solv.inv_dt_;
 

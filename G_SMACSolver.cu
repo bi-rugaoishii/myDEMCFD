@@ -187,6 +187,7 @@ static __global__ void k_calc_curvature(G_StaggeredGrid grid){
     /* == kappa = -div(n) == */
 
     kappa(ix,iy,iz) = -1.0 * ((nx(ix+1,iy,iz)-nx(ix-1,iy,iz))*inv_2dx + (ny(ix,iy+1,iz)-ny(ix,iy-1,iz))*inv_2dy+ (nz(ix,iy,iz+1)-nz(ix,iy,iz-1))*inv_2dz);
+    //kappa(ix,iy,iz) = 2./0.3;
 
 }
 
@@ -219,7 +220,7 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
     }else{
         /* == x-faces == */
 
-        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix-1,iy,iz)){
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix-1,iy,iz) == C_INTERIOR){
             double kappa_x = 0.5*(kappa(ix,iy,iz)+kappa(ix-1,iy,iz));
             f_sx(ix,iy,iz) = sigma*kappa_x*(a_s(ix,iy,iz)-a_s(ix-1,iy,iz))*inv_dx;
         }else{
@@ -233,7 +234,7 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
 
     }else{
         /* == y-faces == */
-        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy-1,iz)){
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy-1,iz) == C_INTERIOR){
             double kappa_y = 0.5*(kappa(ix,iy,iz)+kappa(ix,iy-1,iz));
             f_sy(ix,iy,iz) = sigma*kappa_y*(a_s(ix,iy,iz)-a_s(ix,iy-1,iz))*inv_dy;
         }else{
@@ -246,7 +247,7 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
 
     }else{
         /* == z-faces == */
-        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy,iz-1)){
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy,iz-1) == C_INTERIOR){
             double kappa_z = 0.5*(kappa(ix,iy,iz)+kappa(ix,iy,iz-1));
             f_sz(ix,iy,iz) = sigma*kappa_z*(a_s(ix,iy,iz)-a_s(ix,iy,iz-1))*inv_dz;
         }else{

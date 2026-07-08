@@ -508,14 +508,14 @@ void SMACSolver::set_sphere(){
     MyArray<double,3> z = grid_.z_;
     MyArray<double,3> a = grid_.alpha_;
 
-    double center_x = 0.5;
-    double center_y = 0.5;
-    double center_z = 0.5;
-    double r = 0.3;
+    double center_x = 0.05;
+    double center_y = 0.05;
+    double center_z = 0.05;
+    double r = 0.03;
     double rsq = r*r;
 
     // Zalesak-like slot
-    double slot_half_width = 0.04;       
+    double slot_half_width = 0.00;       
     double slot_y_min = center_y;       
     double slot_y_max = center_y + r;  
 
@@ -536,7 +536,7 @@ void SMACSolver::set_sphere(){
 
                 if (inside_sphere && !inside_slot) {
                     a(ix,iy,iz) = 1.0;
-                } else {
+                } else if(inside_sphere && inside_slot) {
                     a(ix,iy,iz) = 0.0;
                 }
             }
