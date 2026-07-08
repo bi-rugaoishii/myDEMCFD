@@ -10,6 +10,269 @@
 #include <algorithm>
 #include <cub/cub.cuh>
 
+/* ================================= */
+/* ==== surface tension related ==== */
+/* ================================= */
+static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
+    MyArray<double,3> a = grid.alpha_;
+    MyArray<double,3> a_s = grid.alpha_s_;
+
+    int ix = blockIdx.x * blockDim.x + threadIdx.x + 1;
+    int iy = blockIdx.y * blockDim.y + threadIdx.y + 1;
+    int iz = blockIdx.z * blockDim.z + threadIdx.z + 1;
+
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
+
+    if (ix > Nx || iy > Ny || iz > Nz) {
+        return;
+    }
+
+    int im = ix - 1;
+    int ip = ix + 1;
+    int jm = iy - 1;
+    int jp = iy + 1;
+    int km = iz - 1;
+    int kp = iz + 1;
+
+    if (im < 1) {
+        im = 1;
+    }
+
+    if (ip > Nx) {
+        ip = Nx;
+    }
+
+    if (jm < 1) {
+        jm = 1;
+    }
+
+    if (jp > Ny) {
+        jp = Ny;
+    }
+
+    if (km < 1) {
+        km = 1;
+    }
+
+    if (kp > Nz) {
+        kp = Nz;
+    }
+
+    double a000 = a(ix,iy,iz);
+
+    double axm = a(im,iy,iz);
+    double axp = a(ip,iy,iz);
+    double aym = a(ix,jm,iz);
+    double ayp = a(ix,jp,iz);
+    double azm = a(ix,iy,km);
+    double azp = a(ix,iy,kp);
+
+    double axmym = a(im,jm,iz);
+    double axmyp = a(im,jp,iz);
+    double axpym = a(ip,jm,iz);
+    double axpyp = a(ip,jp,iz);
+
+    double axmzm = a(im,iy,km);
+    double axmzp = a(im,iy,kp);
+    double axpzm = a(ip,iy,km);
+    double axpzp = a(ip,iy,kp);
+
+    double aymzm = a(ix,jm,km);
+    double aymzp = a(ix,jm,kp);
+    double aypzm = a(ix,jp,km);
+    double aypzp = a(ix,jp,kp);
+
+    double axmymzm = a(im,jm,km);
+    double axmymzp = a(im,jm,kp);
+    double axmypzm = a(im,jp,km);
+    double axmypzp = a(im,jp,kp);
+
+    double axpymzm = a(ip,jm,km);
+    double axpymzp = a(ip,jm,kp);
+    double axpypzm = a(ip,jp,km);
+    double axpypzp = a(ip,jp,kp);
+
+    double center =
+        8.0 * a000;
+
+    double face =
+        4.0 * (
+            axm + axp +
+            aym + ayp +
+            azm + azp
+        );
+
+    double edge =
+        2.0 * (
+            axmym + axmyp + axpym + axpyp +
+            axmzm + axmzp + axpzm + axpzp +
+            aymzm + aymzp + aypzm + aypzp
+        );
+
+    double corner =
+        axmymzm + axmymzp + axmypzm + axmypzp +
+        axpymzm + axpymzp + axpypzm + axpypzp;
+
+    a_s(ix,iy,iz) = (center + face + edge + corner)*0.015625; // 0.015625=1/64
+}
+
+
+static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
+
+    if (ix > Nx|| iy > Ny || iz > Nz) return;
+
+
+    MyArray<double,3> a_s = grid.alpha_s_;
+    MyArray<double,3> nx = grid.nx_;
+    MyArray<double,3> ny = grid.ny_;
+    MyArray<double,3> nz = grid.nz_;
+
+
+    double inv_2dx = grid.inv_2dx_;
+    double inv_2dy = grid.inv_2dy_;
+    double inv_2dz = grid.inv_2dz_;
+
+    double grad_ax = (a_s(ix+1,iy,iz) - a_s(ix-1,iy,iz))*inv_2dx;
+    double grad_ay = (a_s(ix,iy+1,iz) - a_s(ix,iy-1,iz))*inv_2dy;
+    double grad_az = (a_s(ix,iy,iz+1) - a_s(ix,iy,iz-1))*inv_2dz;
+
+    double mag2 = grad_ax*grad_ax+grad_ay*grad_ay+grad_az*grad_az;
+
+    if (mag2>1e-16){
+        double inv_norm_grad = 1./(sqrt(mag2));
+        nx(ix,iy,iz) = grad_ax*inv_norm_grad;
+        ny(ix,iy,iz) = grad_ay*inv_norm_grad;
+        nz(ix,iy,iz) = grad_az*inv_norm_grad;
+    }else{
+        nx(ix,iy,iz) = 0.;
+        ny(ix,iy,iz) = 0.;
+        nz(ix,iy,iz) = 0.;
+    }
+
+}
+
+static __global__ void k_calc_curvature(G_StaggeredGrid grid){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
+
+    if (ix > Nx|| iy > Ny || iz > Nz) return;
+
+
+    MyArray<double,3> nx = grid.nx_;
+    MyArray<double,3> ny = grid.ny_;
+    MyArray<double,3> nz = grid.nz_;
+    MyArray<double,3> kappa = grid.kappa_;
+
+    double inv_2dx = grid.inv_2dx_;
+    double inv_2dy = grid.inv_2dy_;
+    double inv_2dz = grid.inv_2dz_;
+
+    /* == kappa = -div(n) == */
+
+    kappa(ix,iy,iz) = -1.0 * ((nx(ix+1,iy,iz)-nx(ix-1,iy,iz))*inv_2dx + (ny(ix,iy+1,iz)-ny(ix,iy-1,iz))*inv_2dy+ (nz(ix,iy,iz+1)-nz(ix,iy,iz-1))*inv_2dz);
+
+}
+
+static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
+
+    int ix = blockIdx.x * blockDim.x + threadIdx.x + 1;
+    int iy = blockIdx.y * blockDim.y + threadIdx.y + 1;
+    int iz = blockIdx.z * blockDim.z + threadIdx.z + 1;
+
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
+
+
+    double sigma = grid.sigma_(0);
+    MyArray<double,3> f_sx = grid.f_sx_;
+    MyArray<double,3> f_sy = grid.f_sy_;
+    MyArray<double,3> f_sz = grid.f_sz_;
+    MyArray<double,3> kappa = grid.kappa_;
+    MyArray<double,3> a_s = grid.alpha_s_;
+    MyArray<unsigned char,3> celltype = grid.celltype_;
+
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+
+    if (ix > Nx || iy > Ny || iz > Nz|| ix < 2 || iy < 1|| iz <1){
+        /* do nothing */
+
+    }else{
+        /* == x-faces == */
+
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix-1,iy,iz)){
+            double kappa_x = 0.5*(kappa(ix,iy,iz)+kappa(ix-1,iy,iz));
+            f_sx(ix,iy,iz) = sigma*kappa_x*(a_s(ix,iy,iz)-a_s(ix-1,iy,iz))*inv_dx;
+        }else{
+            f_sx(ix,iy,iz)=0.0;
+        }
+
+    }
+
+    if (ix > Nx || iy > Ny || iz > Nz|| ix < 1 || iy < 2|| iz <1){
+        /* do nothing */
+
+    }else{
+        /* == y-faces == */
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy-1,iz)){
+            double kappa_y = 0.5*(kappa(ix,iy,iz)+kappa(ix,iy-1,iz));
+            f_sy(ix,iy,iz) = sigma*kappa_y*(a_s(ix,iy,iz)-a_s(ix,iy-1,iz))*inv_dy;
+        }else{
+            f_sy(ix,iy,iz)=0.0;
+        }
+    }
+
+    if (ix > Nx || iy > Ny || iz > Nz|| ix < 1 || iy < 1|| iz <2){
+        /* do nothing */
+
+    }else{
+        /* == z-faces == */
+        if(celltype(ix,iy,iz)== C_INTERIOR && celltype(ix,iy,iz-1)){
+            double kappa_z = 0.5*(kappa(ix,iy,iz)+kappa(ix,iy,iz-1));
+            f_sz(ix,iy,iz) = sigma*kappa_z*(a_s(ix,iy,iz)-a_s(ix,iy,iz-1))*inv_dz;
+        }else{
+            f_sz(ix,iy,iz)=0.0;
+        }
+    }
+
+}
+
+
+
+void G_SMACSolver::calc_surface_tension(){
+
+    cudaMemset(grid_.f_sx_.data_, 0, grid_.f_sx_.size_ * sizeof(double));
+    cudaMemset(grid_.f_sy_.data_, 0, grid_.f_sy_.size_ * sizeof(double));
+    cudaMemset(grid_.f_sz_.data_, 0, grid_.f_sz_.size_ * sizeof(double));
+
+    k_calc_alpha_s<<<grid_dim_,block_dim_>>>(grid_);
+    k_calc_interface_normal<<<grid_dim_,block_dim_>>>(grid_);
+    k_calc_curvature<<<grid_dim_,block_dim_>>>(grid_);
+    k_calc_surface_tension_face<<<grid_dim_,block_dim_>>>(grid_);
+}
+
+/* =============================
+   ======== set properties =====
+   ============================*/
 
 void G_SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
     rho_=rho;
@@ -75,7 +338,7 @@ static __global__ void k_alpha_flux_accum(G_StaggeredGrid grid_){
     int iz = blockIdx.z*blockDim.z + threadIdx.z;
     int iy = blockIdx.y*blockDim.y + threadIdx.y;
     int ix = blockIdx.x*blockDim.x + threadIdx.x;
-    
+
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
     int Nz = grid_.Nz_;
@@ -418,7 +681,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     unsigned char ctypeym= celltype(ix,iy-1,donorInd);
 
     if(ctypeyp != C_INTERIOR || ctypeym != C_INTERIOR){
-       is_boundaryy = true;
+        is_boundaryy = true;
     }
 
     unsigned char ctypexp = celltype(ix+1,iy,donorInd);
@@ -1580,6 +1843,10 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid g
     MyArray<double,3> f_by = grid_.f_by_;
     MyArray<double,3> f_bz = grid_.f_bz_;
 
+    MyArray<double,3> f_sx = grid_.f_sx_;
+    MyArray<double,3> f_sy = grid_.f_sy_;
+    MyArray<double,3> f_sz = grid_.f_sz_;
+
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
     int Nz = grid_.Nz_;
@@ -1596,7 +1863,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid g
         /* do nothing */
     }else{
         if(grid_.f_xtype_(ix,iy,iz) == F_INTERIOR){
-            vx(ix,iy,iz) = vx_star(ix,iy,iz) + f_bx(ix,iy,iz)*dt*(-(p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx);
+            vx(ix,iy,iz) = vx_star(ix,iy,iz) + f_bx(ix,iy,iz)*dt*(f_sx(ix,iy,iz)-(p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx);
 
 
         }
@@ -1607,7 +1874,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid g
         /* do nothing */
     }else{
         if(grid_.f_ytype_(ix,iy,iz) == F_INTERIOR){
-            vy(ix,iy,iz) = vy_star(ix,iy,iz) + f_by(ix,iy,iz)*dt*(-(p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy);
+            vy(ix,iy,iz) = vy_star(ix,iy,iz) + f_by(ix,iy,iz)*dt*(f_sy(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy);
         }
     }
 
@@ -1616,7 +1883,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid g
         /* do nothing */
     }else{
         if(grid_.f_ztype_(ix,iy,iz) == F_INTERIOR){
-            vz(ix,iy,iz) = vz_star(ix,iy,iz) + f_bz(ix,iy,iz)*dt*(-(p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz);
+            vz(ix,iy,iz) = vz_star(ix,iy,iz) + f_bz(ix,iy,iz)*dt*(f_sz(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz);
         }
     }
 

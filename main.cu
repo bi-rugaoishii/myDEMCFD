@@ -321,9 +321,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=128;
-    int Ny=128;
-    int Nz=128;
+    int Nx=64;
+    int Ny=64;
+    int Nz=64;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -345,8 +345,8 @@ int main(){
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
-    //double sigma = 0.072;
-    double sigma = 1e-16;
+    double sigma = 0.072;
+    //double sigma = 1e-16;
     //int endSteps = 10000;
     //int outStepsFreq=100;
 
@@ -513,11 +513,13 @@ int main(){
             g_solv.update_properties_by_alpha();
             g_solv.update_boundary_faces();
 
+            g_solv.calc_surface_tension();
+
             g_solv.compute_mass_flux_from_alpha_flux(solv);
             g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
 
             /* == needs boundary condition in general ==*/
-            /* == we are skipping it since we assume stationary in normal direction ==*/
+            /* == we are skipping it since we assume wall stationary in normal direction ==*/
 
 
             printf("starting poisson\n");

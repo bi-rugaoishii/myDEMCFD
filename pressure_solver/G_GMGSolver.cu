@@ -170,10 +170,6 @@ static __global__ void k_get_res_levels(G_Levels levels){
     double Azm = levels.Azm_(ix,iy,iz);
     double Adiag = levels.Adiag_(ix,iy,iz);
 
-    if (ix == 1 && iy == 1&& iz == 1){
-        residue(ix, iy,iz) = 0.0;
-        return;
-    }
 
 
     double p_c = q(ix,iy,iz);
@@ -205,10 +201,6 @@ static __global__ void k_get_res_general(G_StaggeredGrid grid, MyArray<double,3>
 
     if (iy >=Ny+1 || ix >= Nx+1|| iz >=Nz+1) return;
 
-    if (ix == 1 && iy == 1&& iz == 1){
-        residue(ix, iy,iz) = 0.0;
-        return;
-    }
 
     double Axp = grid.Axp_(ix,iy,iz);
     double Axm = grid.Axm_(ix,iy,iz);
@@ -250,10 +242,6 @@ static __global__ void k_get_res(G_StaggeredGrid grid){
     if (iy >=Ny+1 || ix >= Nx+1|| iz >=Nz+1) return;
 
 
-    if (ix == 1 && iy == 1&& iz == 1){
-        residue(ix, iy,iz) = 0.0;
-        return;
-    }
 
     double Axp = grid.Axp_(ix,iy,iz);
     double Axm = grid.Axm_(ix,iy,iz);
@@ -437,10 +425,6 @@ static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid grid, G_Levels 
 
 
 
-    if(ix==1 && iy==1 && iz == 1){
-        coarse_rhs(1,1,1)=0.0;
-        return ;
-    }
     bool is_x_coarse = levels.is_x_coarse_;
     bool is_y_coarse = levels.is_y_coarse_;
     bool is_z_coarse = levels.is_z_coarse_;
@@ -480,10 +464,6 @@ static __global__ void k_restrict_level_to_level(G_Levels levels, G_Levels  next
 
     if (iy >=coarse_rhs.sizey_-1 || ix >= coarse_rhs.sizex_-1 || iz >= coarse_rhs.sizez_ -1) return;
 
-    if(ix==1 && iy==1 && iz==1){
-        coarse_rhs(1,1,1)=0.0;
-        return;
-    }
 
     bool is_x_coarse = next_level.is_x_coarse_;
     bool is_y_coarse = next_level.is_y_coarse_;
