@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
 #include "hardCodedParameters.h"
 #include "StaggeredGrid.h"
 #include "G_StaggeredGrid.h"
@@ -144,6 +147,161 @@ void output_vti(const StaggeredGrid& grid, int step, const char* folderName){
     printf("VTI output: %s\n", filename);
 }
 
+static void write_vti_float_block(FILE* fp, const float* data, size_t nfloat){
+    size_t nbytes_size = nfloat * sizeof(float);
+
+    if (nbytes_size > UINT32_MAX){
+        printf("VTI block is too large for UInt32 header: %zu bytes\n", nbytes_size);
+        abort();
+    }
+
+    uint32_t nbytes = (uint32_t)nbytes_size;
+
+    fwrite(&nbytes, sizeof(uint32_t), 1, fp);
+    fwrite(data, sizeof(float), nfloat, fp);
+}
+
+void output_vti_binary(const StaggeredGrid& grid, int step, const char* folderName){
+    char filename[256];
+    sprintf(filename, "%s/result_%06d.vti", folderName, step);
+
+    FILE* fp = fopen(filename, "wb");
+    if (fp == NULL) {
+        printf("Cannot open VTI file: %s\n", filename);
+        abort();
+    }
+
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
+
+    double dx = grid.dx_;
+    double dy = grid.dy_;
+    double dz = grid.dz_;
+
+    const MyArray<double,3>& p     = grid.p_;
+    const MyArray<double,3>& alpha = grid.alpha_;
+    const MyArray<double,3>& vx    = grid.f_vx_;
+    const MyArray<double,3>& vy    = grid.f_vy_;
+    const MyArray<double,3>& vz    = grid.f_vz_;
+
+    size_t npoints = (size_t)Nx * (size_t)Ny * (size_t)Nz;
+
+    size_t bytes_scalar = npoints * sizeof(float);
+    size_t bytes_vector = npoints * 3 * sizeof(float);
+
+    size_t offset_pressure   = 0;
+    size_t offset_alpha      = offset_pressure + sizeof(uint32_t) + bytes_scalar;
+    size_t offset_velocity   = offset_alpha    + sizeof(uint32_t) + bytes_scalar;
+    size_t offset_divergence = offset_velocity + sizeof(uint32_t) + bytes_vector;
+
+    float* buf = (float*)malloc(sizeof(float) * npoints * 3);
+    if (buf == NULL){
+        printf("Cannot allocate VTI output buffer\n");
+        abort();
+    }
+
+    fprintf(fp, "<?xml version=\"1.0\"?>\n");
+    fprintf(fp, "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n");
+
+    fprintf(fp,
+        "  <ImageData WholeExtent=\"0 %d 0 %d 0 %d\" "
+        "Origin=\"%.15e %.15e %.15e\" "
+        "Spacing=\"%.15e %.15e %.15e\">\n",
+        Nx - 1, Ny - 1, Nz - 1,
+        0.5 * dx, 0.5 * dy, 0.5 * dz,
+        dx, dy, dz);
+
+    fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx - 1, Ny - 1, Nz - 1);
+    fprintf(fp, "      <PointData Scalars=\"alpha\" Vectors=\"velocity\">\n");
+
+    fprintf(fp,
+        "        <DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\"%zu\"/>\n",
+        offset_pressure);
+
+    fprintf(fp,
+        "        <DataArray type=\"Float32\" Name=\"alpha\" format=\"appended\" offset=\"%zu\"/>\n",
+        offset_alpha);
+
+    fprintf(fp,
+        "        <DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"%zu\"/>\n",
+        offset_velocity);
+
+    fprintf(fp,
+        "        <DataArray type=\"Float32\" Name=\"divergence\" format=\"appended\" offset=\"%zu\"/>\n",
+        offset_divergence);
+
+    fprintf(fp, "      </PointData>\n");
+    fprintf(fp, "      <CellData></CellData>\n");
+    fprintf(fp, "    </Piece>\n");
+    fprintf(fp, "  </ImageData>\n");
+    fprintf(fp, "  <AppendedData encoding=\"raw\">\n_");
+
+    size_t n = 0;
+
+    n = 0;
+    for (int iz = 1; iz <= Nz; iz++){
+        for (int iy = 1; iy <= Ny; iy++){
+            for (int ix = 1; ix <= Nx; ix++){
+                buf[n] = (float)p(ix, iy, iz);
+                n++;
+            }
+        }
+    }
+    write_vti_float_block(fp, buf, npoints);
+
+    n = 0;
+    for (int iz = 1; iz <= Nz; iz++){
+        for (int iy = 1; iy <= Ny; iy++){
+            for (int ix = 1; ix <= Nx; ix++){
+                buf[n] = (float)alpha(ix, iy, iz);
+                n++;
+            }
+        }
+    }
+    write_vti_float_block(fp, buf, npoints);
+
+    n = 0;
+    for (int iz = 1; iz <= Nz; iz++){
+        for (int iy = 1; iy <= Ny; iy++){
+            for (int ix = 1; ix <= Nx; ix++){
+                double ux = 0.5 * (vx(ix - 1, iy, iz) + vx(ix, iy, iz));
+                double uy = 0.5 * (vy(ix, iy - 1, iz) + vy(ix, iy, iz));
+                double uz = 0.5 * (vz(ix, iy, iz - 1) + vz(ix, iy, iz));
+
+                buf[n + 0] = (float)ux;
+                buf[n + 1] = (float)uy;
+                buf[n + 2] = (float)uz;
+                n += 3;
+            }
+        }
+    }
+    write_vti_float_block(fp, buf, npoints * 3);
+
+    n = 0;
+    for (int iz = 1; iz <= Nz; iz++){
+        for (int iy = 1; iy <= Ny; iy++){
+            for (int ix = 1; ix <= Nx; ix++){
+                double div =
+                    (vx(ix, iy, iz) - vx(ix - 1, iy, iz)) * grid.inv_dx_
+                  + (vy(ix, iy, iz) - vy(ix, iy - 1, iz)) * grid.inv_dy_
+                  + (vz(ix, iy, iz) - vz(ix, iy, iz - 1)) * grid.inv_dz_;
+
+                buf[n] = (float)div;
+                n++;
+            }
+        }
+    }
+    write_vti_float_block(fp, buf, npoints);
+
+    fprintf(fp, "\n  </AppendedData>\n");
+    fprintf(fp, "</VTKFile>\n");
+
+    free(buf);
+    fclose(fp);
+
+    printf("VTI binary output: %s\n", filename);
+}
 
 /*
    ============================================================
@@ -163,9 +321,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=64;
-    int Ny=64;
-    int Nz=1;
+    int Nx=128;
+    int Ny=128;
+    int Nz=128;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -272,7 +430,7 @@ int main(){
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
     /* output initial data */
-    output_vti(solv.grid_,0.,outdir);
+    output_vti_binary(solv.grid_,0.,outdir);
     printf("output initial data done \n");
 
     /* == gpu initialization == */
@@ -312,7 +470,7 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
-    int num_levels = 3;
+    int num_levels = 10;
     G_GMGSolver gmgSolver;
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
@@ -376,7 +534,7 @@ int main(){
                 printf("total alpha = %f\n",solv.calc_alpha_vol());
                 solv.check_divergence();
                 //solv.check_pressure_jump_by_radius();
-                output_vti(solv.grid_,cfdtime.current_steps_,outdir);
+                output_vti_binary(solv.grid_,cfdtime.current_steps_,outdir);
                 h_end = omp_get_wtime();
                 ms = (float)(h_end-h_start);
 

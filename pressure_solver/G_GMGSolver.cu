@@ -1,4 +1,5 @@
 #include "G_GMGSolver.h"
+#include <cstdlib>
 
 void G_GMGSolver::free_levels(){
     for(int i=0; i<num_levels_; i++){
@@ -13,6 +14,7 @@ void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
 
     if(num_levels > MAX_LEVELS){
         printf("!!!!!! levels = %d is over max levels = %d \n",num_levels,MAX_LEVELS);
+        abort();
     }
     G_StaggeredGrid& grid = solv.grid_;
     int Nx=grid.Nx_;
@@ -31,6 +33,21 @@ void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
 
     if(Nz/2 < min_size_){
         cur_level.is_z_coarse_ = false;
+    }
+
+    if(Nx%2 == 1 && cur_level.is_x_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
+    }
+
+    if(Ny%2 == 1 && cur_level.is_y_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
+    }
+
+    if(Nz%2 == 1 && cur_level.is_z_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
     }
 
     #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) cur_level.name.sizex_= Nx/2 + xshift;\
@@ -78,6 +95,26 @@ void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
             cur_level.is_z_coarse_ = false;
         }
 
+        if(!cur_level.is_x_coarse_ &&  !cur_level.is_y_coarse_ && !cur_level.is_z_coarse_ ){
+            break;
+        }
+
+    if((old_level.q_.sizex_-2)%2 == 1 && cur_level.is_x_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
+    }
+
+    if((old_level.q_.sizey_-2)%2 == 1 && cur_level.is_y_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
+    }
+
+    if((old_level.q_.sizez_-2)%2 == 1 && cur_level.is_z_coarse_){
+        printf("Need more 2 factor in the grid size!!!!\n");
+        abort();
+    }
+
+
         #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) cur_level.name.sizex_= (old_level.name.sizex_-xshift)/2 + xshift;\
         if(cur_level.is_x_coarse_ == false){\
             cur_level.name.sizex_ = old_level.name.sizex_;\
@@ -99,9 +136,6 @@ void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
         cur_level.inv_dy2_= cur_level.is_y_coarse_? old_level.inv_dy2_*0.25:old_level.inv_dy2_;
         cur_level.inv_dz2_= cur_level.is_z_coarse_? old_level.inv_dz2_*0.25:old_level.inv_dz2_;
 
-        if(!cur_level.is_x_coarse_ &&  !cur_level.is_y_coarse_ && !cur_level.is_z_coarse_ ){
-            break;
-        }
         printf("q_ level %d : sizex=%d, sizey=%d, sizez=%d, size=%d\n",i,cur_level.q_.sizex_,cur_level.q_.sizey_,cur_level.q_.sizez_,cur_level.q_.size_);
         num_levels_ +=1;
     }

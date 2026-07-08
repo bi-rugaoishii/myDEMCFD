@@ -1,3 +1,5 @@
 *.o
 *.log
+tags
+myCFD
 results

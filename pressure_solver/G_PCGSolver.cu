@@ -386,7 +386,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     MyArray<double,3> dir     = grid_.pcg_dir_;
 
     int max_iter = 100000;
-    double tol = 1e-6;
+    double tol = 1e-5;
     double inv_dt_ = solv.inv_dt_;
 
 
