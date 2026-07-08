@@ -228,7 +228,7 @@ G_PCGSolver::G_PCGSolver(){}
 
 G_PCGSolver::~G_PCGSolver(){}
 
-void G_PCGSolver::solve(G_SMACSolver& solv){                                                       
+void G_PCGSolver::solve_pcg(G_SMACSolver& solv){                                                       
 
     G_StaggeredGrid& grid_=solv.grid_;
 
@@ -369,7 +369,7 @@ void G_PCGSolver::set_gmg(G_GMGSolver & gmg){
     gmg_ = &gmg;
 }
 
-void G_PCGSolver::solve_gmg(G_SMACSolver& solv){
+void G_PCGSolver::solve(G_SMACSolver& solv){
 
     G_StaggeredGrid& grid_=solv.grid_;
 

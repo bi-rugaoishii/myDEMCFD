@@ -9,6 +9,8 @@ void G_GMGSolver::free_levels(){
 void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
 
     printf("Initializing for GMG\n");
+    num_levels_ = 0;
+
     if(num_levels > MAX_LEVELS){
         printf("!!!!!! levels = %d is over max levels = %d \n",num_levels,MAX_LEVELS);
     }
@@ -17,40 +19,91 @@ void G_GMGSolver::initialize(G_SMACSolver &solv,int num_levels){
     int Ny=grid.Ny_;
     int Nz=grid.Nz_;
 
-    num_levels_ = num_levels;
     G_Levels& cur_level = levels_[0];
 
-    cur_level.inv_dx2_= grid.inv_dx2_*0.25;
-    cur_level.inv_dy2_= grid.inv_dy2_*0.25;
-    cur_level.inv_dz2_= grid.inv_dz2_*0.25;
+    if(Nx/2 < min_size_){
+        cur_level.is_x_coarse_ = false;
+    }
+
+    if(Ny/2 < min_size_){
+        cur_level.is_y_coarse_ = false;
+    }
+
+    if(Nz/2 < min_size_){
+        cur_level.is_z_coarse_ = false;
+    }
 
     #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) cur_level.name.sizex_= Nx/2 + xshift;\
+    if(cur_level.is_x_coarse_ == false){\
+        cur_level.name.sizex_ = Nx+xshift;\
+    }\
     cur_level.name.sizey_= Ny/2 + yshift;\
+    if(cur_level.is_y_coarse_ == false){\
+        cur_level.name.sizey_ = Ny+yshift;\
+    }\
     cur_level.name.sizez_= Nz/2 + zshift;\
+    if(cur_level.is_z_coarse_ == false){\
+        cur_level.name.sizez_ = Nz+zshift;\
+    }\
     cur_level.name.size_ = cur_level.name.sizex_*cur_level.name.sizey_*cur_level.name.sizez_;\
     cudaMalloc((void**)&cur_level.name.data_,sizeof(double)*cur_level.name.size_);
     #include "../memberList/levelMembers.def"
     #undef MEMBER
 
 
-    printf("q_ level %d : sizex=%d, sizey=%d, sizez%d, size=%d\n",0,cur_level.q_.sizex_,cur_level.q_.sizey_,cur_level.q_.sizez_,cur_level.q_.size_);
+    cur_level.inv_dx2_= cur_level.is_x_coarse_? grid.inv_dx2_*0.25:grid.inv_dx2_;
+    cur_level.inv_dy2_= cur_level.is_y_coarse_? grid.inv_dy2_*0.25:grid.inv_dy2_;
+    cur_level.inv_dz2_= cur_level.is_z_coarse_?  grid.inv_dz2_*0.25:grid.inv_dz2_;
+
+    printf("q_ level %d : sizex=%d, sizey=%d, sizez=%d, size=%d\n",0,cur_level.q_.sizex_,cur_level.q_.sizey_,cur_level.q_.sizez_,cur_level.q_.size_);
+
+    num_levels_ +=1;
+
+
+
 
     for (int i=1; i<num_levels; i++){
         G_Levels& cur_level = levels_[i];
         G_Levels& old_level = levels_[i-1];
-        cur_level.inv_dx2_= old_level.inv_dx2_*0.25;
-        cur_level.inv_dy2_= old_level.inv_dy2_*0.25;
-        cur_level.inv_dz2_= old_level.inv_dz2_*0.25;
 
-    #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) cur_level.name.sizex_= (old_level.name.sizex_-xshift)/2 + xshift;\
-    cur_level.name.sizey_= (old_level.name.sizey_-yshift)/2 + yshift;\
-    cur_level.name.sizez_= (old_level.name.sizez_-zshift)/2 + zshift;\
-    cur_level.name.size_ = cur_level.name.sizex_*cur_level.name.sizey_*cur_level.name.sizez_;\
-    cudaMalloc((void**)&cur_level.name.data_,sizeof(double)*cur_level.name.size_);
-    #include "../memberList/levelMembers.def"
-    #undef MEMBER
-        printf("q_ level %d : sizex=%d, sizey=%d, sizez%d, size=%d\n",i,cur_level.q_.sizex_,cur_level.q_.sizey_,cur_level.q_.sizez_,cur_level.q_.size_);
+        if((old_level.q_.sizex_-2)/2 < min_size_){
+            cur_level.is_x_coarse_ = false;
+        }
 
+        if((old_level.q_.sizey_-2)/2 < min_size_){
+            cur_level.is_y_coarse_ = false;
+        }
+
+        if((old_level.q_.sizez_-2)/2 < min_size_){
+            cur_level.is_z_coarse_ = false;
+        }
+
+        #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) cur_level.name.sizex_= (old_level.name.sizex_-xshift)/2 + xshift;\
+        if(cur_level.is_x_coarse_ == false){\
+            cur_level.name.sizex_ = old_level.name.sizex_;\
+        }\
+        cur_level.name.sizey_= (old_level.name.sizey_-yshift)/2 + yshift;\
+        if(cur_level.is_y_coarse_ == false){\
+            cur_level.name.sizey_ = old_level.name.sizey_;\
+        }\
+        cur_level.name.sizez_= (old_level.name.sizez_-zshift)/2 + zshift;\
+        if(cur_level.is_z_coarse_ == false){\
+            cur_level.name.sizez_ = old_level.name.sizez_;\
+        }\
+        cur_level.name.size_ = cur_level.name.sizex_*cur_level.name.sizey_*cur_level.name.sizez_;\
+        cudaMalloc((void**)&cur_level.name.data_,sizeof(double)*cur_level.name.size_);
+        #include "../memberList/levelMembers.def"
+        #undef MEMBER
+
+        cur_level.inv_dx2_= cur_level.is_x_coarse_? old_level.inv_dx2_*0.25:old_level.inv_dx2_;
+        cur_level.inv_dy2_= cur_level.is_y_coarse_? old_level.inv_dy2_*0.25:old_level.inv_dy2_;
+        cur_level.inv_dz2_= cur_level.is_z_coarse_? old_level.inv_dz2_*0.25:old_level.inv_dz2_;
+
+        if(!cur_level.is_x_coarse_ &&  !cur_level.is_y_coarse_ && !cur_level.is_z_coarse_ ){
+            break;
+        }
+        printf("q_ level %d : sizex=%d, sizey=%d, sizez=%d, size=%d\n",i,cur_level.q_.sizex_,cur_level.q_.sizey_,cur_level.q_.sizez_,cur_level.q_.size_);
+        num_levels_ +=1;
     }
 
 
@@ -216,50 +269,65 @@ static __global__ void k_propagate_level0_to_array(G_Levels levels, MyArray<doub
 
     if (iy >=coarse_q.sizey_-1 || ix >= coarse_q.sizex_-1 || iz >= coarse_q.sizez_-1) return;
 
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
 
     double prop = coarse_q(ix, iy,iz);
 
-    array(IX,IY,IZ) += prop;
-    array(IX+1,IY,IZ) += prop;
-    array(IX,IY+1,IZ) += prop;
-    array(IX,IY,IZ+1) += prop;
-    array(IX+1,IY+1,IZ) += prop;
-    array(IX+1,IY,IZ+1) += prop;
-    array(IX,IY+1,IZ+1) += prop;
-    array(IX+1,IY+1,IZ+1) += prop;
+    for (int incz=0; incz<rangez; incz++){
+        for (int incy=0; incy<rangey; incy++){
+            for (int incx=0; incx<rangex; incx++){
+                array(IX+incx,IY+incy,IZ+incz) += prop;
+            }
+        }
+    }
 
 }  
 
 
-static __global__ void k_propagate_level0_to_grid(G_Levels levels_, G_StaggeredGrid grid){
+static __global__ void k_propagate_level0_to_grid(G_Levels levels, G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
     MyArray<double,3>& fine_q = grid.p_;
-    MyArray<double,3>& coarse_q = levels_.q_;
+    MyArray<double,3>& coarse_q = levels.q_;
 
     if (iy >=coarse_q.sizey_-1 || ix >= coarse_q.sizex_-1 || iz >= coarse_q.sizez_-1) return;
 
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+
+
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
+
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
 
     double prop = coarse_q(ix, iy,iz);
 
-    fine_q(IX,IY,IZ) += prop;
-    fine_q(IX+1,IY,IZ) += prop;
-    fine_q(IX,IY+1,IZ) += prop;
-    fine_q(IX,IY,IZ+1) += prop;
-    fine_q(IX+1,IY+1,IZ) += prop;
-    fine_q(IX+1,IY,IZ+1) += prop;
-    fine_q(IX,IY+1,IZ+1) += prop;
-    fine_q(IX+1,IY+1,IZ+1) += prop;
+    for (int incz=0; incz<rangez; incz++){
+        for (int incy=0; incy<rangey; incy++){
+            for (int incx=0; incx<rangex; incx++){
+                fine_q(IX+incx,IY+incy,IZ+incz) += prop;
+            }
+        }
+    }
 }  
 
 static __global__ void k_propagate_level_to_level(G_Levels levels, G_Levels fine_levels){
@@ -273,20 +341,29 @@ static __global__ void k_propagate_level_to_level(G_Levels levels, G_Levels fine
     if (iy >=coarse_q.sizey_-1 || ix >= coarse_q.sizex_-1 || iz >= coarse_q.sizez_-1) return;
 
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
+
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
 
     double prop = coarse_q(ix, iy,iz);
 
-    fine_q(IX,IY,IZ) += prop;
-    fine_q(IX+1,IY,IZ) += prop;
-    fine_q(IX,IY+1,IZ) += prop;
-    fine_q(IX,IY,IZ+1) += prop;
-    fine_q(IX+1,IY+1,IZ) += prop;
-    fine_q(IX+1,IY,IZ+1) += prop;
-    fine_q(IX,IY+1,IZ+1) += prop;
-    fine_q(IX+1,IY+1,IZ+1) += prop;
+    for (int incz=0; incz<rangez; incz++){
+        for (int incy=0; incy<rangey; incy++){
+            for (int incx=0; incx<rangex; incx++){
+
+                fine_q(IX+incx,IY+incy,IZ+incz) += prop;
+            }
+        }
+    }
+
 }  
 
 //
@@ -314,27 +391,48 @@ static __global__ void k_propagate_level_to_level(G_Levels levels, G_Levels fine
 //   }  
 // */
 //
-static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid grid_, G_Levels levels_){
+static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid grid, G_Levels levels){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
-    MyArray<double,3>& residue = grid_.residue_;
-    MyArray<double,3>& coarse_rhs = levels_.rhs_;
+    MyArray<double,3>& residue = grid.residue_;
+    MyArray<double,3>& coarse_rhs = levels.rhs_;
 
     if (iy >=coarse_rhs.sizey_-1 || ix >= coarse_rhs.sizex_-1 || iz >= coarse_rhs.sizez_-1) return;
 
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
 
     if(ix==1 && iy==1 && iz == 1){
         coarse_rhs(1,1,1)=0.0;
         return ;
     }
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
 
-    coarse_rhs(ix,iy,iz) = 0.125*(residue(IX,IY,IZ)+residue(IX,IY+1,IZ)+residue(IX+1,IY,IZ)+residue(IX,IY,IZ+1)+residue(IX+1,IY+1,IZ)+residue(IX,IY+1,IZ+1)+residue(IX+1,IY,IZ+1)+residue(IX+1,IY+1,IZ+1));
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
+
+
+    double count = 0.;
+    double tmp = 0.;
+    for (int incz=0; incz<rangez; incz++){
+        for (int incy=0; incy<rangey; incy++){
+            for (int incx=0; incx<rangex; incx++){
+                tmp += residue(IX+incx,IY+incy,IZ+incz);
+                count += 1.0;
+            }
+        }
+    }
+
+
+    coarse_rhs(ix,iy,iz) = tmp/count;
 
 }  
 
@@ -353,12 +451,31 @@ static __global__ void k_restrict_level_to_level(G_Levels levels, G_Levels  next
         return;
     }
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+    bool is_x_coarse = next_level.is_x_coarse_;
+    bool is_y_coarse = next_level.is_y_coarse_;
+    bool is_z_coarse = next_level.is_z_coarse_;
 
-    coarse_rhs(ix,iy,iz) = 0.125*(residue(IX,IY,IZ)+residue(IX,IY+1,IZ)+residue(IX+1,IY,IZ)+residue(IX,IY,IZ+1)+residue(IX+1,IY+1,IZ)+residue(IX,IY+1,IZ+1)+residue(IX+1,IY,IZ+1)+residue(IX+1,IY+1,IZ+1));
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
 
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
+
+
+    double count = 0.;
+    double tmp = 0.;
+    for (int incz=0; incz<rangez; incz++){
+        for (int incy=0; incy<rangey; incy++){
+            for (int incx=0; incx<rangex; incx++){
+                tmp += residue(IX+incx,IY+incy,IZ+incz);
+                count += 1.0;
+            }
+        }
+    }
+
+    coarse_rhs(ix,iy,iz) = tmp/count;
 }  
 
 ///* =================================
@@ -379,62 +496,135 @@ static __global__ void k_create_level_coeffs(G_Levels levels, G_Levels fine_leve
     MyArray<double,3>& f_bz= levels.f_bz_;
     MyArray<double,3>& p_f_bz= fine_levels.f_bz_;
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
 
-    if (ix <f_bx.sizex_-1 && iy < f_by.sizey_-1 && iz < f_bz.sizez_-1){
-        f_bx(ix,iy,iz) = 0.25*(p_f_bx(IX,IY,IZ)+p_f_bx(IX,IY+1,IZ)
-                              +p_f_bx(IX,IY,IZ+1) + p_f_bx(IX,IY+1,IZ+1));
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
+
+
+
+    if (ix <f_bx.sizex_-1 && iy < f_bx.sizey_-1 && iz < f_bx.sizez_-1){
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_bx(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_bx(ix,iy,iz) = tmp/count;
     }
 
-    if (ix <f_by.sizex_-1 && iy < f_by.sizey_-1 && iz < f_bz.sizez_-1){
-        f_by(ix,iy,iz) = 0.25*(p_f_by(IX,IY,IZ)+p_f_by(IX+1,IY,IZ)
-                              +p_f_by(IX,IY,IZ+1) + p_f_by(IX+1,IY,IZ+1));
+    if (ix <f_by.sizex_-1 && iy < f_by.sizey_-1 && iz < f_by.sizez_-1){
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_by(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_by(ix,iy,iz) = tmp/count;
     }
 
     if (ix <f_bz.sizex_-1 && iy < f_bz.sizey_-1 && iz < f_bz.sizez_-1){
-        f_bz(ix,iy,iz) = 0.25*(p_f_bz(IX,IY,IZ)+p_f_bz(IX+1,IY,IZ)
-                              +p_f_bz(IX,IY+1,IZ) + p_f_bz(IX+1,IY+1,IZ));
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_bz(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_bz(ix,iy,iz) = tmp/count;
     }
 
 }
 
 
-static __global__ void k_create_level0_coeffs(G_StaggeredGrid grid,G_Levels levels_){
+static __global__ void k_create_level0_coeffs(G_StaggeredGrid grid,G_Levels levels){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
 
-    MyArray<double,3>& f_bx= levels_.f_bx_;
+    MyArray<double,3>& f_bx= levels.f_bx_;
     MyArray<double,3>& p_f_bx= grid.f_bx_;
 
-    MyArray<double,3>& f_by= levels_.f_by_;
+    MyArray<double,3>& f_by= levels.f_by_;
     MyArray<double,3>& p_f_by= grid.f_by_;
 
-    MyArray<double,3>& f_bz= levels_.f_bz_;
+    MyArray<double,3>& f_bz= levels.f_bz_;
     MyArray<double,3>& p_f_bz= grid.f_bz_;
 
-    int IX = 2*ix-1;
-    int IY = 2*iy-1;
-    int IZ = 2*iz-1;
+    bool is_x_coarse = levels.is_x_coarse_;
+    bool is_y_coarse = levels.is_y_coarse_;
+    bool is_z_coarse = levels.is_z_coarse_;
+
+    int IX = is_x_coarse? 2*ix-1:ix;
+    int IY = is_y_coarse? 2*iy-1:iy;
+    int IZ = is_z_coarse? 2*iz-1:iz;
+
+    int rangex = is_x_coarse ? 2 : 1;
+    int rangey = is_y_coarse ? 2 : 1;
+    int rangez = is_z_coarse ? 2 : 1;
+
+
 
     if (ix <f_bx.sizex_-1 && iy < f_bx.sizey_-1 && iz < f_bx.sizez_-1){
-        f_bx(ix,iy,iz) = 0.25*(p_f_bx(IX,IY,IZ)+p_f_bx(IX,IY+1,IZ)
-                              +p_f_bx(IX,IY,IZ+1) + p_f_bx(IX,IY+1,IZ+1));
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_bx(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_bx(ix,iy,iz) = tmp/count;
     }
 
-    if (ix <f_by.sizex_-1 && iy < f_by.sizey_-1 && iz < f_bz.sizez_-1){
-        f_by(ix,iy,iz) = 0.25*(p_f_by(IX,IY,IZ)+p_f_by(IX+1,IY,IZ)
-                              +p_f_by(IX,IY,IZ+1) + p_f_by(IX+1,IY,IZ+1));
+    if (ix <f_by.sizex_-1 && iy < f_by.sizey_-1 && iz < f_by.sizez_-1){
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_by(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_by(ix,iy,iz) = tmp/count;
     }
 
     if (ix <f_bz.sizex_-1 && iy < f_bz.sizey_-1 && iz < f_bz.sizez_-1){
-        f_bz(ix,iy,iz) = 0.25*(p_f_bz(IX,IY,IZ)+p_f_bz(IX+1,IY,IZ)
-                              +p_f_bz(IX,IY+1,IZ) + p_f_bz(IX+1,IY+1,IZ));
+        double count = 0.;
+        double tmp = 0.;
+        for (int incz=0; incz<rangez; incz++){
+            for (int incy=0; incy<rangey; incy++){
+                for (int incx=0; incx<rangex; incx++){
+                    tmp += p_f_bz(IX+incx ,IY+incy, IZ+incz);
+                    count += 1.0;
+                }
+            }
+        }
+        f_bz(ix,iy,iz) = tmp/count;
     }
-
     //printf("%d %d %d p_bx %e \n",ix,iy,iz,p_f_bx(IX,IY,IZ));
     //printf("%d %d %d f_bx %e f_by %e f_bz %e\n",ix,iy,iz,f_bx(ix,iy,iz),f_by(ix,iy,iz),f_bz(ix,iy,iz));
 }

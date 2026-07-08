@@ -1647,9 +1647,15 @@ static __global__  void  k_calc_cfl(G_StaggeredGrid grid_,double dt){
     MyArray<double,3> vy = grid_.f_vy_;
     MyArray<double,3> vz = grid_.f_vz_;
     MyArray<double,3> cfl = grid_.cfl_;
+    MyArray<double,3> cfl_visc = grid_.cfl_visc_;
+    MyArray<double,3> inv_rho = grid_.inv_rho_;
+    MyArray<double,3> mu = grid_.mu_;
     double inv_dx = grid_.inv_dx_;
     double inv_dy = grid_.inv_dy_;
     double inv_dz = grid_.inv_dz_;
+    double inv_dx2 = grid_.inv_dx2_;
+    double inv_dy2 = grid_.inv_dy2_;
+    double inv_dz2 = grid_.inv_dz2_;
 
 
     double vx_xp = fabs(vx(ix+1,iy,iz));
@@ -1665,6 +1671,7 @@ static __global__  void  k_calc_cfl(G_StaggeredGrid grid_,double dt){
 
     //cfl has size of Nx*Ny (without ghost) and hence needs the shift
     cfl(ix-1,iy-1,iz-1) = dt*(max_vx*inv_dx+max_vy*inv_dy+max_vz*inv_dz);
+    cfl_visc(ix-1,iy-1,iz-1) = inv_rho(ix,iy,iz)*mu(ix,iy,iz)*dt*(inv_dx2 + inv_dy2 + inv_dz2);
 }
 
 double G_SMACSolver::calc_cfl(){
@@ -1678,8 +1685,16 @@ double G_SMACSolver::calc_cfl(){
     cub::DeviceReduce::Max(cub_temp_storage_,cub_temp_storage_bytes_,grid_.cfl_.data_,&d_pcg_scalars_[CFL],Nx*Ny*Nz);
     double h_cfl;
     cudaMemcpy(&h_cfl,&d_pcg_scalars_[CFL],sizeof(double),cudaMemcpyDeviceToHost);
-    printf("CFL = %3.2e\n", h_cfl);
-    return h_cfl;
+
+    cub::DeviceReduce::Max(cub_temp_storage_,cub_temp_storage_bytes_,grid_.cfl_visc_.data_,&d_pcg_scalars_[CFL],Nx*Ny*Nz);
+    double h_cfl_visc;
+    cudaMemcpy(&h_cfl_visc,&d_pcg_scalars_[CFL],sizeof(double),cudaMemcpyDeviceToHost);
+
+    double max_cfl = h_cfl_visc > h_cfl? h_cfl_visc : h_cfl;
+
+    printf("conv CFL=%3.2e, visc CFL = %3.2e, CFL = %3.2e\n",h_cfl,h_cfl_visc, max_cfl);
+    return max_cfl;
+
 }
 
 void G_SMACSolver::solver_free(){

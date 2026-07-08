@@ -9,6 +9,10 @@ struct G_Levels{
     double inv_dy2_;
     double inv_dz2_;
 
+    bool is_x_coarse_=true;
+    bool is_y_coarse_=true;
+    bool is_z_coarse_=true;
+
     #define MEMBER(type, name, xshift,yshift,zshift, isSAVE) MyArray<type,3> name;
     #include "../memberList/levelMembers.def"
     #undef MEMBER

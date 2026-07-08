@@ -30,6 +30,7 @@ MEMBER(double, x_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, y_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, z_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, cfl_, (Nx),(Ny),(Nz),SAVE_OFF)
+MEMBER(double, cfl_visc_, (Nx),(Ny),(Nz),SAVE_OFF)
 
 /* == for Poisson == */
 MEMBER(double, Axp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)

@@ -312,13 +312,11 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
-    /*
     int num_levels = 3;
     G_GMGSolver gmgSolver;
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
     pcgSolver.set_gmg(gmgSolver);
-    */
 
     /* ============================= 
        ======== main loop ==========
@@ -401,7 +399,7 @@ int main(){
   solv.solver_free();
   if(GPU_ON==1){
       g_solv.solver_free();
-      //gmgSolver.free_levels();
+      gmgSolver.free_levels();
     }
 
     printf("my CFD Done!!!\n");

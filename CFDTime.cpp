@@ -22,7 +22,8 @@ CFDTime::~CFDTime(){}
 void CFDTime::updateTime(double cfl){
     
     if(current_steps_ <5){
-        dt_ = initdt_;
+        double dt_tmp = dt_ *cfl_thresh_/(cfl+EPS);
+        dt_ = initdt_<dt_tmp? initdt_ :dt_tmp;
     }else{
         dt_ = dt_ *cfl_thresh_/(cfl+EPS);
         double timeTillNextOut = nextOut_ - current_time_;
