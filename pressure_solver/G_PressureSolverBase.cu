@@ -69,6 +69,7 @@ __global__ void base_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){
                 + (f_by(ix,iy+1,iz)*f_sy(ix,iy+1,iz)-f_by(ix,iy,iz)*f_sy(ix,iy,iz))*inv_dy
                 + (f_bz(ix,iy,iz+1)*f_sz(ix,iy,iz+1)-f_bz(ix,iy,iz)*f_sz(ix,iy,iz))*inv_dz;
 
+
     double div= (vx_star(ix+1,iy,iz)-vx_star(ix,iy,iz))*inv_dx
         +(vy_star(ix,iy+1,iz)-vy_star(ix,iy,iz))*inv_dy
         +(vz_star(ix,iy,iz+1)-vz_star(ix,iy,iz))*inv_dz;

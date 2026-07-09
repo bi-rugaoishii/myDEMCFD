@@ -16,6 +16,7 @@
 static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
     MyArray<double,3> a = grid.alpha_;
     MyArray<double,3> a_s = grid.alpha_s_;
+    MyArray<unsigned char,3> ct = grid.celltype_;
 
     int ix = blockIdx.x * blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y * blockDim.y + threadIdx.y + 1;
@@ -29,93 +30,53 @@ static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
         return;
     }
 
-    int im = ix - 1;
-    int ip = ix + 1;
-    int jm = iy - 1;
-    int jp = iy + 1;
-    int km = iz - 1;
-    int kp = iz + 1;
-
-    if (im < 1) {
-        im = 1;
+    if (ct(ix,iy,iz) != C_INTERIOR){
+        return;
     }
 
-    if (ip > Nx) {
-        ip = Nx;
+    double sum = 0.0;
+    double wsum = 0.0;
+
+    for (int kz=-1; kz<=1; kz++){
+        for (int ky=-1; ky<=1; ky++){
+            for (int kx=-1; kx<=1; kx++){
+                int i = ix + kx;
+                int j = iy + ky;
+                int k = iz + kz;
+
+                if(ct(i,j,k) != C_INTERIOR){
+                    continue;
+                }
+
+                int n = abs(kx) + abs(ky) + abs(kz);
+
+                double w;
+
+                if(n==0){ //center
+                    w=8.0;
+                }else if(n==1){ //face
+                    w=4.0;
+                }else if(n==2){ //edge
+                    w=2.0;
+                }else{ //corner
+                    w=1.0;
+                }
+
+                sum += w*a(i,j,k);
+                wsum += w;
+            }
+        }
     }
 
-    if (jm < 1) {
-        jm = 1;
+    a_s(ix,iy,iz) = sum/wsum;
+
+    if(a_s(ix,iy,iz) > 1.0 - 1e-6){
+        a_s(ix,iy,iz) = 1.;
     }
 
-    if (jp > Ny) {
-        jp = Ny;
+    if(a_s(ix,iy,iz) < 1e-6){
+        a_s(ix,iy,iz) = 0.;
     }
-
-    if (km < 1) {
-        km = 1;
-    }
-
-    if (kp > Nz) {
-        kp = Nz;
-    }
-
-    double a000 = a(ix,iy,iz);
-
-    double axm = a(im,iy,iz);
-    double axp = a(ip,iy,iz);
-    double aym = a(ix,jm,iz);
-    double ayp = a(ix,jp,iz);
-    double azm = a(ix,iy,km);
-    double azp = a(ix,iy,kp);
-
-    double axmym = a(im,jm,iz);
-    double axmyp = a(im,jp,iz);
-    double axpym = a(ip,jm,iz);
-    double axpyp = a(ip,jp,iz);
-
-    double axmzm = a(im,iy,km);
-    double axmzp = a(im,iy,kp);
-    double axpzm = a(ip,iy,km);
-    double axpzp = a(ip,iy,kp);
-
-    double aymzm = a(ix,jm,km);
-    double aymzp = a(ix,jm,kp);
-    double aypzm = a(ix,jp,km);
-    double aypzp = a(ix,jp,kp);
-
-    double axmymzm = a(im,jm,km);
-    double axmymzp = a(im,jm,kp);
-    double axmypzm = a(im,jp,km);
-    double axmypzp = a(im,jp,kp);
-
-    double axpymzm = a(ip,jm,km);
-    double axpymzp = a(ip,jm,kp);
-    double axpypzm = a(ip,jp,km);
-    double axpypzp = a(ip,jp,kp);
-
-    double center =
-        8.0 * a000;
-
-    double face =
-        4.0 * (
-            axm + axp +
-            aym + ayp +
-            azm + azp
-        );
-
-    double edge =
-        2.0 * (
-            axmym + axmyp + axpym + axpyp +
-            axmzm + axmzp + axpzm + axpzp +
-            aymzm + aymzp + aypzm + aypzp
-        );
-
-    double corner =
-        axmymzm + axmymzp + axmypzm + axmypzp +
-        axpymzm + axpymzp + axpypzm + axpypzp;
-
-    a_s(ix,iy,iz) = (center + face + edge + corner)*0.015625; // 0.015625=1/64
 }
 
 
@@ -137,23 +98,73 @@ static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
     MyArray<double,3> nx = grid.nx_;
     MyArray<double,3> ny = grid.ny_;
     MyArray<double,3> nz = grid.nz_;
+    
+    MyArray<unsigned char,3> ct = grid.celltype_;
 
 
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
     double inv_2dz = grid.inv_2dz_;
 
-    double grad_ax = (a_s(ix+1,iy,iz) - a_s(ix-1,iy,iz))*inv_2dx;
-    double grad_ay = (a_s(ix,iy+1,iz) - a_s(ix,iy-1,iz))*inv_2dy;
-    double grad_az = (a_s(ix,iy,iz+1) - a_s(ix,iy,iz-1))*inv_2dz;
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+
+    bool is_xp_interior = ct(ix+1,iy,iz) == C_INTERIOR;
+    bool is_xm_interior = ct(ix-1,iy,iz) == C_INTERIOR;
+
+    bool is_yp_interior = ct(ix,iy+1,iz) == C_INTERIOR;
+    bool is_ym_interior = ct(ix,iy-1,iz) == C_INTERIOR;
+
+    bool is_zp_interior = ct(ix,iy,iz+1) == C_INTERIOR;
+    bool is_zm_interior = ct(ix,iy,iz-1) == C_INTERIOR;
+
+    double grad_ax = 0.0;
+
+    if(is_xp_interior && is_xm_interior){
+        grad_ax = (a_s(ix+1,iy,iz) - a_s(ix-1,iy,iz))*inv_2dx;
+    }else if(is_xp_interior && !is_xm_interior){
+        grad_ax = (a_s(ix+1,iy,iz) - a_s(ix,iy,iz))*inv_dx;
+    }else if(!is_xp_interior && is_xm_interior){
+        grad_ax = (a_s(ix,iy,iz) - a_s(ix-1,iy,iz))*inv_dx;
+    }else{
+        grad_ax = 0.0;
+    }
+       
+    double grad_ay = 0.;
+
+    if(is_yp_interior && is_ym_interior){
+        grad_ay = (a_s(ix,iy+1,iz) - a_s(ix,iy-1,iz))*inv_2dy;
+    }else if(is_yp_interior && !is_ym_interior){
+        grad_ay = (a_s(ix,iy+1,iz) - a_s(ix,iy,iz))*inv_dy;
+    }else if(!is_yp_interior && is_ym_interior){
+        grad_ay = (a_s(ix,iy,iz) - a_s(ix,iy-1,iz))*inv_dy;
+    }else{
+        grad_ay = 0.0;
+    }
+
+    double grad_az = 0.;
+
+    if(is_zp_interior && is_zm_interior){
+        grad_az = (a_s(ix,iy,iz+1) - a_s(ix,iy,iz-1))*inv_2dz;
+    }else if(is_zp_interior && !is_zm_interior){
+        grad_az = (a_s(ix,iy,iz+1) - a_s(ix,iy,iz))*inv_dz;
+    }else if(!is_zp_interior && is_zm_interior){
+        grad_az = (a_s(ix,iy,iz) - a_s(ix,iy,iz-1))*inv_dz;
+    }else{
+        grad_az = 0.0;
+    }
 
     double mag2 = grad_ax*grad_ax+grad_ay*grad_ay+grad_az*grad_az;
 
-    if (mag2>1e-16){
+    if (mag2>1e-12){
         double inv_norm_grad = 1./(sqrt(mag2));
         nx(ix,iy,iz) = grad_ax*inv_norm_grad;
         ny(ix,iy,iz) = grad_ay*inv_norm_grad;
         nz(ix,iy,iz) = grad_az*inv_norm_grad;
+        //nx(ix,iy,iz) = 0.;
+        //ny(ix,iy,iz) = 1.;
+        //nz(ix,iy,iz) = 0.;
     }else{
         nx(ix,iy,iz) = 0.;
         ny(ix,iy,iz) = 0.;
@@ -180,13 +191,73 @@ static __global__ void k_calc_curvature(G_StaggeredGrid grid){
     MyArray<double,3> nz = grid.nz_;
     MyArray<double,3> kappa = grid.kappa_;
 
+    MyArray<double,3> a = grid.alpha_;
+
+    MyArray<unsigned char,3> ct = grid.celltype_;
+
+    if(a(ix,iy,iz)>0.99 || a(ix,iy,iz)<0.01){
+        kappa(ix,iy,iz) = 0.;
+        return;
+    }
+
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
     double inv_2dz = grid.inv_2dz_;
 
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+
+    bool is_xp_interior = ct(ix+1,iy,iz) == C_INTERIOR;
+    bool is_xm_interior = ct(ix-1,iy,iz) == C_INTERIOR;
+
+    bool is_yp_interior = ct(ix,iy+1,iz) == C_INTERIOR;
+    bool is_ym_interior = ct(ix,iy-1,iz) == C_INTERIOR;
+
+    bool is_zp_interior = ct(ix,iy,iz+1) == C_INTERIOR;
+    bool is_zm_interior = ct(ix,iy,iz-1) == C_INTERIOR;
+
+
     /* == kappa = -div(n) == */
 
-    kappa(ix,iy,iz) = -1.0 * ((nx(ix+1,iy,iz)-nx(ix-1,iy,iz))*inv_2dx + (ny(ix,iy+1,iz)-ny(ix,iy-1,iz))*inv_2dy+ (nz(ix,iy,iz+1)-nz(ix,iy,iz-1))*inv_2dz);
+    double dnxdx = 0.0; 
+
+    if(is_xp_interior && is_xm_interior){
+        dnxdx = (nx(ix+1,iy,iz) - nx(ix-1,iy,iz))*inv_2dx;
+    }else if(is_xp_interior && !is_xm_interior){
+        dnxdx = (nx(ix+1,iy,iz) - nx(ix,iy,iz))*inv_dx;
+    }else if(!is_xp_interior && is_xm_interior){
+        dnxdx = (nx(ix,iy,iz) - nx(ix-1,iy,iz))*inv_dx;
+    }else{
+        dnxdx = 0.0;
+    }
+
+    double dnydy = 0.;
+
+    if(is_yp_interior && is_ym_interior){
+        dnydy = (ny(ix,iy+1,iz) - ny(ix,iy-1,iz))*inv_2dy;
+    }else if(is_yp_interior && !is_ym_interior){
+        dnydy = (ny(ix,iy+1,iz) - ny(ix,iy,iz))*inv_dy;
+    }else if(!is_yp_interior && is_ym_interior){
+        dnydy = (ny(ix,iy,iz) - ny(ix,iy-1,iz))*inv_dy;
+    }else{
+        dnydy = 0.0;
+    }
+
+    double dnzdz = 0.;
+
+    if(is_zp_interior && is_zm_interior){
+        dnzdz = (nz(ix,iy,iz+1) - nz(ix,iy,iz-1))*inv_2dz;
+    }else if(is_zp_interior && !is_zm_interior){
+        dnzdz = (nz(ix,iy,iz+1) - nz(ix,iy,iz))*inv_dz;
+    }else if(!is_zp_interior && is_zm_interior){
+        dnzdz = (nz(ix,iy,iz) - nz(ix,iy,iz-1))*inv_dz;
+    }else{
+        dnzdz = 0.0;
+    }
+
+    kappa(ix,iy,iz) = -1.0 * (dnxdx + dnydy + dnzdz);
+
     //kappa(ix,iy,iz) = 2./0.3;
 
 }
@@ -253,6 +324,19 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
         }else{
             f_sz(ix,iy,iz)=0.0;
         }
+    }
+
+    if(f_sz(ix,iy,iz) > 1e-6){
+        printf("%d %d %d\n",ix,iy,iz);
+    }
+
+
+    if(f_sy(ix,iy,iz) > 1e-6){
+        printf("%d %d %d\n",ix,iy,iz);
+    }
+
+    if(f_sx(ix,iy,iz) > 1e-6){
+        printf("%d %d %d\n",ix,iy,iz);
     }
 
 }
@@ -1482,7 +1566,6 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
     MyArray<double,3>  mfy = grid_.f_mfy_;
     MyArray<double,3>  mfz = grid_.f_mfz_;
 
-    MyArray<double,3>  rho = grid_.rho_;
     MyArray<double,3>  rho_old = grid_.rho_old_;
     MyArray<double,3>  mu = grid_.mu_;
 
@@ -1493,6 +1576,11 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
     MyArray<double,3>  vx = grid_.f_vx_;
     MyArray<double,3>  vy = grid_.f_vy_;
     MyArray<double,3>  vz = grid_.f_vz_;
+
+    MyArray<double,3>  f_bx = grid_.f_bx_;
+    MyArray<double,3>  f_by = grid_.f_by_;
+    MyArray<double,3>  f_bz = grid_.f_bz_;
+
 
     MyArray<double,3>  vx_star = grid_.f_vx_star_;
     MyArray<double,3>  vy_star = grid_.f_vy_star_;
@@ -1603,7 +1691,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
 
-        double f_inv_rho = 1./(0.5*(rho(ix,iy,iz)+rho(ix-1,iy,iz)));
+        double f_inv_rho = f_bx(ix,iy,iz);
         double f_rho_old= (0.5*(rho_old(ix,iy,iz)+rho_old(ix-1,iy,iz)));
 
         /* == add pressure gradient == */
@@ -1707,7 +1795,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
         tmp_vy -= (M_zp - M_zm)*inv_dz;
 
 
-        double f_inv_rho = 1./(0.5*(rho(ix,iy,iz)+rho(ix,iy-1,iz)));
+        double f_inv_rho = f_by(ix,iy,iz);
         double f_rho_old= (0.5*(rho_old(ix,iy,iz)+rho_old(ix,iy-1,iz)));
 
         /* == add pressure gradient == */
@@ -1809,7 +1897,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
         tmp_vz -= (M_zp - M_zm)*inv_dz;
 
 
-        double f_inv_rho = 1./(0.5*(rho(ix,iy,iz)+rho(ix,iy,iz-1)));
+        double f_inv_rho = f_bz(ix,iy,iz);
         double f_rho_old= (0.5*(rho_old(ix,iy,iz)+rho_old(ix,iy,iz-1)));
 
         /* == add pressure gradient == */

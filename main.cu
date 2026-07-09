@@ -363,7 +363,7 @@ int main(){
 
 
     solv.set_gravity(0., -9.81, 0.);
-    solv.set_gravity(0., 0,0.);
+    //solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
    
@@ -403,7 +403,7 @@ int main(){
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-    solv.set_sphere();
+    //solv.set_sphere();
    // solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
