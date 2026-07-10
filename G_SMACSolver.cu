@@ -13,6 +13,7 @@
 /* ================================= */
 /* ==== surface tension related ==== */
 /* ================================= */
+/*
 static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
     MyArray<double,3> a = grid.alpha_;
     MyArray<double,3> a_s = grid.alpha_s_;
@@ -78,6 +79,7 @@ static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
         a_s(ix,iy,iz) = 0.;
     }
 }
+*/
 
 
 static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
@@ -94,7 +96,7 @@ static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
     if (ix > Nx|| iy > Ny || iz > Nz) return;
 
 
-    MyArray<double,3> a_s = grid.alpha_s_;
+    MyArray<double,3> a_s = grid.alpha_;
     MyArray<double,3> nx = grid.nx_;
     MyArray<double,3> ny = grid.ny_;
     MyArray<double,3> nz = grid.nz_;
@@ -278,7 +280,7 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
     MyArray<double,3> f_sy = grid.f_sy_;
     MyArray<double,3> f_sz = grid.f_sz_;
     MyArray<double,3> kappa = grid.kappa_;
-    MyArray<double,3> a_s = grid.alpha_s_;
+    MyArray<double,3> a_s = grid.alpha_;
     MyArray<unsigned char,3> celltype = grid.celltype_;
 
     double inv_dx = grid.inv_dx_;
@@ -326,18 +328,6 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
         }
     }
 
-    if(f_sz(ix,iy,iz) > 1e-6){
-        printf("%d %d %d\n",ix,iy,iz);
-    }
-
-
-    if(f_sy(ix,iy,iz) > 1e-6){
-        printf("%d %d %d\n",ix,iy,iz);
-    }
-
-    if(f_sx(ix,iy,iz) > 1e-6){
-        printf("%d %d %d\n",ix,iy,iz);
-    }
 
 }
 
@@ -349,7 +339,7 @@ void G_SMACSolver::calc_surface_tension(){
     cudaMemset(grid_.f_sy_.data_, 0, grid_.f_sy_.size_ * sizeof(double));
     cudaMemset(grid_.f_sz_.data_, 0, grid_.f_sz_.size_ * sizeof(double));
 
-    k_calc_alpha_s<<<grid_dim_,block_dim_>>>(grid_);
+    //k_calc_alpha_s<<<grid_dim_,block_dim_>>>(grid_);
     k_calc_interface_normal<<<grid_dim_,block_dim_>>>(grid_);
     k_calc_curvature<<<grid_dim_,block_dim_>>>(grid_);
     k_calc_surface_tension_face<<<grid_dim_,block_dim_>>>(grid_);
@@ -1651,6 +1641,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double ux_xp= vx_xp > 0. ? vx_111:vx_211;
         double ux_xm= vx_xm > 0. ? vx_011: vx_111;
 
@@ -1658,7 +1649,72 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
         double M_xm = vx_xm * ux_xm;
 
         tmp_vx -= (M_xp - M_xm)*inv_dx;
+        */
 
+        /* == muscl vanleer == */
+        int ind_upwind;
+
+        ind_upwind = vx_xp > 0. ? ix: ix+1;
+        double ux_xp = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xp = vx_xp > 0. ? vx_111:vx_211;
+        }else{
+            double deltap = d_get_vx_xface(grid_,ind_upwind+1,iy,iz) - d_get_vx_xface(grid_,ind_upwind,iy,iz);
+            double deltam = d_get_vx_xface(grid_,ind_upwind,iy,iz) - d_get_vx_xface(grid_,ind_upwind-1,iy,iz); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xp);
+
+            double upwind_v = vx_xp > 0. ? vx_111:vx_211;
+            ux_xp = upwind_v + dir*0.5*s_u;
+        }
+
+        double M_xp = vx_xp * ux_xp;
+
+
+
+        /* == muscl vanleer == */
+        ind_upwind = vx_xm > 0. ? ix-1: ix;
+        double ux_xm = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xm = vx_xm > 0. ? vx_011:vx_111;
+        }else{
+            double deltap = d_get_vx_xface(grid_,ind_upwind+1,iy,iz) - d_get_vx_xface(grid_,ind_upwind,iy,iz);
+            double deltam = d_get_vx_xface(grid_,ind_upwind,iy,iz) - d_get_vx_xface(grid_,ind_upwind-1,iy,iz); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xm);
+
+            double upwind_v = vx_xm > 0. ? vx_011:vx_111;
+            ux_xm = upwind_v + dir*0.5*s_u;
+        }
+
+
+        double M_xm = vx_xm * ux_xm;
+
+        tmp_vx -= (M_xp - M_xm)*inv_dx;
 
         /* == y direction == */
         double vy_yp= 0.5*(mfy(ix-1,iy+1,iz)+mfy(ix,iy+1,iz));
@@ -1666,10 +1722,75 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uy_yp= vy_yp > 0. ? vx_111: vx_121;
         double uy_ym= vy_ym > 0. ? vx_101: vx_111;
 
         double M_yp = vy_yp * uy_yp;
+        double M_ym = vy_ym * uy_ym;
+
+        tmp_vx -= (M_yp - M_ym)*inv_dy;
+        */
+
+        /* == muscl vanleer == */
+        ind_upwind = vy_yp > 0. ? iy: iy+1;
+        double uy_yp = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_yp = vy_yp > 0. ? vx_111:vx_121;
+        }else{
+
+            double deltap = d_get_vx_ydir(grid_,ix,ind_upwind,iz,+1) - vx(ix,ind_upwind,iz);
+            double deltam = vx(ix,ind_upwind,iz) - d_get_vx_ydir(grid_,ix,ind_upwind,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vy_yp);
+            double upwind_v = vy_yp > 0. ? vx_111:vx_121;
+            uy_yp = upwind_v + dir*0.5*s_u;
+        }
+
+
+        double M_yp = vy_yp * uy_yp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vy_ym > 0. ? iy-1: iy;
+        double uy_ym = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_ym = vy_ym > 0. ? vx_101:vx_111;
+        }else{
+            double deltap = d_get_vx_ydir(grid_,ix,ind_upwind,iz,+1) - vx(ix,ind_upwind,iz);
+            double deltam = vx(ix,ind_upwind,iz) - d_get_vx_ydir(grid_,ix,ind_upwind,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vy_ym);
+
+            double upwind_v = vy_ym > 0. ? vx_101:vx_111;
+            uy_ym = upwind_v + dir*0.5*s_u;
+        }
+
+
         double M_ym = vy_ym * uy_ym;
 
         tmp_vx -= (M_yp - M_ym)*inv_dy;
@@ -1681,11 +1802,73 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uz_zp= vz_zp > 0. ? vx_111: vx_112;
         double uz_zm= vz_zm > 0. ? vx_110: vx_111;
+        */
+
+
+        /* == muscl vanleer == */
+        ind_upwind = vz_zp > 0. ? iz: iz+1;
+        double uz_zp = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zp = vz_zp > 0. ? vx_111:vx_112;
+        }else{
+
+            double deltap = d_get_vx_zdir(grid_,ix,iy,ind_upwind,+1) - vx(ix,iy,ind_upwind);
+            double deltam = vx(ix,iy,ind_upwind) - d_get_vx_zdir(grid_,ix,iy,ind_upwind,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vz_zp);
+            double upwind_v = vz_zp > 0. ? vx_111:vx_112;
+            uz_zp = upwind_v + dir*0.5*s_u;
+        }
+
 
         double M_zp = vz_zp * uz_zp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vz_zm > 0. ? iz-1: iz;
+        double uz_zm = 0.;
+
+        /*== check if has stencil == */
+        if(f_xtype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zm = vz_zm > 0. ? vx_110:vx_111;
+        }else{
+            double deltap = d_get_vx_zdir(grid_,ix,iy,ind_upwind,+1) - vx(ix,iy,ind_upwind);
+            double deltam = vx(ix,iy,ind_upwind) - d_get_vx_zdir(grid_,ix,iy,ind_upwind,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vz_zm);
+
+            double upwind_v = vz_zm > 0. ? vx_110:vx_111;
+            uz_zm = upwind_v + dir*0.5*s_u;
+        }
+
+
         double M_zm = vz_zm * uz_zm;
+        
 
         tmp_vx -= (M_zp - M_zm)*inv_dz;
 
@@ -1758,10 +1941,68 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
-        double ux_xp= vx_xp > 0. ? vy_111: vy_211;
-        double ux_xm= vx_xm > 0. ? vy_011: vy_111;
+      //  double ux_xp= vx_xp > 0. ? vy_111: vy_211;
+      //  double ux_xm= vx_xm > 0. ? vy_011: vy_111;
+
+        /* == muscl vanleer == */
+        int ind_upwind;
+
+        ind_upwind = vx_xp > 0. ? ix: ix+1;
+        double ux_xp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xp = vx_xp > 0. ? vy_111:vy_211;
+        }else{
+            double deltap = d_get_vy_xdir(grid_,ind_upwind,iy,iz,+1) - vy(ind_upwind,iy,iz);
+            double deltam = vy(ind_upwind,iy,iz) - d_get_vy_xdir(grid_,ind_upwind,iy,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xp);
+
+            double upwind_v = vx_xp > 0. ? vy_111:vy_211;
+            ux_xp = upwind_v + dir*0.5*s_u;
+        }
 
         double M_xp = vx_xp * ux_xp;
+
+
+        /* == muscl vanleer == */
+        ind_upwind = vx_xm > 0. ? ix-1: ix;
+        double ux_xm = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xm = vx_xm > 0. ? vy_011:vy_111;
+        }else{
+            double deltap = d_get_vy_xdir(grid_,ind_upwind,iy,iz,+1) - vy(ind_upwind,iy,iz);
+            double deltam = vy(ind_upwind,iy,iz) - d_get_vy_xdir(grid_,ind_upwind,iy,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xm);
+
+            double upwind_v = vx_xm > 0. ? vy_011:vy_111;
+            ux_xm = upwind_v + dir*0.5*s_u;
+        }
+
         double M_xm = vx_xm * ux_xm;
 
         tmp_vy -= (M_xp - M_xm)*inv_dx;
@@ -1772,10 +2013,70 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uy_yp= vy_yp > 0. ? vy_111: vy_121;
         double uy_ym= vy_ym > 0. ? vy_101: vy_111;
+        */
+         
+        /* == muscl vanleer == */
+        ind_upwind = vy_yp > 0. ? iy: iy+1;
+        double uy_yp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_yp = vy_yp > 0. ? vy_111:vy_121;
+        }else{
+
+            double deltap = d_get_vy_yface(grid_,ix,ind_upwind+1,iz) - vy(ix,ind_upwind,iz);
+            double deltam = vy(ix,ind_upwind,iz) - d_get_vy_yface(grid_,ix,ind_upwind-1,iz); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vy_yp);
+            double upwind_v = vy_yp > 0. ? vy_111:vy_121;
+            uy_yp = upwind_v + dir*0.5*s_u;
+        }
+
 
         double M_yp = vy_yp * uy_yp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vy_ym > 0. ? iy-1: iy;
+        double uy_ym = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_ym = vy_ym > 0. ? vy_101:vy_111;
+        }else{
+            double deltap = d_get_vy_yface(grid_,ix,ind_upwind+1,iz) - vy(ix,ind_upwind,iz);
+            double deltam = vy(ix,ind_upwind,iz) - d_get_vy_yface(grid_,ix,ind_upwind-1,iz); 
+
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vy_ym);
+
+            double upwind_v = vy_ym > 0. ? vy_101:vy_111;
+            uy_ym = upwind_v + dir*0.5*s_u;
+        }
+
         double M_ym = vy_ym * uy_ym;
 
         tmp_vy -= (M_yp - M_ym)*inv_dy;
@@ -1786,10 +2087,71 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uz_zp= vz_zp > 0. ? vy_111: vy_112;
         double uz_zm= vz_zm > 0. ? vy_110: vy_111;
+        */
+
+        /* == muscl vanleer == */
+        ind_upwind = vz_zp > 0. ? iz: iz+1;
+        double uz_zp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zp = vz_zp > 0. ? vy_111:vy_112;
+        }else{
+
+            double deltap = d_get_vy_zdir(grid_,ix,iy,ind_upwind,+1) - vy(ix,iy,ind_upwind);
+            double deltam = vy(ix,iy,ind_upwind) - d_get_vy_zdir(grid_,ix,iy,ind_upwind,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vz_zp);
+            double upwind_v = vz_zp > 0. ? vy_111:vy_112;
+            uz_zp = upwind_v + dir*0.5*s_u;
+        }
+
 
         double M_zp = vz_zp * uz_zp;
+        
+        /* == muscl vanleer == */
+        ind_upwind = vz_zm > 0. ? iz-1: iz;
+        double uz_zm = 0.;
+
+        /*== check if has stencil == */
+        if(f_ytype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zm = vz_zm > 0. ? vy_110:vy_111;
+        }else{
+            double deltap = d_get_vy_zdir(grid_,ix,iy,ind_upwind,+1) - vy(ix,iy,ind_upwind);
+            double deltam = vy(ix,iy,ind_upwind) - d_get_vy_zdir(grid_,ix,iy,ind_upwind,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vz_zm);
+
+            double upwind_v = vz_zm > 0. ? vy_110:vy_111;
+            uz_zm = upwind_v + dir*0.5*s_u;
+        }
+
+
+
         double M_zm = vz_zm * uz_zm;
 
         tmp_vy -= (M_zp - M_zm)*inv_dz;
@@ -1860,10 +2222,71 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double ux_xp= vx_xp > 0. ? vz_111: vz_211;
         double ux_xm= vx_xm > 0. ? vz_011: vz_111;
+        */
+
+        /* == muscl vanleer == */
+        int ind_upwind;
+
+        ind_upwind = vx_xp > 0. ? ix: ix+1;
+        double ux_xp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xp = vx_xp > 0. ? vz_111:vz_211;
+        }else{
+            double deltap = d_get_vz_xdir(grid_,ind_upwind,iy,iz,+1) - vz(ind_upwind,iy,iz);
+            double deltam = vz(ind_upwind,iy,iz) - d_get_vz_xdir(grid_,ind_upwind,iy,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xp);
+
+            double upwind_v = vx_xp > 0. ? vz_111:vz_211;
+            ux_xp = upwind_v + dir*0.5*s_u;
+        }
+
 
         double M_xp = vx_xp * ux_xp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vx_xm > 0. ? ix-1: ix;
+        double ux_xm = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ind_upwind,iy,iz) != F_INTERIOR ){
+            ux_xm = vx_xm > 0. ? vz_011:vz_111;
+        }else{
+            double deltap = d_get_vz_xdir(grid_,ind_upwind,iy,iz,+1) - vz(ind_upwind,iy,iz);
+            double deltam = vz(ind_upwind,iy,iz) - d_get_vz_xdir(grid_,ind_upwind,iy,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vx_xm);
+
+            double upwind_v = vx_xm > 0. ? vz_011:vz_111;
+            ux_xm = upwind_v + dir*0.5*s_u;
+        }
+
+
         double M_xm = vx_xm * ux_xm;
 
         tmp_vz -= (M_xp - M_xm)*inv_dx;
@@ -1874,10 +2297,71 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uy_yp= vy_yp > 0. ? vz_111: vz_121;
         double uy_ym= vy_ym > 0. ? vz_101: vz_111;
+        */
+
+
+        /* == muscl vanleer == */
+        ind_upwind = vy_yp > 0. ? iy: iy+1;
+        double uy_yp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_yp = vy_yp > 0. ? vz_111:vz_121;
+        }else{
+
+            double deltap = d_get_vz_ydir(grid_,ix,ind_upwind,iz,+1) - vz(ix,ind_upwind,iz);
+            double deltam = vz(ix,ind_upwind,iz) - d_get_vz_ydir(grid_,ix,ind_upwind,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vy_yp);
+            double upwind_v = vy_yp > 0. ? vz_111:vz_121;
+            uy_yp = upwind_v + dir*0.5*s_u;
+        }
 
         double M_yp = vy_yp * uy_yp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vy_ym > 0. ? iy-1: iy;
+        double uy_ym = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ix,ind_upwind,iz) != F_INTERIOR){
+            uy_ym = vy_ym > 0. ? vz_101:vz_111;
+        }else{
+            double deltap = d_get_vz_ydir(grid_,ix,ind_upwind,iz,+1) - vz(ix,ind_upwind,iz);
+            double deltam = vz(ix,ind_upwind,iz) - d_get_vz_ydir(grid_,ix,ind_upwind,iz,-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vy_ym);
+
+            double upwind_v = vy_ym > 0. ? vz_101:vz_111;
+            uy_ym = upwind_v + dir*0.5*s_u;
+        }
+
+
+
         double M_ym = vy_ym * uy_ym;
 
         tmp_vz -= (M_yp - M_ym)*inv_dy;
@@ -1888,11 +2372,73 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
+        /*
         double uz_zp= vz_zp > 0. ? vz_111: vz_112;
         double uz_zm= vz_zm > 0. ? vz_110: vz_111;
+        */
+
+        /* == muscl vanleer == */
+        ind_upwind = vz_zp > 0. ? iz: iz+1;
+        double uz_zp = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zp = vz_zp > 0. ? vz_111:vz_112;
+        }else{
+
+            double deltap = d_get_vz_zface(grid_,ix,iy,ind_upwind+1) - vz(ix,iy,ind_upwind);
+            double deltam = vz(ix,iy,ind_upwind) - d_get_vz_zface(grid_,ix,iy,ind_upwind-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+
+            int dir = sgn(vz_zp);
+            double upwind_v = vz_zp > 0. ? vz_111:vz_112;
+            uz_zp = upwind_v + dir*0.5*s_u;
+        }
+
 
         double M_zp = vz_zp * uz_zp;
+
+        /* == muscl vanleer == */
+        ind_upwind = vz_zm > 0. ? iz-1: iz;
+        double uz_zm = 0.;
+
+        /*== check if has stencil == */
+        if(f_ztype(ix,iy,ind_upwind) != F_INTERIOR){
+            uz_zm = vz_zm > 0. ? vz_110:vz_111;
+        }else{
+            double deltap = d_get_vz_zface(grid_,ix,iy,ind_upwind+1) - vz(ix,iy,ind_upwind);
+            double deltam = vz(ix,iy,ind_upwind) - d_get_vz_zface(grid_,ix,iy,ind_upwind-1); 
+
+            double deltaprod = deltap*deltam;
+
+            double s_u = 0.; // higher order term 
+
+            if(deltaprod>0.){
+                s_u = 2.*deltaprod/(deltap + deltam);
+            }else{
+                s_u = 0.;
+            }
+
+            int dir = sgn(vz_zm);
+
+            double upwind_v = vz_zm > 0. ? vz_110:vz_111;
+            uz_zm = upwind_v + dir*0.5*s_u;
+        }
+
+
         double M_zm = vz_zm * uz_zm;
+        
+
 
         tmp_vz -= (M_zp - M_zm)*inv_dz;
 

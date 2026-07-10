@@ -12,11 +12,11 @@ MEMBER(double, inv_rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 
-MEMBER(double, alpha_s_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, ny_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, nz_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, kappa_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, phi_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 
 MEMBER(unsigned char, celltype_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
     

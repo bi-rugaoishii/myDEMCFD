@@ -321,9 +321,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=128;
-    int Ny=128;
-    int Nz=128;
+    int Nx=192;
+    int Ny=192;
+    int Nz=192;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -339,9 +339,9 @@ int main(){
     //double mu_w = nu*rho_w;
     //double mu_g = nu*rho_g;
 
-    double sizex=.1;
-    double sizey=.1;
-    double sizez=.1;
+    double sizex=0.1;
+    double sizey=0.1;
+    double sizez=0.1;
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
@@ -374,7 +374,7 @@ int main(){
 
     solv.solver_malloc();
 
-    double wallvel=0.0;
+    double wallvel=0.000;
 
     solv.set_face_type();
     solv.set_cell_type();
@@ -392,9 +392,9 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    //solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
+   // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
     solv.grid_.place_vof(0.,1.0,0.,0.02,0.,1.0,1.0);
-    //solv.grid_.place_vof(0.,1.0,0.,0.5,1.0);
+   // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
 
     /*for surface tension test*/
    // solv.initialize_disk();
@@ -403,7 +403,7 @@ int main(){
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-    //solv.set_sphere();
+    solv.set_sphere();
    // solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
@@ -423,7 +423,7 @@ int main(){
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = .05;
+    double outfreqtime = .01;
     double endTime = 1.0;
     double max_dt = 1e-2;
     double initial_dt = 1e-4;
@@ -471,7 +471,7 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
-    int num_levels = 10;
+    int num_levels = 4;
     G_GMGSolver gmgSolver;
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
