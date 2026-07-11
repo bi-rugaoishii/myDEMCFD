@@ -388,7 +388,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     int max_iter = 2000;
     double tol = 1e-5;
     double inv_dt_ = solv.inv_dt_;
-    double dt_ = solv.dt_;
+    double dt = solv.dt_;
 
 
     base_k_make_poisson_rhs<<<grid_dim_,block_dim_>>>(grid_,inv_dt_);
@@ -491,7 +491,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
 
             double max_divu;
             cudaMemcpy(&max_divu,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
-            max_divu *= dt_;
+            max_divu *= dt;
             //double rel_res = sqrt(r2) / norm_b;
 
 

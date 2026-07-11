@@ -322,7 +322,7 @@ int main(){
     const char* outdir ="results";
 
     int Nx=192;
-    int Ny=72;
+    int Ny=96;
     int Nz=192;
 
     double rho = 1.;
@@ -340,7 +340,7 @@ int main(){
     //double mu_g = nu*rho_g;
 
     double sizex=0.0666666;
-    double sizey=0.025;
+    double sizey=0.0333333;
     double sizez=0.0666666;
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
@@ -394,7 +394,7 @@ int main(){
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
    // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
-    solv.grid_.place_vof(0.,1.0,0.,0.005,0.,1.0,1.0);
+    solv.grid_.place_vof(0.,1.0,0.,0.0075,0.,1.0,1.0);
    // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
 
     /*for surface tension test*/

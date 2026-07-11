@@ -541,6 +541,7 @@ void SMACSolver::set_sphere(){
                 if (inside_sphere && !inside_slot) {
                     a(ix,iy,iz) = 1.0;
                     f_vy(ix,iy,iz) = v_ini;
+                    f_vy(ix,iy+1,iz) = v_ini;
 
                 } else if(inside_sphere && inside_slot) {
                     a(ix,iy,iz) = 0.0;

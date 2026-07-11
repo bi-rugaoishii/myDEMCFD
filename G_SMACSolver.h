@@ -106,3 +106,15 @@ struct G_SMACSolver{
 };
 
 
+
+/* misc function*/
+static __device__ __forceinline__ double sgn(double a){
+    double result;
+    if(a<0){
+        result =-1.;
+    }else{
+        result =1.;
+    }
+
+    return result;
+}
