@@ -420,7 +420,7 @@ int main(){
     h_start = omp_get_wtime();
 
     /* == set cfd time related parameters ==*/
-    double cfl_thresh = 0.2;
+    double cfl_thresh = 0.4;
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
@@ -536,7 +536,6 @@ int main(){
             if(cfdtime.isOutStep_){
                 g_solv.gpuTocpu(solv.grid_);
                 printf("total alpha = %f\n",solv.calc_alpha_vol());
-                solv.check_divergence();
                 //solv.check_pressure_jump_by_radius();
                 output_vti_binary(solv.grid_,cfdtime.current_steps_,outdir);
                 h_end = omp_get_wtime();

@@ -4,7 +4,7 @@ This repository contains a custom CFD/VOF solver under active development.
 The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface tension modeling.
 The solver has now been extended to 3D free-surface simulations such as water crown and milk crown problems.
 
-The current priority is no longer basic 3D conversion. The main focus is now curvature improvement with RDF, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
+The current priority is no longer basic 3D conversion. The immediate focus is reducing CUDA kernel argument size by switching large grid arguments from value passing to pointer passing. After that, the focus is curvature improvement with RDF, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
 
 ---
 
@@ -36,6 +36,7 @@ The current priority is no longer basic 3D conversion. The main focus is now cur
 
 ### Main Remaining Work
 
+- [ ] Switch large CUDA kernel arguments from value passing to pointer passing
 - [ ] RDF-based curvature calculation for surface tension
 - [ ] Embedded boundary method
 - [ ] 3D validation and robustness checks
@@ -52,15 +53,16 @@ The current priority is no longer basic 3D conversion. The main focus is now cur
 
 # Short-Term Priorities
 
-1. Add RDF-based curvature calculation for surface tension.
-2. Add embedded-boundary support using cell/face attributes.
-3. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
-4. Validate flux-direction-based THINC/WLIC switching near boundaries using dam-break and 3D wall cases.
-5. Validate the stress-divergence viscous term for constant and variable viscosity cases.
-6. Organize `SolverConfig`, parameter ownership, and fixed/CFL time-step switching.
-7. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
-8. Validate surface tension using static droplet, Laplace pressure, and spurious-current tests.
-9. Add additional 3D benchmark cases and long-running output/restart utilities.
+1. Switch large CUDA kernel arguments from value passing to pointer passing.
+2. Add a device-side self pointer to `Grid` / `G_StaggeredGrid` so kernels can receive a lightweight pointer.
+3. Add RDF-based curvature calculation for surface tension.
+4. Add embedded-boundary support using cell/face attributes.
+5. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
+6. Validate flux-direction-based THINC/WLIC switching near boundaries using dam-break and 3D wall cases.
+7. Validate the stress-divergence viscous term for constant and variable viscosity cases.
+8. Organize `SolverConfig`, parameter ownership, and fixed/CFL time-step switching.
+9. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
+10. Add additional 3D benchmark cases and long-running output/restart utilities.
 
 ---
 
@@ -134,6 +136,32 @@ TODO:
 - [x] Update related kernels and pitch definitions
 - [x] Re-run main validation cases after the indexing change
 - [x] Add lightweight debug checks for valid index ranges
+
+---
+
+## 0.5 GPU Kernel Argument Passing Cleanup
+
+The grid structure has grown as the solver moved to 3D, added boundary flags, stress-divergence terms, GMG data, and additional VOF/surface-tension fields. Passing `G_StaggeredGrid` by value to every CUDA kernel is starting to exceed the kernel argument-size limit and also makes the launch interface heavier than necessary.
+
+TODO:
+
+- [ ] Change large kernel arguments from value passing to pointer passing
+- [ ] Add a device-side self pointer such as `G_StaggeredGrid* d_self` to the host-side grid object
+- [ ] Update kernels to receive `G_StaggeredGrid* grid` or a lightweight pointer wrapper
+- [ ] Keep scalar arguments separate only when they are small and frequently changed
+- [ ] Validate that existing kernels give identical results after the pointer-passing transition
+
+Recommended direction:
+
+```cpp
+// Before
+kernel<<<grid_dim, block_dim>>>(grid, dt);
+
+// After
+kernel<<<grid_dim, block_dim>>>(grid.d_self_, dt);
+```
+
+This should reduce CUDA launch argument size and avoid repeatedly copying the full grid descriptor into kernel parameters.
 
 ---
 
@@ -392,6 +420,7 @@ TODO:
 
 - [ ] Add `CUDA_CHECK` and debug-mode kernel error checks
 - [ ] Add small compute-sanitizer test cases
+- [ ] Check CUDA kernel argument sizes after major grid-structure changes
 - [ ] Make raw-pointer-owning classes safer against accidental copying
 - [ ] Initialize and clear device pointers consistently
 - [ ] Log array sizes and pitches at startup
@@ -421,11 +450,13 @@ Already implemented:
     variable-viscosity stress-divergence viscous term
 
 Current priority:
+    switch large CUDA kernel arguments from value passing to pointer passing
     RDF-based curvature calculation
     embedded boundary method
     validation and robustness of the 3D solver
 
 Main remaining work:
+    pointer-based CUDA kernel argument passing
     scheme/config switching
     parameter ownership cleanup
     pressure-solver validation

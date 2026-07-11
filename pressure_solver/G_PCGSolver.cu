@@ -386,8 +386,9 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
     MyArray<double,3> dir     = grid_.pcg_dir_;
 
     int max_iter = 2000;
-    double tol = 1e-6;
+    double tol = 1e-5;
     double inv_dt_ = solv.inv_dt_;
+    double dt_ = solv.dt_;
 
 
     base_k_make_poisson_rhs<<<grid_dim_,block_dim_>>>(grid_,inv_dt_);
@@ -482,18 +483,21 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
         cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,rz_new,Nx*Ny*Nz);
 
         if(iter%checkResidualFreq==0){
-            /* get residual norm */
+            /* get max residual */
 
-            k_get_r2_to_tmp<<<grid_dim_,block_dim_>>>(grid_);
-            cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
+            //k_get_r2_to_tmp<<<grid_dim_,block_dim_>>>(grid_);
+            base_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(grid_.pcg_r_,grid_.pcg_tmp_,Nx,Ny,Nz);
+            cub::DeviceReduce::Max(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
 
-            double r2;
-            cudaMemcpy(&r2,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
-            double rel_res = sqrt(r2) / norm_b;
+            double max_divu;
+            cudaMemcpy(&max_divu,d_dot_,sizeof(double),cudaMemcpyDeviceToHost);
+            max_divu *= dt_;
+            //double rel_res = sqrt(r2) / norm_b;
+
 
                 //printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
-            if (rel_res < tol) {
-                printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
+            if (max_divu < tol) {
+                printf("max_divu = %3.2e, dt*max_divu = %3.2e \n",max_divu, dt*max_divu);
                 iter++;
                 break;
             }
