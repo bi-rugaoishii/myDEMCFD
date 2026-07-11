@@ -258,7 +258,10 @@ static __global__ void k_calc_curvature(G_StaggeredGrid grid){
         dnzdz = 0.0;
     }
 
+
+
     kappa(ix,iy,iz) = -1.0 * (dnxdx + dnydy + dnzdz);
+
 
     //kappa(ix,iy,iz) = 2./0.3;
 
@@ -300,6 +303,17 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
             f_sx(ix,iy,iz)=0.0;
         }
 
+        /* debug*/
+        /*
+        MyArray<double,3> f_bx = grid.f_bx_;
+        MyArray<double,3> f_by = grid.f_by_;
+        MyArray<double,3> f_bz = grid.f_bz_;
+        double a_sig_x = f_sx(ix,iy,iz)*f_bx(ix,iy,iz);
+        if(a_sig_x>1e3){
+            printf("a_sig_x %f\n",a_sig_x);
+        }
+        */
+
     }
 
     if (ix > Nx || iy > Ny || iz > Nz|| ix < 1 || iy < 2|| iz <1){
@@ -313,6 +327,17 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
         }else{
             f_sy(ix,iy,iz)=0.0;
         }
+
+        /* debug*/
+        /*
+        MyArray<double,3> f_bx = grid.f_bx_;
+        MyArray<double,3> f_by = grid.f_by_;
+        MyArray<double,3> f_bz = grid.f_bz_;
+        double a_sig_y = f_sy(ix,iy,iz)*f_by(ix,iy,iz);
+        if(a_sig_y>1e3){
+            printf("a_sig_y %f\n",a_sig_y);
+        }
+        */
     }
 
     if (ix > Nx || iy > Ny || iz > Nz|| ix < 1 || iy < 1|| iz <2){
@@ -326,6 +351,17 @@ static __global__ void k_calc_surface_tension_face(G_StaggeredGrid grid){
         }else{
             f_sz(ix,iy,iz)=0.0;
         }
+
+        /* debug*/
+        /*
+        MyArray<double,3> f_bx = grid.f_bx_;
+        MyArray<double,3> f_by = grid.f_by_;
+        MyArray<double,3> f_bz = grid.f_bz_;
+        double a_sig_z = f_sz(ix,iy,iz)*f_bz(ix,iy,iz);
+        if(a_sig_z>1e3){
+            printf("a_sig_z %f\n",a_sig_z);
+        }
+        */
     }
 
 
@@ -1642,14 +1678,14 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double ux_xp= vx_xp > 0. ? vx_111:vx_211;
-        double ux_xm= vx_xm > 0. ? vx_011: vx_111;
+           double ux_xp= vx_xp > 0. ? vx_111:vx_211;
+           double ux_xm= vx_xm > 0. ? vx_011: vx_111;
 
-        double M_xp = vx_xp * ux_xp;
-        double M_xm = vx_xm * ux_xm;
+           double M_xp = vx_xp * ux_xp;
+           double M_xm = vx_xm * ux_xm;
 
-        tmp_vx -= (M_xp - M_xm)*inv_dx;
-        */
+           tmp_vx -= (M_xp - M_xm)*inv_dx;
+         */
 
         /* == muscl vanleer == */
         int ind_upwind;
@@ -1669,7 +1705,16 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
+
             }else{
                 s_u = 0.;
             }
@@ -1700,7 +1745,16 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
+
             }else{
                 s_u = 0.;
             }
@@ -1723,14 +1777,14 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uy_yp= vy_yp > 0. ? vx_111: vx_121;
-        double uy_ym= vy_ym > 0. ? vx_101: vx_111;
+           double uy_yp= vy_yp > 0. ? vx_111: vx_121;
+           double uy_ym= vy_ym > 0. ? vx_101: vx_111;
 
-        double M_yp = vy_yp * uy_yp;
-        double M_ym = vy_ym * uy_ym;
+           double M_yp = vy_yp * uy_yp;
+           double M_ym = vy_ym * uy_ym;
 
-        tmp_vx -= (M_yp - M_ym)*inv_dy;
-        */
+           tmp_vx -= (M_yp - M_ym)*inv_dy;
+         */
 
         /* == muscl vanleer == */
         ind_upwind = vy_yp > 0. ? iy: iy+1;
@@ -1749,7 +1803,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -1779,7 +1841,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -1803,9 +1873,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uz_zp= vz_zp > 0. ? vx_111: vx_112;
-        double uz_zm= vz_zm > 0. ? vx_110: vx_111;
-        */
+           double uz_zp= vz_zp > 0. ? vx_111: vx_112;
+           double uz_zm= vz_zm > 0. ? vx_110: vx_111;
+         */
 
 
         /* == muscl vanleer == */
@@ -1825,7 +1895,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -1855,7 +1933,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -1868,7 +1954,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         double M_zm = vz_zm * uz_zm;
-        
+
 
         tmp_vx -= (M_zp - M_zm)*inv_dz;
 
@@ -1941,8 +2027,8 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         /* == upwind == */
-      //  double ux_xp= vx_xp > 0. ? vy_111: vy_211;
-      //  double ux_xm= vx_xm > 0. ? vy_011: vy_111;
+        //  double ux_xp= vx_xp > 0. ? vy_111: vy_211;
+        //  double ux_xm= vx_xm > 0. ? vy_011: vy_111;
 
         /* == muscl vanleer == */
         int ind_upwind;
@@ -1962,7 +2048,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -1992,7 +2086,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2014,10 +2116,10 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uy_yp= vy_yp > 0. ? vy_111: vy_121;
-        double uy_ym= vy_ym > 0. ? vy_101: vy_111;
-        */
-         
+           double uy_yp= vy_yp > 0. ? vy_111: vy_121;
+           double uy_ym= vy_ym > 0. ? vy_101: vy_111;
+         */
+
         /* == muscl vanleer == */
         ind_upwind = vy_yp > 0. ? iy: iy+1;
         double uy_yp = 0.;
@@ -2035,7 +2137,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2066,7 +2176,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2088,9 +2206,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uz_zp= vz_zp > 0. ? vy_111: vy_112;
-        double uz_zm= vz_zm > 0. ? vy_110: vy_111;
-        */
+           double uz_zp= vz_zp > 0. ? vy_111: vy_112;
+           double uz_zm= vz_zm > 0. ? vy_110: vy_111;
+         */
 
         /* == muscl vanleer == */
         ind_upwind = vz_zp > 0. ? iz: iz+1;
@@ -2109,7 +2227,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2122,7 +2248,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         double M_zp = vz_zp * uz_zp;
-        
+
         /* == muscl vanleer == */
         ind_upwind = vz_zm > 0. ? iz-1: iz;
         double uz_zm = 0.;
@@ -2139,7 +2265,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2223,9 +2357,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double ux_xp= vx_xp > 0. ? vz_111: vz_211;
-        double ux_xm= vx_xm > 0. ? vz_011: vz_111;
-        */
+           double ux_xp= vx_xp > 0. ? vz_111: vz_211;
+           double ux_xm= vx_xm > 0. ? vz_011: vz_111;
+         */
 
         /* == muscl vanleer == */
         int ind_upwind;
@@ -2245,7 +2379,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2275,7 +2417,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2298,9 +2448,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uy_yp= vy_yp > 0. ? vz_111: vz_121;
-        double uy_ym= vy_ym > 0. ? vz_101: vz_111;
-        */
+           double uy_yp= vy_yp > 0. ? vz_111: vz_121;
+           double uy_ym= vy_ym > 0. ? vz_101: vz_111;
+         */
 
 
         /* == muscl vanleer == */
@@ -2320,7 +2470,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2349,7 +2507,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2373,9 +2539,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
         /* == upwind == */
         /*
-        double uz_zp= vz_zp > 0. ? vz_111: vz_112;
-        double uz_zm= vz_zm > 0. ? vz_110: vz_111;
-        */
+           double uz_zp= vz_zp > 0. ? vz_111: vz_112;
+           double uz_zm= vz_zm > 0. ? vz_110: vz_111;
+         */
 
         /* == muscl vanleer == */
         ind_upwind = vz_zp > 0. ? iz: iz+1;
@@ -2394,7 +2560,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2424,7 +2598,15 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
             double s_u = 0.; // higher order term 
 
             if(deltaprod>0.){
-                s_u = 2.*deltaprod/(deltap + deltam);
+
+                if (fabs(deltap) < fabs(deltam)) {
+                    s_u = deltap;
+                }
+                else {
+                    s_u = deltam;
+                }
+
+                //s_u = 2.*deltaprod/(deltap + deltam);
             }else{
                 s_u = 0.;
             }
@@ -2437,7 +2619,7 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv,G
 
 
         double M_zm = vz_zm * uz_zm;
-        
+
 
 
         tmp_vz -= (M_zp - M_zm)*inv_dz;

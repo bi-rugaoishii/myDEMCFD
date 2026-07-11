@@ -322,12 +322,12 @@ int main(){
     const char* outdir ="results";
 
     int Nx=192;
-    int Ny=192;
+    int Ny=72;
     int Nz=192;
 
     double rho = 1.;
     double rho_w = 1000.;
-   // double rho_w = 1.;
+    //double rho_w = 1.;
     double rho_g = 1.;
 
     double u_lid = 0.;
@@ -339,13 +339,14 @@ int main(){
     //double mu_w = nu*rho_w;
     //double mu_g = nu*rho_g;
 
-    double sizex=0.1;
-    double sizey=0.1;
-    double sizez=0.1;
+    double sizex=0.0666666;
+    double sizey=0.025;
+    double sizez=0.0666666;
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
     double sigma = 0.072;
+    //double sigma = 0.00072;
     //double sigma = 1e-16;
     //int endSteps = 10000;
     //int outStepsFreq=100;
@@ -363,7 +364,7 @@ int main(){
 
 
     solv.set_gravity(0., -9.81, 0.);
-    //solv.set_gravity(0., 0,0.);
+   // solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
    
@@ -393,7 +394,7 @@ int main(){
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
    // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
-    solv.grid_.place_vof(0.,1.0,0.,0.02,0.,1.0,1.0);
+    solv.grid_.place_vof(0.,1.0,0.,0.005,0.,1.0,1.0);
    // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
 
     /*for surface tension test*/
@@ -419,14 +420,14 @@ int main(){
     h_start = omp_get_wtime();
 
     /* == set cfd time related parameters ==*/
-    double cfl_thresh = 0.4;
+    double cfl_thresh = 0.2;
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = .01;
-    double endTime = 1.0;
-    double max_dt = 1e-2;
-    double initial_dt = 1e-4;
+    double outfreqtime = .001;
+    double endTime = 0.2;
+    double max_dt = 5e-5;
+    double initial_dt = 1e-5;
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 

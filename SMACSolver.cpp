@@ -510,13 +510,13 @@ void SMACSolver::set_sphere(){
 
     MyArray<double,3> f_vy = grid_.f_vy_;
 
-    double center_x = 0.05;
-    double center_y = 0.07;
-    double center_z = 0.05;
-    double r = 0.01;
+    double center_x = 0.033333;
+    double center_y = 0.015;
+    double center_z = 0.033333;
+    double r = 0.003;
     double rsq = r*r;
 
-    double v_ini = -1.;
+    double v_ini = -4.;
 
     // Zalesak-like slot
     double slot_half_width = 0.00;       

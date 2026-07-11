@@ -4,7 +4,7 @@ This repository contains a custom CFD/VOF solver under active development.
 The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface tension modeling.
 The solver has now been extended to 3D free-surface simulations such as water crown and milk crown problems.
 
-The current priority is no longer basic 3D conversion. The main focus is now validation, robustness, solver organization, higher-order advection, pressure-solver benchmarking, and preparation for long-running 3D simulations.
+The current priority is no longer basic 3D conversion. The main focus is now curvature improvement with RDF, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
 
 ---
 
@@ -17,15 +17,17 @@ The current priority is no longer basic 3D conversion. The main focus is now val
 - [x] SMAC projection method
 - [x] VOF method with THINC / WLIC
 - [x] Flux-direction-based upwind / THINC / WLIC switching near boundaries
+- [x] MUSCL-TVD momentum advection with van Leer and minmod limiters
 - [x] Variable-density / variable-coefficient Poisson equation
 - [x] GPU CG / PCG pressure solver
 - [x] Standalone GMG pressure solver
 - [x] GMG-preconditioned pressure solver
+- [x] Direction-selective / non-uniform GMG coarsening and validation
 - [x] Full GPU port and PCG kernel fusion
 - [x] CFL-based variable time step
 - [x] Alpha substepping for VOF transport
 - [x] Surface tension implementation
-- [x] Face/cell indexing convention cleanup
+- [x] Face/cell indexing convention cleanup and validation
 - [x] 3D MAC-grid extension
 - [x] 3D boundary-cell attribute based boundary handling
 - [x] Variable-viscosity stress-divergence viscous term
@@ -34,13 +36,13 @@ The current priority is no longer basic 3D conversion. The main focus is now val
 
 ### Main Remaining Work
 
-- [ ] Direction-selective / non-uniform GMG coarsening
+- [ ] RDF-based curvature calculation for surface tension
+- [ ] Embedded boundary method
 - [ ] 3D validation and robustness checks
 - [ ] Solver configuration cleanup
 - [ ] Fixed-dt / variable-dt mode switching
 - [ ] Numerical scheme switching
 - [ ] Pressure-solver validation and benchmarking
-- [ ] MUSCL-TVD momentum advection
 - [ ] Stress-divergence viscous-term validation
 - [ ] Surface-tension validation and improvement
 - [ ] Additional benchmark cases
@@ -50,13 +52,13 @@ The current priority is no longer basic 3D conversion. The main focus is now val
 
 # Short-Term Priorities
 
-1. Add direction-selective / non-uniform GMG coarsening.
-2. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
-3. Validate flux-direction-based THINC/WLIC switching near boundaries using dam-break and 3D wall cases.
-4. Validate the stress-divergence viscous term for constant and variable viscosity cases.
-5. Organize `SolverConfig`, parameter ownership, and fixed/CFL time-step switching.
-6. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
-7. Add MUSCL-TVD momentum advection.
+1. Add RDF-based curvature calculation for surface tension.
+2. Add embedded-boundary support using cell/face attributes.
+3. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
+4. Validate flux-direction-based THINC/WLIC switching near boundaries using dam-break and 3D wall cases.
+5. Validate the stress-divergence viscous term for constant and variable viscosity cases.
+6. Organize `SolverConfig`, parameter ownership, and fixed/CFL time-step switching.
+7. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
 8. Validate surface tension using static droplet, Laplace pressure, and spurious-current tests.
 9. Add additional 3D benchmark cases and long-running output/restart utilities.
 
@@ -124,14 +126,14 @@ MaterialConfig:
 
 ## 0.4 Face/Cell Indexing Cleanup
 
-The indexing convention has been refactored from the older `f0 c1 f1 c2 f2` style toward a cleaner `f0 c0 f1 c1 f2` style.
+The face/cell indexing convention has been fully refactored and validated. The solver now uses the cleaner `f0 c0 f1 c1 f2` style consistently across the core staggered-grid arrays and related kernels.
 
 TODO:
 
 - [x] Update core face/cell indexing convention
 - [x] Update related kernels and pitch definitions
-- [ ] Re-run main validation cases after the 3D boundary-cell attribute system is integrated
-- [ ] Add lightweight debug checks for valid index ranges
+- [x] Re-run main validation cases after the indexing change
+- [x] Add lightweight debug checks for valid index ranges
 
 ---
 
@@ -194,14 +196,14 @@ beta = dt / rho
 
 ## 3.5 Direction-Selective / Non-Uniform GMG Coarsening
 
-GMG should support coarsening only in directions that are still large enough. This avoids making thin directions too coarse and prevents them from limiting the multigrid hierarchy.
+Direction-selective / non-uniform GMG coarsening is implemented and validated. GMG levels can now coarsen only the directions that are still large enough, so thin directions are not over-coarsened.
 
 TODO:
 
-- [ ] Add a threshold size for each direction before coarsening
-- [ ] Build GMG levels using per-direction coarsening decisions
-- [ ] Update restriction, prolongation, and operator construction for anisotropic level transitions
-- [ ] Validate convergence and speed against uniform coarsening
+- [x] Add a threshold size for each direction before coarsening
+- [x] Build GMG levels using per-direction coarsening decisions
+- [x] Update restriction, prolongation, and operator construction for anisotropic level transitions
+- [x] Validate convergence and speed against uniform coarsening
 
 Example:
 
@@ -218,14 +220,14 @@ Here, the z direction stops coarsening once it reaches the threshold size, while
 
 # Phase 4: Higher-Order Momentum Advection
 
-The current first-order upwind momentum advection is robust but diffusive. MUSCL-TVD should be added for splash and crown simulations.
+MUSCL-TVD momentum advection is implemented and checked with both van Leer and minmod limiters. Upwind remains available as the robust baseline for comparison and debugging.
 
 TODO:
 
-- [ ] Organize the current upwind scheme as the baseline implementation
-- [ ] Implement MUSCL-TVD momentum advection on GPU
-- [ ] Start with minmod, then add van Leer and MC limiters
-- [ ] Compare upwind and MUSCL-TVD using dam-break and interface-flow tests
+- [x] Organize the current upwind scheme as the baseline implementation
+- [x] Implement MUSCL-TVD momentum advection on GPU
+- [x] Implement the van Leer limiter and validate it
+- [x] Implement the minmod limiter and validate it
 
 ---
 
@@ -265,15 +267,16 @@ TODO:
 
 # Phase 6: Surface Tension Validation and Improvement
 
-Surface tension is implemented. The next work is validation and spurious-current reduction.
+Surface tension is implemented. The next major improvement is RDF-based curvature calculation, followed by validation and spurious-current reduction.
 
 TODO:
 
 - [x] Implement surface-tension force coupling
+- [ ] Add RDF-based curvature calculation
+- [ ] Compare alpha-gradient curvature and RDF curvature
 - [ ] Add static droplet, Laplace pressure, and spurious-current tests
 - [ ] Check grid-resolution, density-ratio, and sigma sensitivity
-- [ ] Improve curvature and force placement if needed
-- [ ] Investigate balanced-force consistency and height-function curvature
+- [ ] Improve balanced-force consistency and force placement if needed
 
 Laplace pressure targets:
 
@@ -356,6 +359,17 @@ local_adv =
   + max(|w_bottom|, |w_top|)/dz
 ```
 
+## 8.5 Embedded Boundary Method
+
+Add embedded-boundary support on the structured grid. The existing cell/face attribute system should be reused so that wall handling, Poisson stencils, VOF transport, and viscous terms remain centralized.
+
+TODO:
+
+- [ ] Add embedded-boundary geometry representation and cell/face classification
+- [ ] Compute boundary volume/area information needed by the flow solver
+- [ ] Apply embedded-boundary conditions to velocity, pressure, VOF, and viscous terms
+- [ ] Validate with simple internal-wall and obstacle cases
+
 ---
 
 # Phase 9: Long-Running Simulation Utilities
@@ -380,7 +394,8 @@ TODO:
 - [ ] Add small compute-sanitizer test cases
 - [ ] Make raw-pointer-owning classes safer against accidental copying
 - [ ] Initialize and clear device pointers consistently
-- [ ] Log array sizes, pitches, and key index ranges at startup
+- [ ] Log array sizes and pitches at startup
+- [x] Verify key face/cell index ranges in debug checks
 
 ---
 
@@ -392,27 +407,30 @@ Already implemented:
     PCG kernel fusion
     WLIC
     flux-direction-based upwind / THINC / WLIC switching near boundaries
+    MUSCL-TVD momentum advection with van Leer and minmod limiters
     CFL-based variable dt
     alpha substepping
     variable-density Poisson
     standalone GMG pressure solver
     GMG-preconditioned pressure solver
+    direction-selective / non-uniform GMG coarsening
     surface tension
-    face/cell indexing cleanup
+    face/cell indexing cleanup and validation
     3D MAC-grid extension
     3D boundary-cell attribute system
     variable-viscosity stress-divergence viscous term
 
 Current priority:
-    direction-selective / non-uniform GMG coarsening
+    RDF-based curvature calculation
+    embedded boundary method
     validation and robustness of the 3D solver
 
 Main remaining work:
-    non-uniform GMG coarsening
     scheme/config switching
     parameter ownership cleanup
     pressure-solver validation
-    MUSCL-TVD momentum advection
+    RDF curvature and surface-tension validation
+    embedded-boundary support
     stress-divergence viscous-term validation
     surface-tension validation
     additional 3D benchmarks
