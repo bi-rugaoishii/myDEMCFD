@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cub/cub.cuh>
 
+
 /* ================================= */
 /* ==== surface tension related ==== */
 /* ================================= */
@@ -80,7 +81,6 @@ static __global__ void k_calc_alpha_s(G_StaggeredGrid grid){
     }
 }
 */
-
 
 static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
 
@@ -645,6 +645,7 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
     double Fx_upwind = lambda*axf;
 
+
     Fx(ix,iy,iz) = wx*Fx_thinc + (1.-wx)*Fx_upwind;
 }
 
@@ -764,6 +765,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double Fy_upwind = lambda*ayf;
 
+
     Fy(ix,iy,iz) = wy*Fy_thinc + (1.-wy)*Fy_upwind;
 }
 
@@ -879,6 +881,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     }
 
     double Fz_upwind = lambda*azf;
+
 
     Fz(ix,iy,iz) = wz*Fz_thinc + (1.-wz)*Fz_upwind;
 }

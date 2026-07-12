@@ -79,6 +79,7 @@ struct SMACSolver{
     void check_nan_all(const char* tag);
 
     void set_sphere();
+    void set_sphere_sub_voxel();
     void initialize_zalesak_disk();
     void initialize_disk();
     void set_zalesak_rotation_velocity();

@@ -16,292 +16,13 @@
 #include "G_SMACSolver.h"
 #include "CFDTime.h"
 #include "omp.h"
+#include "FileInOut.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 
 #define GPU_ON 1
 
-
-int solver_output_init(const char* dir){
-    struct stat st;
-
-    /* 既に存在するか確認 */
-    if(stat(dir,&st)==0)
-    {
-        if(S_ISDIR(st.st_mode))
-        {
-            printf("Output dir exists: %s\n",dir);
-            return 0;
-        }
-    }
-
-    /* 無ければ作成 */
-    if(mkdir(dir,0755)==0)
-    {
-        printf("Created output dir: %s\n",dir);
-        return 0;
-    }
-
-    if(errno==EEXIST)
-        return 0;
-
-    printf("ERROR: cannot create dir %s\n",dir);
-    return -1;
-}
-
-void output_vti(const StaggeredGrid& grid, int step, const char* folderName){
-    char filename[256];
-    sprintf(filename, "%s/result_%06d.vti", folderName, step);
-
-    FILE* fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Cannot open VTI file: %s\n", filename);
-        abort();
-    }
-
-    int Nx = grid.Nx_;
-    int Ny = grid.Ny_;
-    int Nz = grid.Nz_;
-
-    double dx = grid.dx_;
-    double dy = grid.dy_;
-    double dz = grid.dz_;
-
-    const MyArray<double,3>& p     = grid.p_;
-    const MyArray<double,3>& alpha = grid.alpha_;
-    const MyArray<double,3>& vx    = grid.f_vx_;
-    const MyArray<double,3>& vy    = grid.f_vy_;
-    const MyArray<double,3>& vz    = grid.f_vz_;
-
-    fprintf(fp, "<?xml version=\"1.0\"?>\n");
-    fprintf(fp, "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
-
-    fprintf(fp,
-        "  <ImageData WholeExtent=\"0 %d 0 %d 0 %d\" "
-        "Origin=\"%.15e %.15e %.15e\" "
-        "Spacing=\"%.15e %.15e %.15e\">\n",
-        Nx - 1, Ny - 1, Nz - 1,
-        0.5 * dx, 0.5 * dy, 0.5 * dz,
-        dx, dy, dz);
-
-    fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx - 1, Ny - 1, Nz - 1);
-    fprintf(fp, "      <PointData Scalars=\"alpha\" Vectors=\"velocity\">\n");
-
-    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"pressure\" format=\"ascii\">\n");
-    for (int iz = 1; iz <= Nz; iz++) {
-        for (int iy = 1; iy <= Ny; iy++) {
-            for (int ix = 1; ix <= Nx; ix++) {
-                fprintf(fp, "%.15e\n", p(ix, iy, iz));
-            }
-        }
-    }
-    fprintf(fp, "        </DataArray>\n");
-
-    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"alpha\" format=\"ascii\">\n");
-    for (int iz = 1; iz <= Nz; iz++) {
-        for (int iy = 1; iy <= Ny; iy++) {
-            for (int ix = 1; ix <= Nx; ix++) {
-                fprintf(fp, "%.15e\n", alpha(ix, iy, iz));
-            }
-        }
-    }
-    fprintf(fp, "        </DataArray>\n");
-
-    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"ascii\">\n");
-    for (int iz = 1; iz <= Nz; iz++) {
-        for (int iy = 1; iy <= Ny; iy++) {
-            for (int ix = 1; ix <= Nx; ix++) {
-                double ux = 0.5 * (vx(ix - 1, iy, iz) + vx(ix, iy, iz));
-                double uy = 0.5 * (vy(ix, iy - 1, iz) + vy(ix, iy, iz));
-                double uz = 0.5 * (vz(ix, iy, iz - 1) + vz(ix, iy, iz));
-
-                fprintf(fp, "%.15e %.15e %.15e\n", ux, uy, uz);
-            }
-        }
-    }
-    fprintf(fp, "        </DataArray>\n");
-
-    fprintf(fp, "        <DataArray type=\"Float64\" Name=\"divergence\" format=\"ascii\">\n");
-    for (int iz = 1; iz <= Nz; iz++) {
-        for (int iy = 1; iy <= Ny; iy++) {
-            for (int ix = 1; ix <= Nx; ix++) {
-                double div =
-                    (vx(ix, iy, iz) - vx(ix - 1, iy, iz)) * grid.inv_dx_
-                  + (vy(ix, iy, iz) - vy(ix, iy - 1, iz)) * grid.inv_dy_
-                  + (vz(ix, iy, iz) - vz(ix, iy, iz - 1)) * grid.inv_dz_;
-
-                fprintf(fp, "%.15e\n", div);
-            }
-        }
-    }
-    fprintf(fp, "        </DataArray>\n");
-
-    fprintf(fp, "      </PointData>\n");
-    fprintf(fp, "      <CellData></CellData>\n");
-    fprintf(fp, "    </Piece>\n");
-    fprintf(fp, "  </ImageData>\n");
-    fprintf(fp, "</VTKFile>\n");
-
-    fclose(fp);
-    printf("VTI output: %s\n", filename);
-}
-
-static void write_vti_float_block(FILE* fp, const float* data, size_t nfloat){
-    size_t nbytes_size = nfloat * sizeof(float);
-
-    if (nbytes_size > UINT32_MAX){
-        printf("VTI block is too large for UInt32 header: %zu bytes\n", nbytes_size);
-        abort();
-    }
-
-    uint32_t nbytes = (uint32_t)nbytes_size;
-
-    fwrite(&nbytes, sizeof(uint32_t), 1, fp);
-    fwrite(data, sizeof(float), nfloat, fp);
-}
-
-void output_vti_binary(const StaggeredGrid& grid, int step, const char* folderName){
-    char filename[256];
-    sprintf(filename, "%s/result_%06d.vti", folderName, step);
-
-    FILE* fp = fopen(filename, "wb");
-    if (fp == NULL) {
-        printf("Cannot open VTI file: %s\n", filename);
-        abort();
-    }
-
-    int Nx = grid.Nx_;
-    int Ny = grid.Ny_;
-    int Nz = grid.Nz_;
-
-    double dx = grid.dx_;
-    double dy = grid.dy_;
-    double dz = grid.dz_;
-
-    const MyArray<double,3>& p     = grid.p_;
-    const MyArray<double,3>& alpha = grid.alpha_;
-    const MyArray<double,3>& vx    = grid.f_vx_;
-    const MyArray<double,3>& vy    = grid.f_vy_;
-    const MyArray<double,3>& vz    = grid.f_vz_;
-
-    size_t npoints = (size_t)Nx * (size_t)Ny * (size_t)Nz;
-
-    size_t bytes_scalar = npoints * sizeof(float);
-    size_t bytes_vector = npoints * 3 * sizeof(float);
-
-    size_t offset_pressure   = 0;
-    size_t offset_alpha      = offset_pressure + sizeof(uint32_t) + bytes_scalar;
-    size_t offset_velocity   = offset_alpha    + sizeof(uint32_t) + bytes_scalar;
-    size_t offset_divergence = offset_velocity + sizeof(uint32_t) + bytes_vector;
-
-    float* buf = (float*)malloc(sizeof(float) * npoints * 3);
-    if (buf == NULL){
-        printf("Cannot allocate VTI output buffer\n");
-        abort();
-    }
-
-    fprintf(fp, "<?xml version=\"1.0\"?>\n");
-    fprintf(fp, "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n");
-
-    fprintf(fp,
-        "  <ImageData WholeExtent=\"0 %d 0 %d 0 %d\" "
-        "Origin=\"%.15e %.15e %.15e\" "
-        "Spacing=\"%.15e %.15e %.15e\">\n",
-        Nx - 1, Ny - 1, Nz - 1,
-        0.5 * dx, 0.5 * dy, 0.5 * dz,
-        dx, dy, dz);
-
-    fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx - 1, Ny - 1, Nz - 1);
-    fprintf(fp, "      <PointData Scalars=\"alpha\" Vectors=\"velocity\">\n");
-
-    fprintf(fp,
-        "        <DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\"%zu\"/>\n",
-        offset_pressure);
-
-    fprintf(fp,
-        "        <DataArray type=\"Float32\" Name=\"alpha\" format=\"appended\" offset=\"%zu\"/>\n",
-        offset_alpha);
-
-    fprintf(fp,
-        "        <DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"%zu\"/>\n",
-        offset_velocity);
-
-    fprintf(fp,
-        "        <DataArray type=\"Float32\" Name=\"divergence\" format=\"appended\" offset=\"%zu\"/>\n",
-        offset_divergence);
-
-    fprintf(fp, "      </PointData>\n");
-    fprintf(fp, "      <CellData></CellData>\n");
-    fprintf(fp, "    </Piece>\n");
-    fprintf(fp, "  </ImageData>\n");
-    fprintf(fp, "  <AppendedData encoding=\"raw\">\n_");
-
-    size_t n = 0;
-
-    n = 0;
-    for (int iz = 1; iz <= Nz; iz++){
-        for (int iy = 1; iy <= Ny; iy++){
-            for (int ix = 1; ix <= Nx; ix++){
-                buf[n] = (float)p(ix, iy, iz);
-                n++;
-            }
-        }
-    }
-    write_vti_float_block(fp, buf, npoints);
-
-    n = 0;
-    for (int iz = 1; iz <= Nz; iz++){
-        for (int iy = 1; iy <= Ny; iy++){
-            for (int ix = 1; ix <= Nx; ix++){
-                buf[n] = (float)alpha(ix, iy, iz);
-                n++;
-            }
-        }
-    }
-    write_vti_float_block(fp, buf, npoints);
-
-    n = 0;
-    for (int iz = 1; iz <= Nz; iz++){
-        for (int iy = 1; iy <= Ny; iy++){
-            for (int ix = 1; ix <= Nx; ix++){
-                double ux = 0.5 * (vx(ix - 1, iy, iz) + vx(ix, iy, iz));
-                double uy = 0.5 * (vy(ix, iy - 1, iz) + vy(ix, iy, iz));
-                double uz = 0.5 * (vz(ix, iy, iz - 1) + vz(ix, iy, iz));
-
-                buf[n + 0] = (float)ux;
-                buf[n + 1] = (float)uy;
-                buf[n + 2] = (float)uz;
-                n += 3;
-            }
-        }
-    }
-    write_vti_float_block(fp, buf, npoints * 3);
-
-    n = 0;
-    for (int iz = 1; iz <= Nz; iz++){
-        for (int iy = 1; iy <= Ny; iy++){
-            for (int ix = 1; ix <= Nx; ix++){
-                double div =
-                    (vx(ix, iy, iz) - vx(ix - 1, iy, iz)) * grid.inv_dx_
-                  + (vy(ix, iy, iz) - vy(ix, iy - 1, iz)) * grid.inv_dy_
-                  + (vz(ix, iy, iz) - vz(ix, iy, iz - 1)) * grid.inv_dz_;
-
-                buf[n] = (float)div;
-                n++;
-            }
-        }
-    }
-    write_vti_float_block(fp, buf, npoints);
-
-    fprintf(fp, "\n  </AppendedData>\n");
-    fprintf(fp, "</VTKFile>\n");
-
-    free(buf);
-    fclose(fp);
-
-    printf("VTI binary output: %s\n", filename);
-}
 
 /*
    ============================================================
@@ -321,9 +42,9 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=192;
-    int Ny=96;
-    int Nz=192;
+    int Nx=384;
+    int Ny=128;
+    int Nz=384;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -339,9 +60,9 @@ int main(){
     //double mu_w = nu*rho_w;
     //double mu_g = nu*rho_g;
 
-    double sizex=0.0666666;
-    double sizey=0.0333333;
-    double sizez=0.0666666;
+    double sizex=0.04;
+    double sizey=0.016;
+    double sizez=0.04;
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
@@ -354,7 +75,8 @@ int main(){
     double Re = u_lid*sizex/nu;
     double dt=0.001;
 
-    solver_output_init(outdir);
+    FileInOut fileIO;
+    fileIO.solver_output_init(outdir);
 
     /*=== initialize === */
     SMACSolver solv;
@@ -394,7 +116,6 @@ int main(){
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
    // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
-    solv.grid_.place_vof(0.,1.0,0.,0.0075,0.,1.0,1.0);
    // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
 
     /*for surface tension test*/
@@ -405,6 +126,8 @@ int main(){
     //solv.initialize_zalesak_disk();
 
     solv.set_sphere();
+    //solv.set_sphere_sub_voxel();
+    solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
    // solv.set_zalesak_rotation_velocity();
 
     solv.set_boundary_neumann(solv.grid_.p_);
@@ -421,18 +144,19 @@ int main(){
 
     /* == set cfd time related parameters ==*/
     double cfl_thresh = 0.4;
-    double cfl_alpha_thresh = 0.2;
+    double cfl_alpha_thresh = 0.1;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = .001;
-    double endTime = 0.2;
+    double endTime = 0.02;
     double max_dt = 5e-5;
-    double initial_dt = 1e-5;
+    double initial_dt = 1e-6;
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
     /* output initial data */
-    output_vti_binary(solv.grid_,0.,outdir);
+    fileIO.output_vti_binary_cellData(solv.grid_,0.);
+
     printf("output initial data done \n");
 
     /* == gpu initialization == */
@@ -537,7 +261,7 @@ int main(){
                 g_solv.gpuTocpu(solv.grid_);
                 printf("total alpha = %f\n",solv.calc_alpha_vol());
                 //solv.check_pressure_jump_by_radius();
-                output_vti_binary(solv.grid_,cfdtime.current_steps_,outdir);
+                fileIO.output_vti_binary_cellData(solv.grid_,cfdtime.current_steps_);
                 h_end = omp_get_wtime();
                 ms = (float)(h_end-h_start);
 

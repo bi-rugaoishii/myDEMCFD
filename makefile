@@ -10,6 +10,7 @@ GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false
 CONLYFLAGS = -O3  
 LIBS = -lm 
 OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o\
+		FileInOut.o \
 		G_SMACSolver_VoF.o \
 		pressure_solver/G_PressureSolverBase.o\
 		pressure_solver/G_PCGSolver.o\

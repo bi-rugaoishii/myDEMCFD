@@ -497,6 +497,93 @@ void SMACSolver::set_boundary_neumann(MyArray<double,3>& alpha){
     }
 }
 
+void SMACSolver::set_sphere_sub_voxel()
+{
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+    MyArray<double,3> x = grid_.x_;
+    MyArray<double,3> y = grid_.y_;
+    MyArray<double,3> z = grid_.z_;
+    MyArray<double,3> a = grid_.alpha_;
+
+    double dx = grid_.dx_;
+    double dy = grid_.dy_;
+    double dz = grid_.dz_;
+
+    double g_dy = grid_.dy_;
+
+    double center_x = 0.02-0.5*g_dy;
+    double center_y = 0.007-0.5*g_dy;
+    double center_z = 0.02-0.5*g_dy;
+
+    MyArray<double,3> f_vy = grid_.f_vy_;
+
+    double v_ini = -2.25;
+
+
+    double radius = 0.003;
+    double radius2 = radius * radius;
+
+    constexpr int Nsub = 4;
+    constexpr int Nsample = Nsub * Nsub * Nsub;
+
+    for (int iz = 1; iz <= Nz; iz++) {
+        for (int iy = 1; iy <= Ny; iy++) {
+            for (int ix = 1; ix <= Nx; ix++) {
+
+                int inside_count = 0;
+
+                for (int sz = 0; sz < Nsub; sz++) {
+                    for (int sy = 0; sy < Nsub; sy++) {
+                        for (int sx = 0; sx < Nsub; sx++) {
+
+                            /*
+                             * セル中心を基準に、セル内部へ
+                             * 等間隔にサンプル点を置く。
+                             */
+                            double sample_x =
+                                x(ix,iy,iz)
+                                + (
+                                    (sx + 0.5) / Nsub - 0.5
+                                ) * dx;
+
+                            double sample_y =
+                                y(ix,iy,iz)
+                                + (
+                                    (sy + 0.5) / Nsub - 0.5
+                                ) * dy;
+
+                            double sample_z =
+                                z(ix,iy,iz)
+                                + (
+                                    (sz + 0.5) / Nsub - 0.5
+                                ) * dz;
+
+                            double rx = sample_x - center_x;
+                            double ry = sample_y - center_y;
+                            double rz = sample_z - center_z;
+
+                            if (rx * rx
+                                + ry * ry
+                                + rz * rz < radius2) {
+                                inside_count++;
+                                f_vy(ix,iy,iz) = v_ini;
+                                f_vy(ix,iy+1,iz) = v_ini;
+                            }
+                        }
+                    }
+                }
+
+                a(ix,iy,iz) =
+                    static_cast<double>(inside_count)
+                    / static_cast<double>(Nsample);
+            }
+        }
+    }
+}
+
 void SMACSolver::set_sphere(){
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
@@ -508,15 +595,18 @@ void SMACSolver::set_sphere(){
     MyArray<double,3> z = grid_.z_;
     MyArray<double,3> a = grid_.alpha_;
 
-    MyArray<double,3> f_vy = grid_.f_vy_;
+    double g_dy = grid_.dy_;
 
-    double center_x = 0.033333;
-    double center_y = 0.015;
-    double center_z = 0.033333;
+    MyArray<double,3> f_vy = grid_.f_vy_;
+    
+
+    double center_x = 0.02-0.5*g_dy;
+    double center_y = 0.007-0.5*g_dy;
+    double center_z = 0.02-0.5*g_dy;
     double r = 0.003;
     double rsq = r*r;
 
-    double v_ini = -4.;
+    double v_ini = -2.0;
 
     // Zalesak-like slot
     double slot_half_width = 0.00;       
