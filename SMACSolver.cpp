@@ -584,6 +584,62 @@ void SMACSolver::set_sphere_sub_voxel()
     }
 }
 
+void SMACSolver::set_sphere_zalesak(){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+
+    MyArray<double,3> x = grid_.x_;
+    MyArray<double,3> y = grid_.y_;
+    MyArray<double,3> z = grid_.z_;
+    MyArray<double,3> a = grid_.alpha_;
+
+    double g_dy = grid_.dy_;
+
+    MyArray<double,3> f_vy = grid_.f_vy_;
+    
+
+    double center_x = 0.5;
+    double center_y = 0.75;
+    double center_z = 0.5;
+    double r = 0.2;
+    double rsq = r*r;
+
+
+    // Zalesak-like slot
+    double slot_half_width = 0.05;       
+    double slot_y_min = center_y;       
+    double slot_y_max = center_y + r;  
+
+    for(int iz=1; iz<Nz+1; iz++){
+        for(int iy=1; iy<Ny+1; iy++){
+            for(int ix=1; ix<Nx+1; ix++){
+
+                double dx = x(ix,iy,iz) - center_x;
+                double dy = y(ix,iy,iz) - center_y;
+                double dz = z(ix,iy,iz) - center_z;
+
+                bool inside_sphere = dx*dx + dy*dy + dz*dz < rsq;
+
+                bool inside_slot =
+                    fabs(dx) < slot_half_width &&
+                    y(ix,iy,iz) > slot_y_min &&
+                    y(ix,iy,iz) < slot_y_max;
+
+                if (inside_sphere && !inside_slot) {
+                    a(ix,iy,iz) = 1.0;
+
+                } else if(inside_sphere && inside_slot) {
+                    a(ix,iy,iz) = 0.0;
+                }
+            }
+
+        }
+    }
+}
+
+
 void SMACSolver::set_sphere(){
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
@@ -600,16 +656,16 @@ void SMACSolver::set_sphere(){
     MyArray<double,3> f_vy = grid_.f_vy_;
     
 
-    double center_x = 0.02-0.5*g_dy;
-    double center_y = 0.007-0.5*g_dy;
-    double center_z = 0.02-0.5*g_dy;
+    double center_x = 0.02;
+    double center_y = 0.007;
+    double center_z = 0.02;
     double r = 0.003;
     double rsq = r*r;
 
-    double v_ini = -2.0;
+    double v_ini = -1.9;
 
     // Zalesak-like slot
-    double slot_half_width = 0.00;       
+    double slot_half_width = 0.0;       
     double slot_y_min = center_y;       
     double slot_y_max = center_y + r;  
 

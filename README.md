@@ -1,10 +1,10 @@
 # CFD/VOF Solver TODO
 
 This repository contains a custom CFD/VOF solver under active development.
-The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface tension modeling.
+The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface-tension modeling.
 The solver has now been extended to 3D free-surface simulations such as water crown and milk crown problems.
 
-The current priority is no longer basic 3D conversion. The immediate focus is reducing CUDA kernel argument size by switching large grid arguments from value passing to pointer passing. After that, the focus is curvature improvement with RDF, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
+The current priority is reducing CUDA kernel argument size by switching large grid arguments from value passing to pointer passing. After that, the main focus is JSON-based simulation configuration, RDF-based curvature calculation, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
 
 ---
 
@@ -37,6 +37,7 @@ The current priority is no longer basic 3D conversion. The immediate focus is re
 ### Main Remaining Work
 
 - [ ] Switch large CUDA kernel arguments from value passing to pointer passing
+- [ ] Read calculation conditions from a JSON configuration file
 - [ ] RDF-based curvature calculation for surface tension
 - [ ] Embedded boundary method
 - [ ] 3D validation and robustness checks
@@ -54,61 +55,111 @@ The current priority is no longer basic 3D conversion. The immediate focus is re
 # Short-Term Priorities
 
 1. Switch large CUDA kernel arguments from value passing to pointer passing.
-2. Add a device-side self pointer to `Grid` / `G_StaggeredGrid` so kernels can receive a lightweight pointer.
+2. Add JSON configuration-file loading for calculation conditions.
 3. Add RDF-based curvature calculation for surface tension.
 4. Add embedded-boundary support using cell/face attributes.
 5. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
-6. Validate flux-direction-based THINC/WLIC switching near boundaries using dam-break and 3D wall cases.
-7. Validate the stress-divergence viscous term for constant and variable viscosity cases.
-8. Organize `SolverConfig`, parameter ownership, and fixed/CFL time-step switching.
-9. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
-10. Add additional 3D benchmark cases and long-running output/restart utilities.
+6. Clean up `SolverConfig`, parameter ownership, fixed/CFL time-step switching, and scheme selection.
+7. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
+8. Validate the stress-divergence viscous term for constant and variable viscosity cases.
+9. Validate and improve surface tension using static droplet, Laplace pressure, and spurious-current tests.
+10. Add additional benchmark cases.
+11. Add restart, binary output, and long-running simulation logging.
 
 ---
 
-# Phase 0: Configuration and Design Cleanup
+# Remaining Work Details
 
-## 0.1 SolverConfig
+The sections below follow the same order as `Main Remaining Work`.
+Completed items are kept later in `Completed Major Work`, not as active phases.
 
-Create a central configuration structure for numerical method selection and important runtime parameters.
+## 1. Switch Large CUDA Kernel Arguments from Value Passing to Pointer Passing
+
+The grid structure has grown as the solver moved to 3D and added boundary flags, stress-divergence terms, GMG data, and additional VOF/surface-tension fields. Passing `G_StaggeredGrid` by value to every CUDA kernel is starting to exceed the kernel argument-size limit.
 
 TODO:
 
-- [ ] Add enum-based switching for time stepping, pressure solver, momentum scheme, VOF scheme, limiter, viscous term, and surface tension model
-- [ ] Move numerical options into `SolverConfig`
-- [ ] Keep runtime selection outside inner loops and CUDA kernels
+- [ ] Change large kernel arguments from value passing to pointer passing
+- [ ] Add a device-side self pointer such as `G_StaggeredGrid* d_self` to the host-side grid object
+- [ ] Update kernels to receive `G_StaggeredGrid* grid` or a lightweight pointer wrapper
+- [ ] Keep small, frequently changed scalar arguments separate when useful
+- [ ] Validate that results are identical after the pointer-passing transition
 
-Recommended enum examples:
+Recommended direction:
 
 ```cpp
-enum class TimeStepMode{ Fixed, CFL };
-enum class PressureSolverType{ PCG, GPU_PCG, GeometricMultigrid, GMGPreconditioned };
-enum class MomentumSchemeType{ Upwind, MUSCL };
-enum class VOFSchemeType{ Upwind, THINC, WLIC };
-enum class SurfaceTensionMode{ Off, CSF, BalancedForce };
+// Before
+kernel<<<grid_dim, block_dim>>>(grid, dt);
+
+// After
+kernel<<<grid_dim, block_dim>>>(grid.d_self_, dt);
 ```
 
-## 0.2 Time-Step Management
+---
 
-CFL-based variable time stepping is already implemented. Fixed time stepping should remain available for debugging and controlled comparisons.
+## 2. JSON Configuration File for Calculation Conditions
 
-TODO:
-
-- [x] Implement CFL-based variable time step
-- [x] Implement alpha substepping
-- [ ] Add fixed-dt mode
-- [ ] Add alpha-substep settings to `SolverConfig`
-- [ ] Confirm physical-time output works correctly in both fixed and CFL modes
-
-## 0.3 Parameter Ownership
-
-Clarify where scalar parameters live to avoid stale values and CPU/GPU synchronization bugs.
+Add a JSON configuration file so simulation conditions can be changed without recompiling. This should cover grid size, domain size, time-step settings, material properties, solver options, output settings, and numerical scheme choices.
 
 TODO:
 
-- [ ] Decide ownership of grid size, spacing, time variables, material properties, solver tolerances, and scheme parameters
-- [ ] Separate responsibilities between `Grid`, `Solver`, `SolverConfig`, and `MaterialConfig`
-- [ ] Decide how scalar parameters are passed to GPU kernels
+- [ ] Define the JSON schema for calculation conditions
+- [ ] Load JSON settings into `SolverConfig`, `MaterialConfig`, and grid/domain settings
+- [ ] Validate required fields and provide safe defaults where appropriate
+- [ ] Save a copy of the used configuration with simulation outputs
+
+---
+
+## 3. RDF-Based Curvature Calculation for Surface Tension
+
+Add RDF-based curvature calculation to improve curvature quality and reduce spurious currents compared with direct alpha-gradient curvature.
+
+TODO:
+
+- [ ] Add RDF reconstruction near the interface
+- [ ] Compute curvature from the reconstructed distance field
+- [ ] Compare alpha-gradient curvature and RDF curvature
+- [ ] Check effect on static droplet, Laplace pressure, and milk-crown behavior
+
+---
+
+## 4. Embedded Boundary Method
+
+Add embedded-boundary support on the structured grid. The existing cell/face attribute system should be reused so that wall handling, Poisson stencils, VOF transport, and viscous terms remain centralized.
+
+TODO:
+
+- [ ] Add embedded-boundary geometry representation and cell/face classification
+- [ ] Compute boundary volume/area information needed by the flow solver
+- [ ] Apply embedded-boundary conditions to velocity, pressure, VOF, and viscous terms
+- [ ] Validate with simple internal-wall and obstacle cases
+
+---
+
+## 5. 3D Validation and Robustness Checks
+
+The solver has been extended from 2D to 3D. The remaining work is validation, boundary robustness, memory/output design, and preparation for water crown / milk crown simulations.
+
+TODO:
+
+- [ ] Validate small-grid indexing and boundary flags using printed/debug outputs
+- [ ] Check divergence and projection behavior in simple 3D cases
+- [ ] Validate 3D VOF, curvature, and surface-tension behavior
+- [ ] Estimate memory usage and finalize output format for large 3D cases
+- [ ] Check robustness of boundary flags on GMG levels if needed
+
+---
+
+## 6. Solver Configuration Cleanup
+
+Clean up solver configuration and scalar parameter ownership so the growing 3D solver remains maintainable.
+
+TODO:
+
+- [ ] Move numerical options into `SolverConfig`
+- [ ] Connect JSON-loaded settings to `SolverConfig` and `MaterialConfig`
+- [ ] Clarify ownership of grid spacing, time variables, material properties, solver tolerances, and scheme parameters
+- [ ] Decide how scalar parameters are passed to GPU kernels after the pointer-passing transition
 
 Recommended organization:
 
@@ -126,92 +177,42 @@ MaterialConfig:
     rho_l, rho_g, mu_l, mu_g, sigma
 ```
 
-## 0.4 Face/Cell Indexing Cleanup
+---
 
-The face/cell indexing convention has been fully refactored and validated. The solver now uses the cleaner `f0 c0 f1 c1 f2` style consistently across the core staggered-grid arrays and related kernels.
+## 7. Fixed-dt / Variable-dt Mode Switching
+
+CFL-based variable time stepping is implemented, but fixed time step mode should remain available for debugging, reproducibility, and controlled comparisons.
 
 TODO:
 
-- [x] Update core face/cell indexing convention
-- [x] Update related kernels and pitch definitions
-- [x] Re-run main validation cases after the indexing change
-- [x] Add lightweight debug checks for valid index ranges
+- [ ] Add fixed time step mode to `SolverConfig`
+- [ ] Keep CFL mode as the default for production runs if appropriate
+- [ ] Check consistency between physical-time output and both time-step modes
+- [ ] Keep alpha substepping configurable in both modes
 
 ---
 
-## 0.5 GPU Kernel Argument Passing Cleanup
+## 8. Numerical Scheme Switching
 
-The grid structure has grown as the solver moved to 3D, added boundary flags, stress-divergence terms, GMG data, and additional VOF/surface-tension fields. Passing `G_StaggeredGrid` by value to every CUDA kernel is starting to exceed the kernel argument-size limit and also makes the launch interface heavier than necessary.
-
-TODO:
-
-- [ ] Change large kernel arguments from value passing to pointer passing
-- [ ] Add a device-side self pointer such as `G_StaggeredGrid* d_self` to the host-side grid object
-- [ ] Update kernels to receive `G_StaggeredGrid* grid` or a lightweight pointer wrapper
-- [ ] Keep scalar arguments separate only when they are small and frequently changed
-- [ ] Validate that existing kernels give identical results after the pointer-passing transition
-
-Recommended direction:
-
-```cpp
-// Before
-kernel<<<grid_dim, block_dim>>>(grid, dt);
-
-// After
-kernel<<<grid_dim, block_dim>>>(grid.d_self_, dt);
-```
-
-This should reduce CUDA launch argument size and avoid repeatedly copying the full grid descriptor into kernel parameters.
-
----
-
-# Phase 1: Numerical Method Switching
-
-Use coarse-grained runtime selection for large solver components and compile-time/template selection for inner-loop numerical schemes.
+Organize numerical method selection so schemes can be switched cleanly without scattering conditionals through the code.
 
 TODO:
 
+- [ ] Add enum-based switching for pressure solver, momentum scheme, VOF scheme, limiter, viscous term, and surface-tension model
 - [ ] Organize pressure solvers behind a common interface
-- [ ] Add factory-style pressure solver selection from `SolverConfig`
-- [ ] Organize momentum and VOF schemes so they can be switched cleanly
+- [ ] Organize momentum and VOF schemes so they can be selected from `SolverConfig`
 - [ ] Avoid virtual calls inside cell loops and CUDA kernels
 
-Design rule:
-
-```text
-Pressure solver selection:
-    runtime enum / virtual interface is acceptable
-
-Cell-wise schemes:
-    enum switch outside loops, template/policy inside kernels
-```
-
 ---
 
-# Phase 2: Diagnostics and Logging
+## 9. Pressure-Solver Validation and Benchmarking
 
-Basic diagnostics are implemented. The next step is to make logs easier to compare across schemes and solver settings.
+GPU PCG, standalone GMG, GMG-preconditioned pressure solvers, and direction-selective GMG coarsening are implemented. The remaining work is validation, tuning, and choosing the default.
 
 TODO:
 
-- [x] Log alpha mass, alpha min/max, divergence, CFL / dt, and PCG residuals
-- [ ] Add compact per-step CSV logging
-- [ ] Add timing breakdown for major solver stages
-- [ ] Add key min/max diagnostics for pressure, velocity, density, viscosity, curvature, and surface-tension force
-
----
-
-# Phase 3: Pressure Solver Validation and Benchmarking
-
-GPU PCG, standalone GMG, and GMG-preconditioned pressure solvers are implemented. The remaining work is validation, tuning, and choosing the default.
-
-TODO:
-
-- [x] Implement GPU PCG pressure solver
-- [x] Implement standalone GMG pressure solver
-- [x] Implement GMG-preconditioned pressure solver
 - [ ] Compare convergence, divergence after projection, pressure fields, and total solve time
-- [ ] Test robustness for dam-break, static droplet, and high-density-ratio cases
+- [ ] Test robustness for dam-break, static droplet, high-density-ratio, and 3D cases
 - [ ] Tune smoother, restriction/prolongation, coefficient restriction, and pressure null-space handling
 - [ ] Decide the default pressure solver
 
@@ -222,89 +223,30 @@ A(p) = div( beta * grad(p) )
 beta = dt / rho
 ```
 
-## 3.5 Direction-Selective / Non-Uniform GMG Coarsening
-
-Direction-selective / non-uniform GMG coarsening is implemented and validated. GMG levels can now coarsen only the directions that are still large enough, so thin directions are not over-coarsened.
-
-TODO:
-
-- [x] Add a threshold size for each direction before coarsening
-- [x] Build GMG levels using per-direction coarsening decisions
-- [x] Update restriction, prolongation, and operator construction for anisotropic level transitions
-- [x] Validate convergence and speed against uniform coarsening
-
-Example:
-
-```text
-64 x 64 x 16
--> 32 x 32 x 8
--> 16 x 16 x 8
-->  8 x  8 x 8
-```
-
-Here, the z direction stops coarsening once it reaches the threshold size, while x and y continue to coarsen.
-
 ---
 
-# Phase 4: Higher-Order Momentum Advection
-
-MUSCL-TVD momentum advection is implemented and checked with both van Leer and minmod limiters. Upwind remains available as the robust baseline for comparison and debugging.
-
-TODO:
-
-- [x] Organize the current upwind scheme as the baseline implementation
-- [x] Implement MUSCL-TVD momentum advection on GPU
-- [x] Implement the van Leer limiter and validate it
-- [x] Implement the minmod limiter and validate it
-
----
-
-# Phase 4.5: VOF Boundary Treatment
-
-THINC/WLIC now uses flux-direction-based fallback near boundaries. Instead of switching the entire near-boundary cell to first-order upwind, only the flux direction whose stencil is blocked by a boundary falls back to upwind or a limited treatment. Tangential and non-blocked directions can still use THINC/WLIC.
-
-TODO:
-
-- [x] Replace full-cell near-boundary upwind fallback with direction-aware fallback
-- [x] Use boundary-direction / stencil validity checks to decide whether x/y/z fluxes can use THINC/WLIC
-- [ ] Validate interface sharpness near walls in dam-break and 3D test cases
-
-Current rule:
-
-```text
-For each flux direction:
-    boundary-normal direction with invalid stencil -> upwind or limited fallback
-    tangential / non-blocked direction             -> THINC/WLIC
-```
-
----
-
-# Phase 5: Viscous Stress-Divergence Term
+## 10. Stress-Divergence Viscous-Term Validation
 
 The variable-viscosity viscous term has been replaced with the stress-divergence form. The remaining work is validation and tuning near interfaces and boundaries.
 
 TODO:
 
-- [x] Implement `div[ mu * (grad(u) + grad(u)^T) ]` for 2D/3D staggered grids
-- [x] Organize viscosity interpolation to faces and corners/edges
 - [ ] Validate the term for constant-viscosity cases against the old Laplacian form
 - [ ] Test stability and accuracy at high viscosity ratio
 - [ ] Check interaction with 3D boundary-cell attributes and free-surface cells
 
 ---
 
-# Phase 6: Surface Tension Validation and Improvement
+## 11. Surface-Tension Validation and Improvement
 
-Surface tension is implemented. The next major improvement is RDF-based curvature calculation, followed by validation and spurious-current reduction.
+Surface tension is implemented. The next work is validation, curvature improvement, and spurious-current reduction.
 
 TODO:
 
-- [x] Implement surface-tension force coupling
-- [ ] Add RDF-based curvature calculation
-- [ ] Compare alpha-gradient curvature and RDF curvature
 - [ ] Add static droplet, Laplace pressure, and spurious-current tests
 - [ ] Check grid-resolution, density-ratio, and sigma sensitivity
 - [ ] Improve balanced-force consistency and force placement if needed
+- [ ] Compare results before and after RDF curvature is added
 
 Laplace pressure targets:
 
@@ -315,14 +257,12 @@ Laplace pressure targets:
 
 ---
 
-# Phase 7: Additional Validation Tests
+## 12. Additional Benchmark Cases
+
+Add benchmark cases that are useful for free-surface, high-density-ratio, and surface-tension behavior.
 
 TODO:
 
-- [x] Lid-driven cavity
-- [x] OpenFOAM comparison
-- [x] Dam break
-- [x] Zalesak slotted disk
 - [ ] Static droplet / Laplace pressure
 - [ ] Spurious-current test
 - [ ] Rising bubble
@@ -332,75 +272,7 @@ TODO:
 
 ---
 
-# Phase 8: 3D Solver
-
-The solver has been extended from 2D to 3D. The focus is now validation, boundary robustness, memory/output design, and preparation for water crown / milk crown simulations.
-
-## 8.0 3D Boundary-Cell Attribute System
-
-Per-cell attributes are used to centralize boundary handling. Each cell can represent fluid, ghost/solid, or boundary-adjacent states, avoiding scattered index-based boundary checks.
-
-TODO:
-
-- [x] Add `cell_flag` / `cell_type` to `StaggeredGrid`
-- [x] Build flags for fluid cells, ghost/solid cells, and boundary-adjacent cells
-- [x] Use cell attributes in boundary conditions, divergence, Poisson, and velocity correction
-- [ ] Validate with small-grid flag dumps, divergence checks, and simple projection tests
-- [ ] Extend or rebuild the same flag logic consistently on GMG levels
-
-Possible initial design:
-
-```cpp
-enum class CellFlag : unsigned char{
-    Fluid     = 0,
-    Ghost     = 1 << 0,
-    Solid     = 1 << 1,
-    BndXMinus = 1 << 2,
-    BndXPlus  = 1 << 3,
-    BndYMinus = 1 << 4,
-    BndYPlus  = 1 << 5,
-    BndZMinus = 1 << 6,
-    BndZPlus  = 1 << 7
-};
-```
-
-If more states are needed later, use `uint16_t`. Boundary-condition type information can be kept separate from geometric flags.
-
-## 8.1 Core 3D Operators
-
-TODO:
-
-- [x] Decide the 3D MAC-grid layout and z-face array layout
-- [x] Add `w` velocity and 3D divergence / gradient operators
-- [x] Implement the 3D variable-coefficient Poisson stencil
-- [x] Extend CFL calculation to 3D
-- [x] Extend the viscous stress-divergence operator to 3D
-- [ ] Validate 3D VOF, curvature, and surface-tension behavior
-- [ ] Estimate memory usage and finalize output format for large 3D cases
-
-3D CFL estimate:
-
-```text
-local_adv =
-    max(|u_left|, |u_right|)/dx
-  + max(|v_back|, |v_front|)/dy
-  + max(|w_bottom|, |w_top|)/dz
-```
-
-## 8.5 Embedded Boundary Method
-
-Add embedded-boundary support on the structured grid. The existing cell/face attribute system should be reused so that wall handling, Poisson stencils, VOF transport, and viscous terms remain centralized.
-
-TODO:
-
-- [ ] Add embedded-boundary geometry representation and cell/face classification
-- [ ] Compute boundary volume/area information needed by the flow solver
-- [ ] Apply embedded-boundary conditions to velocity, pressure, VOF, and viscous terms
-- [ ] Validate with simple internal-wall and obstacle cases
-
----
-
-# Phase 9: Long-Running Simulation Utilities
+## 13. Restart, Binary Output, and Long-Running Simulation Utilities
 
 Large 3D simulations need robust output, restart, and logging.
 
@@ -414,7 +286,9 @@ TODO:
 
 ---
 
-# Phase 10: Debugging and Quality Control
+# Debugging and Quality Control
+
+These are ongoing support tasks rather than main numerical-development phases.
 
 TODO:
 
@@ -425,6 +299,20 @@ TODO:
 - [ ] Initialize and clear device pointers consistently
 - [ ] Log array sizes and pitches at startup
 - [x] Verify key face/cell index ranges in debug checks
+
+---
+
+# Completed Major Work
+
+The following items are implemented and are kept here only as a compact history, not as active phases.
+
+- [x] Face/cell indexing cleanup and validation
+- [x] MUSCL-TVD momentum advection with van Leer and minmod limiters
+- [x] Direction-selective / non-uniform GMG coarsening and validation
+- [x] Core 3D MAC-grid extension
+- [x] 3D boundary-cell attribute system
+- [x] Variable-viscosity stress-divergence implementation
+- [x] Flux-direction-based THINC/WLIC switching near boundaries
 
 ---
 
@@ -451,19 +339,23 @@ Already implemented:
 
 Current priority:
     switch large CUDA kernel arguments from value passing to pointer passing
+    JSON-based calculation-condition setup
     RDF-based curvature calculation
     embedded boundary method
     validation and robustness of the 3D solver
 
 Main remaining work:
     pointer-based CUDA kernel argument passing
-    scheme/config switching
-    parameter ownership cleanup
-    pressure-solver validation
-    RDF curvature and surface-tension validation
-    embedded-boundary support
+    JSON configuration-file loading for calculation conditions
+    RDF-based curvature calculation
+    embedded boundary method
+    3D validation and robustness checks
+    solver configuration cleanup
+    fixed-dt / variable-dt mode switching
+    numerical scheme switching
+    pressure-solver validation and benchmarking
     stress-divergence viscous-term validation
-    surface-tension validation
-    additional 3D benchmarks
-    restart / binary output
+    surface-tension validation and improvement
+    additional benchmark cases
+    restart, binary output, and long-running simulation utilities
 ```

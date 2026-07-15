@@ -12,6 +12,8 @@ struct G_StaggeredGrid{
     int Nx_,Ny_,Nz_;
     double sizex_, sizey_,sizez_;
 
+    G_StaggeredGrid *d_ptr_;
+
     /* members */
 
     #define MEMBER(type, name, sizex,sizey,sizez, isSAVE) MyArray<type,3> name;

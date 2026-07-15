@@ -81,6 +81,7 @@ struct SMACSolver{
     void set_sphere();
     void set_sphere_sub_voxel();
     void initialize_zalesak_disk();
+    void set_sphere_zalesak();
     void initialize_disk();
     void set_zalesak_rotation_velocity();
     void check_pressure_jump_by_radius();

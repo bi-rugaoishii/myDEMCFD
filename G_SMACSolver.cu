@@ -1320,6 +1320,7 @@ void G_SMACSolver::solver_free(){
     cudaFree(d_r2_);
     cudaFree(d_dot_);
     cudaFree(cub_temp_storage_);
+    cudaFree(grid_.d_ptr_);
 
 }
 
@@ -1352,6 +1353,9 @@ void G_SMACSolver::solver_malloc(){
     void* tmp=nullptr;
     cub::DeviceReduce::Sum(tmp, cub_temp_storage_bytes_, grid_.pcg_r_.data_, d_r2_,Nx*Ny*Nz);
     cudaMalloc((void**)&cub_temp_storage_, cub_temp_storage_bytes_);
+
+    /* malloc struct */
+    cudaMalloc((void**)&grid_.d_ptr_,sizeof(G_StaggeredGrid));
 }
 
 
@@ -1375,7 +1379,7 @@ void G_SMACSolver::cpuTogpu(StaggeredGrid h_grid){
     #include "memberList/boundaryConditionMembers.def"
     #undef MEMBER
 
-
+    cudaMemcpy(grid_.d_ptr_,&grid_,sizeof(G_StaggeredGrid),cudaMemcpyHostToDevice);
 
 }
 

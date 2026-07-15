@@ -10,6 +10,61 @@
 #include <algorithm>
 #include <cub/cub.cuh>
 
+/*===============================================*/
+/* == face boundary related device functions ===*/
+/*===============================================*/
+
+static __device__ __forceinline__ double d_get_vx_xface(G_StaggeredGrid& grid,int ix,int iy, int iz){
+
+    unsigned char ftype = grid.f_xtype_(ix,iy,iz);
+
+    if(ftype == F_INTERIOR){
+        return grid.f_vx_(ix,iy,iz);
+    }
+
+    if(ftype == F_BOUNDARY){
+        int bid = grid.f_xbcid_(ix,iy,iz);
+        return grid.bc_.vx_(bid);
+    }
+
+    return 0.;
+}
+
+static __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid& grid,int ix,int iy, int iz){
+
+    unsigned char ftype = grid.f_ytype_(ix,iy,iz);
+
+    if(ftype == F_INTERIOR){
+        return grid.f_vy_(ix,iy,iz);
+    }
+
+    if(ftype == F_BOUNDARY){
+        int bid = grid.f_ybcid_(ix,iy,iz);
+        return grid.bc_.vy_(bid);
+    }
+
+    return 0.;
+
+}
+
+static __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid &grid,int ix,int iy, int iz){
+
+    unsigned char ftype = grid.f_ztype_(ix,iy,iz);
+
+    if(ftype == F_INTERIOR){
+        return grid.f_vz_(ix,iy,iz);
+    }
+
+    if(ftype == F_BOUNDARY){
+        int bid = grid.f_zbcid_(ix,iy,iz);
+        return grid.bc_.vz_(bid);
+    }
+
+    return 0.;
+
+}
+
+
 
 /* ================================= */
 /* ==== surface tension related ==== */
@@ -547,6 +602,8 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
     MyArray<unsigned char,3>& celltype = grid.celltype_;
 
     double inv_dx  = grid.inv_dx_;
+    double inv_dy  = grid.inv_dy_;
+    double inv_dz  = grid.inv_dz_;
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
     double inv_2dz = grid.inv_2dz_;
@@ -600,35 +657,61 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid grid, double dt)
 
     double nx = -gamma_x*inv_2dx;
 
-    /* == check if stencil cells are boundary == */
-    bool is_boundaryy = false;
-    bool is_boundaryz = false;
+    /* == check cell interior== */
+    bool is_yp_interior = celltype(donorInd,iy+1,iz) == C_INTERIOR;
+    bool is_ym_interior = celltype(donorInd,iy-1,iz) == C_INTERIOR;
 
-    unsigned char ctypeyp = celltype(donorInd,iy+1,iz);
-    unsigned char ctypeym= celltype(donorInd,iy-1,iz);
 
-    if(ctypeyp != C_INTERIOR || ctypeym != C_INTERIOR){
-        is_boundaryy = true;
+    bool is_zp_interior = celltype(donorInd,iy,iz+1) == C_INTERIOR;
+    bool is_zm_interior = celltype(donorInd,iy,iz-1) == C_INTERIOR;
+
+
+    double ny = 0.;
+
+    if (is_yp_interior && is_ym_interior){
+        ny =  -(a(donorInd,iy+1,iz) - a(donorInd,iy-1,iz))*inv_2dy;
+    }else if (!is_yp_interior && is_ym_interior){
+        ny =  -(a(donorInd,iy,iz) - a(donorInd,iy-1,iz))*inv_dy;
+    }else if (is_yp_interior && !is_ym_interior){
+        ny =  -(a(donorInd,iy+1,iz) - a(donorInd,iy,iz))*inv_dy;
+    }else{
+        ny = 0.;
     }
 
-    unsigned char ctypezp = celltype(donorInd,iy,iz+1);
-    unsigned char ctypezm= celltype(donorInd,iy,iz-1);
+    double nz = 0.;
 
-    if(ctypezp != C_INTERIOR || ctypezm != C_INTERIOR){
-        is_boundaryz = true;
+    if (is_zp_interior && is_zm_interior){
+        nz =  -(a(donorInd,iy,iz+1) - a(donorInd,iy,iz-1))*inv_2dz;
+    }else if (!is_zp_interior && is_zm_interior){
+        nz =  -(a(donorInd,iy,iz) - a(donorInd,iy,iz-1))*inv_dz;
+    }else if (is_zp_interior && !is_zm_interior){
+        nz =  -(a(donorInd,iy,iz+1) - a(donorInd,iy,iz))*inv_dz;
+    }else{
+        nz = 0.;
     }
 
-    double ny = is_boundaryy? 0.0:-(a(donorInd,iy+1,iz) - a(donorInd,iy-1,iz))*inv_2dy;
-    double nz = is_boundaryz? 0.0:-(a(donorInd,iy,iz+1) - a(donorInd,iy,iz-1))*inv_2dz;
+
+
+    double s_sq = nx*nx + ny*ny + nz*nz;
+    double s = sqrt(s_sq);
+    double inv_s = 1.0/(s+EPS);
 
     double nx_abs = fabs(nx);
-    double ny_abs = fabs(ny);
-    double nz_abs = fabs(nz);
+    double theta = acos(nx_abs*inv_s);
+    double awlic_coeff = 2.*theta/M_PI;
 
-    double s = nx_abs + ny_abs + nz_abs + EPS;
-    double inv_s = 1.0/s;
+    double wx = 1.0-awlic_coeff*awlic_coeff;
 
-    double wx = nx_abs*inv_s;
+    /*
+       double nx_abs = fabs(nx);
+       double ny_abs = fabs(ny);
+       double nz_abs = fabs(nz);
+
+       double s = nx_abs + ny_abs + nz_abs + EPS;
+       double inv_s = 1.0/s;
+
+       double wx = nx_abs*inv_s;
+     */
 
     double gamma = sgn(gamma_x);
 
@@ -664,7 +747,9 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
     MyArray<unsigned char,3>& f_ytype = grid.f_ytype_;
     MyArray<unsigned char,3>& celltype = grid.celltype_;
 
+    double inv_dx  = grid.inv_dx_;
     double inv_dy  = grid.inv_dy_;
+    double inv_dz  = grid.inv_dz_;
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
     double inv_2dz = grid.inv_2dz_;
@@ -719,36 +804,61 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid grid, double dt)
 
     double ny = -gamma_y*inv_2dy;
 
-    /* == check if stencil cells are boundary == */
-    bool is_boundaryx = false;
-    bool is_boundaryz = false;
 
-    unsigned char ctypexp = celltype(ix+1,donorInd,iz);
-    unsigned char ctypexm= celltype(ix-1,donorInd,iz);
+    /* == check cell interior== */
+    bool is_xp_interior = celltype(ix+1,donorInd,iz) == C_INTERIOR;
+    bool is_xm_interior = celltype(ix-1,donorInd,iz) == C_INTERIOR;
 
-    if(ctypexp != C_INTERIOR || ctypexm != C_INTERIOR){
-        is_boundaryx = true;
+
+    bool is_zp_interior = celltype(ix,donorInd,iz+1) == C_INTERIOR;
+    bool is_zm_interior = celltype(ix,donorInd,iz-1) == C_INTERIOR;
+
+
+    double nx = 0.;
+
+    if (is_xp_interior && is_xm_interior){
+        nx =  -(a(ix+1,donorInd,iz) - a(ix-1,donorInd,iz))*inv_2dx;
+    }else if (!is_xp_interior && is_xm_interior){
+        nx =  -(a(ix,donorInd,iz) - a(ix-1,donorInd,iz))*inv_dx;
+    }else if (is_xp_interior && !is_xm_interior){
+        nx =  -(a(ix+1,donorInd,iz) - a(ix,donorInd,iz))*inv_dx;
+    }else{
+        nx = 0.;
     }
 
-    unsigned char ctypezp = celltype(ix,donorInd,iz+1);
-    unsigned char ctypezm= celltype(ix,donorInd,iz-1);
+    double nz = 0.;
 
-    if(ctypezp != C_INTERIOR || ctypezm != C_INTERIOR){
-        is_boundaryz = true;
+    if (is_zp_interior && is_zm_interior){
+        nz =  -(a(ix,donorInd,iz+1) - a(ix,donorInd,iz-1))*inv_2dz;
+    }else if (!is_zp_interior && is_zm_interior){
+        nz =  -(a(ix,donorInd,iz) - a(ix,donorInd,iz-1))*inv_dz;
+    }else if (is_zp_interior && !is_zm_interior){
+        nz =  -(a(ix,donorInd,iz+1) - a(ix,donorInd,iz))*inv_dz;
+    }else{
+        nz = 0.;
     }
 
-    double nx = is_boundaryx? 0.0: -(a(ix+1,donorInd,iz) - a(ix-1,donorInd,iz))*inv_2dx;
-    double nz =  is_boundaryz? 0.0:-(a(ix,donorInd,iz+1) - a(ix,donorInd,iz-1))*inv_2dz;
 
 
     double nx_abs = fabs(nx);
     double ny_abs = fabs(ny);
     double nz_abs = fabs(nz);
 
-    double s = nx_abs + ny_abs + nz_abs + EPS;
-    double inv_s = 1.0/s;
+    /*
+       double s = nx_abs + ny_abs + nz_abs + EPS;
+       double inv_s = 1.0/s;
 
-    double wy = ny_abs*inv_s;
+       double wy = ny_abs*inv_s;
+     */
+
+    double s_sq = nx*nx + ny*ny + nz*nz;
+    double s = sqrt(s_sq);
+    double inv_s = 1.0/(s+EPS);
+
+    double theta = acos(ny_abs*inv_s);
+    double awlic_coeff = 2.*theta/M_PI;
+
+    double wy = 1.0-awlic_coeff*awlic_coeff;
 
     double gamma = sgn(gamma_y);
 
@@ -784,6 +894,8 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     MyArray<unsigned char,3>& f_ztype = grid.f_ztype_;
     MyArray<unsigned char,3>& celltype = grid.celltype_;
 
+    double inv_dx  = grid.inv_dx_;
+    double inv_dy  = grid.inv_dy_;
     double inv_dz  = grid.inv_dz_;
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
@@ -836,36 +948,59 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
     double nz = -gamma_z*inv_2dz;
 
-    /* == check if stencil cells are boundary == */
-    bool is_boundaryx = false;
-    bool is_boundaryy = false;
+    /* == check cell interior== */
+    bool is_xp_interior = celltype(ix+1,iy,donorInd) == C_INTERIOR;
+    bool is_xm_interior = celltype(ix-1,iy,donorInd) == C_INTERIOR;
 
-    unsigned char ctypeyp = celltype(ix,iy+1,donorInd);
-    unsigned char ctypeym= celltype(ix,iy-1,donorInd);
+    bool is_yp_interior = celltype(ix,iy+1,donorInd) == C_INTERIOR;
+    bool is_ym_interior = celltype(ix,iy-1,donorInd) == C_INTERIOR;
 
-    if(ctypeyp != C_INTERIOR || ctypeym != C_INTERIOR){
-        is_boundaryy = true;
+
+
+
+    double nx = 0.;
+
+    if (is_xp_interior && is_xm_interior){
+        nx =  -(a(ix+1,iy,donorInd) - a(ix-1,iy,donorInd))*inv_2dx;
+    }else if (!is_xp_interior && is_xm_interior){
+        nx =  -(a(ix,iy,donorInd) - a(ix,iy-1,donorInd))*inv_dx;
+    }else if (is_xp_interior && !is_xm_interior){
+        nx =  -(a(ix+1,iy,donorInd) - a(ix,iy,donorInd))*inv_dx;
+    }else{
+        nx = 0.;
     }
 
-    unsigned char ctypexp = celltype(ix+1,iy,donorInd);
-    unsigned char ctypexm = celltype(ix-1,iy,donorInd);
+    double ny = 0.;
 
-    if(ctypexp != C_INTERIOR || ctypexm != C_INTERIOR){
-        is_boundaryx = true;
+    if (is_yp_interior && is_ym_interior){
+        ny =  -(a(ix,iy+1,donorInd) - a(ix,iy-1,donorInd))*inv_2dy;
+    }else if (!is_yp_interior && is_ym_interior){
+        ny =  -(a(ix,iy,donorInd) - a(ix,iy-1,donorInd))*inv_dy;
+    }else if (is_yp_interior && !is_ym_interior){
+        ny =  -(a(ix,iy+1,donorInd) - a(ix,iy,donorInd))*inv_dy;
+    }else{
+        ny = 0.;
     }
-
-
-    double nx =is_boundaryx? 0.0: -(a(ix+1,iy,donorInd) - a(ix-1,iy,donorInd))*inv_2dx;
-    double ny =is_boundaryy? 0.0: -(a(ix,iy+1,donorInd) - a(ix,iy-1,donorInd))*inv_2dy;
 
     double nx_abs = fabs(nx);
     double ny_abs = fabs(ny);
     double nz_abs = fabs(nz);
 
-    double s = nx_abs + ny_abs + nz_abs + EPS;
-    double inv_s = 1.0/s;
+    double s_sq = nx*nx + ny*ny + nz*nz;
+    double s = sqrt(s_sq);
+    double inv_s = 1.0/(s+EPS);
 
-    double wz = nz_abs*inv_s;
+    double theta = acos(nz_abs*inv_s);
+    double awlic_coeff = 2.*theta/M_PI;
+
+    double wz = 1.0-awlic_coeff*awlic_coeff;
+
+    /*
+       double s = nx_abs + ny_abs + nz_abs + EPS;
+       double inv_s = 1.0/s;
+
+       double wz = nz_abs*inv_s;
+     */
 
     double gamma = sgn(gamma_z);
 
@@ -884,6 +1019,140 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
 
 
     Fz(ix,iy,iz) = wz*Fz_thinc + (1.-wz)*Fz_upwind;
+}
+
+static __global__ void k_transport_alpha_x(G_StaggeredGrid grid, double dt){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    MyArray<double,3>& a = grid.alpha_;
+    MyArray<double,3>& a_new = grid.alpha_new_;
+    const MyArray<double,3>& Fx = grid.f_Fx_;
+
+
+
+
+    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+
+    double flux = 0.;
+
+    /* == x direction == */
+    flux += Fx(ix+1,iy,iz) - Fx(ix,iy,iz);
+
+    /* == correction == */
+    double up = d_get_vx_xface(grid,ix+1,iy,iz);
+    double um = d_get_vx_xface(grid,ix,iy,iz);
+    double inv_dx = grid.inv_dx_;
+
+    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dx;
+
+    a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
+
+    /* clipping */
+    /*
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
+
+}
+
+static __global__ void k_transport_alpha_y(G_StaggeredGrid grid, double dt){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    MyArray<double,3>& a = grid.alpha_;
+    MyArray<double,3>& a_new = grid.alpha_new_;
+    const MyArray<double,3>& Fy = grid.f_Fy_;
+
+
+
+    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+
+    double flux = 0.;
+
+    /* == y direction == */
+    flux += Fy(ix,iy+1,iz) - Fy(ix,iy,iz);
+
+    /* == correction == */
+    double up = d_get_vy_yface(grid,ix,iy+1,iz);
+    double um = d_get_vy_yface(grid,ix,iy,iz);
+    double inv_dy = grid.inv_dy_;
+
+    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dy;
+
+    a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
+
+    /* clipping */
+    /*
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
+
+}
+
+static __global__ void k_transport_alpha_z(G_StaggeredGrid grid, double dt){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    MyArray<double,3>& a = grid.alpha_;
+    MyArray<double,3>& a_new = grid.alpha_new_;
+    const MyArray<double,3>& Fz = grid.f_Fz_;
+
+
+
+    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+
+    double flux = 0.;
+
+    /* == z direction == */
+    flux += Fz(ix,iy,iz+1) - Fz(ix,iy,iz);
+
+    /* == correction == */
+    double up = d_get_vz_zface(grid,ix,iy,iz+1);
+    double um = d_get_vz_zface(grid,ix,iy,iz);
+    double inv_dz = grid.inv_dz_;
+
+    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dz;
+
+    a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
+
+    /* clipping */
+    /*
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
+
+}
+
+static __global__ void k_clip_alpha(G_StaggeredGrid grid_){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    MyArray<double,3>& a = grid_.alpha_;
+
+
+
+    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+
+    if (a(ix,iy,iz)<EPS){
+        a(ix,iy,iz)=0.;
+    }else if (a(ix,iy,iz)>1.){
+        a(ix,iy,iz)=1.;
+    }
+
 }
 
 static __global__ void k_transport_alpha(G_StaggeredGrid grid_){
@@ -1100,6 +1369,74 @@ void G_SMACSolver::update_properties_by_alpha(){
     k_update_x_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
     k_update_y_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
     k_update_z_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
+
+}
+
+void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
+
+
+    if (steps%3 == 0){
+        k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+    }else if(steps%3 == 1){
+
+        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+    }else{
+
+
+        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
+
+        k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+    }
+
+    k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_);
+
 
 }
 

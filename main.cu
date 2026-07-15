@@ -24,6 +24,9 @@
 #define GPU_ON 1
 
 
+__global__ void test_memory(G_StaggeredGrid *grid){
+
+}
 /*
    ============================================================
    メイン
@@ -42,9 +45,15 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=384;
+    /*
+    int Nx=192;
+    int Ny=64;
+    int Nz=192;
+    */
+
+    int Nx=128;
     int Ny=128;
-    int Nz=384;
+    int Nz=1;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -60,9 +69,18 @@ int main(){
     //double mu_w = nu*rho_w;
     //double mu_g = nu*rho_g;
 
+
+    double sizex=1.0;
+    double sizey=1.0;
+    double sizez=1.0;
+
+    /*
     double sizex=0.04;
     double sizey=0.016;
     double sizez=0.04;
+    */
+
+
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
@@ -115,20 +133,22 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-   // solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
+    solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
    // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
 
-    /*for surface tension test*/
-   // solv.initialize_disk();
 
 
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-    solv.set_sphere();
+   // solv.set_sphere();
     //solv.set_sphere_sub_voxel();
-    solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
-   // solv.set_zalesak_rotation_velocity();
+   //solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
+
+   /*
+    solv.set_sphere_zalesak();
+    solv.set_zalesak_rotation_velocity();
+    */
 
     solv.set_boundary_neumann(solv.grid_.p_);
     solv.set_boundary_neumann(solv.grid_.alpha_);
@@ -143,14 +163,14 @@ int main(){
     h_start = omp_get_wtime();
 
     /* == set cfd time related parameters ==*/
-    double cfl_thresh = 0.4;
-    double cfl_alpha_thresh = 0.1;
+    double cfl_thresh = 0.2;
+    double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = .001;
-    double endTime = 0.02;
-    double max_dt = 5e-5;
-    double initial_dt = 1e-6;
+    double outfreqtime = 0.05;
+    double endTime = 1.0;
+    double max_dt = 1e-2;
+    double initial_dt = 1e-4;
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
@@ -207,6 +227,7 @@ int main(){
        ============================= */
 
 
+    int cur_step = 0;
     if (GPU_ON==1){
         while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
 
@@ -230,8 +251,10 @@ int main(){
             for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
                 printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
                 g_solv.clear_alpha_flux();
-                g_solv.alpha_flux_thincwlic(sub_dt);
-                g_solv.transport_alpha();
+                g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+
+                //g_solv.transport_alpha(); //used for unsplit thinc
+
                 g_solv.alpha_flux_accum();
             }
             /* == transport alpha done == */
@@ -278,7 +301,10 @@ int main(){
                 printf("step %d,next dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
             }
             printf("\n");
+
+            cur_step ++;
         }
+
     }
 
   solv.solver_free();
