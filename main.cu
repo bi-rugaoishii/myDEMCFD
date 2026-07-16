@@ -151,8 +151,8 @@ int main(){
     solv.set_zalesak_rotation_velocity();
     */
 
-    solv.set_boundary_neumann(solv.grid_.p_);
-    solv.set_boundary_neumann(solv.grid_.alpha_);
+    //solv.set_boundary_neumann(solv.grid_.p_);
+    //solv.set_boundary_neumann(solv.grid_.alpha_);
     solv.update_properties_by_alpha_initial();
 
 
@@ -252,10 +252,10 @@ int main(){
             for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
                 printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
                 g_solv.clear_alpha_flux();
-                //g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+                g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
 
-                g_solv.alpha_flux_thincwlic(sub_dt);
-                g_solv.transport_alpha(); //used for unsplit thinc
+                //g_solv.alpha_flux_thincwlic(sub_dt);
+                //g_solv.transport_alpha(); //used for unsplit thinc
 
                 g_solv.alpha_flux_accum();
             }
