@@ -127,6 +127,7 @@ static __global__ void k_build_vof_poisson_A(G_StaggeredGrid grid){
     int Nz = grid.Nz_;
 
     if (ix>= Nx+1 ||iy >=Ny+1 || iz >= Nz+1) return;
+
     if (ct(ix,iy,iz) != C_INTERIOR){
         Axp(ix,iy,iz) = 0.;
         Axm(ix,iy,iz) = 0.;
@@ -240,7 +241,7 @@ G_PCGSolver::G_PCGSolver(){}
 
 G_PCGSolver::~G_PCGSolver(){}
 
-void G_PCGSolver::solve(G_SMACSolver& solv){                                                       
+void G_PCGSolver::solve_pcg(G_SMACSolver& solv){                                                       
 
     G_StaggeredGrid& grid_=solv.grid_;
 
@@ -381,7 +382,7 @@ void G_PCGSolver::set_gmg(G_GMGSolver & gmg){
     gmg_ = &gmg;
 }
 
-void G_PCGSolver::solve_pcg(G_SMACSolver& solv){
+void G_PCGSolver::solve(G_SMACSolver& solv){
 
     G_StaggeredGrid& grid_=solv.grid_;
 

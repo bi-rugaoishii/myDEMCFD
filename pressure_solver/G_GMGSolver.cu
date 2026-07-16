@@ -675,7 +675,11 @@ static __global__ void k_create_level_A(G_Levels levels){
     Azp(ix,iy,iz) = f_bz(ix,iy,iz+1)*inv_dz2;
     Azm(ix,iy,iz) = f_bz(ix,iy,iz)*inv_dz2;
     Adiag(ix,iy,iz) = (Axp(ix,iy,iz)+Axm(ix,iy,iz)+Ayp(ix,iy,iz)+Aym(ix,iy,iz)+Azp(ix,iy,iz)+Azm(ix,iy,iz));
-    invAdiag(ix,iy,iz) = 1./Adiag(ix,iy,iz);
+    if(fabs(Adiag(ix,iy,iz))<EPS){
+        invAdiag(ix,iy,iz)=0.;
+    }else{
+        invAdiag(ix,iy,iz) = 1./Adiag(ix,iy,iz);
+    }
 
 
 }

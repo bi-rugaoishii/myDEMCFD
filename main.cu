@@ -51,8 +51,8 @@ int main(){
     int Nz=192;
     */
 
-    int Nx=128;
-    int Ny=128;
+    int Nx=88;
+    int Ny=88;
     int Nz=1;
 
     double rho = 1.;
@@ -70,9 +70,9 @@ int main(){
     //double mu_g = nu*rho_g;
 
 
-    double sizex=1.0;
-    double sizey=1.0;
-    double sizez=1.0;
+    double sizex=0.584;
+    double sizey=0.584;
+    double sizez=0.584;
 
     /*
     double sizex=0.04;
@@ -133,8 +133,8 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.3,0.,0.5,0.,1,1.0);
-    solv.grid_.place_solid(0.5,0.6,0.,0.1,0.,1.0,1);
+    solv.grid_.place_vof(0.,0.1461,0.,0.292,0.,1,1.0);
+    solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
     //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
 
 
@@ -164,12 +164,12 @@ int main(){
     h_start = omp_get_wtime();
 
     /* == set cfd time related parameters ==*/
-    double cfl_thresh = 0.2;
+    double cfl_thresh = 0.4;
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
-    double endTime = 1.0;
+    double endTime = 10.0;
     double max_dt = 1e-2;
     double initial_dt = 1e-4;
 
