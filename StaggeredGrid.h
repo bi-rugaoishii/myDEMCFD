@@ -24,8 +24,51 @@ struct StaggeredGrid{
     void set_boundary_id(int dir,unsigned char bid, int index); 
     void set_num_bc_id(int num_bc_id);
     void place_vof(double minx,double maxx, double miny, double maxy,double minz, double maxz, double alpha);
+    void place_solid(double minx,double maxx, double miny, double maxy,double minz, double maxz, unsigned char bid);
     void get_cell_coord();
 };
+
+inline void StaggeredGrid::place_solid(double minx,double maxx, double miny, double maxy,double minz, double maxz, unsigned char bid){ 
+
+    int Nx = Nx_;
+    int Ny = Ny_;
+    int Nz = Nz_;
+
+    for(int iz=1; iz<Nz+1; iz++){
+        for(int iy=1; iy<Ny+1; iy++){
+            for(int ix=1; ix<Nx+1; ix++){
+                if(x_(ix,iy,iz)<maxx && x_(ix,iy,iz)>minx){
+                    if(y_(ix,iy,iz)<maxy && y_(ix,iy,iz)>miny){
+                        if(z_(ix,iy,iz)<maxz && z_(ix,iy,iz)>minz){
+                            celltype_(ix,iy,iz)=C_SOLID;
+
+                            f_xtype_(ix,iy,iz)=F_BOUNDARY;
+                            f_xbcid_(ix,iy,iz)=bid;
+
+                            f_xtype_(ix+1,iy,iz)=F_BOUNDARY;
+                            f_xbcid_(ix+1,iy,iz)=bid;
+
+                            f_ytype_(ix,iy,iz)=F_BOUNDARY;
+                            f_ybcid_(ix,iy,iz)=bid;
+
+                            f_ytype_(ix,iy+1,iz)=F_BOUNDARY;
+                            f_ybcid_(ix,iy+1,iz)=bid;
+
+                            f_ztype_(ix,iy,iz)=F_BOUNDARY;
+                            f_zbcid_(ix,iy,iz)=bid;
+
+                            f_ztype_(ix,iy,iz+1)=F_BOUNDARY;
+                            f_zbcid_(ix,iy,iz+1)=bid;
+
+                        }
+                    }
+                }
+            }
+        }
+
+
+    } 
+}
 
 
 inline void StaggeredGrid::set_boundary_id(int dir,unsigned char bid, int index){ 

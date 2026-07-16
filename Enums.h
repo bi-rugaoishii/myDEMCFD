@@ -17,5 +17,6 @@ enum BoundaryType: unsigned char{
 enum CellType: unsigned char{
     C_INTERIOR,
     C_NEAR_BOUNDARY,
-    C_GHOST
+    C_GHOST,
+    C_SOLID
 };

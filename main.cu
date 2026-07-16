@@ -133,8 +133,9 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.6,0.,0.5,0.,0.6,1.0);
-   // solv.grid_.place_vof(0.,0.5,0.,0.5,0.,1.0,1.0);
+    solv.grid_.place_vof(0.,0.3,0.,0.5,0.,1,1.0);
+    solv.grid_.place_solid(0.5,0.6,0.,0.1,0.,1.0,1);
+    //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
 
 
 
@@ -251,9 +252,10 @@ int main(){
             for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
                 printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
                 g_solv.clear_alpha_flux();
-                g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+                //g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
 
-                //g_solv.transport_alpha(); //used for unsplit thinc
+                g_solv.alpha_flux_thincwlic(sub_dt);
+                g_solv.transport_alpha(); //used for unsplit thinc
 
                 g_solv.alpha_flux_accum();
             }

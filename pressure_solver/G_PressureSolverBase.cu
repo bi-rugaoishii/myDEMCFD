@@ -61,6 +61,13 @@ __global__ void base_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){
     const MyArray<double,3>& vy_star=grid_.f_vy_star_;
     const MyArray<double,3>& vz_star=grid_.f_vz_star_;
     MyArray<double,3>& rhs=grid_.rhs_;
+    MyArray<unsigned char,3> ct=grid_.celltype_;
+
+    if(ct(ix,iy,iz)!= C_INTERIOR){
+        rhs(ix,iy,iz)=0.;
+        return;
+
+    }
 
 
 

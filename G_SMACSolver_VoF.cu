@@ -160,6 +160,8 @@ static __global__  void k_calc_interface_normal(G_StaggeredGrid grid){
 
     MyArray<unsigned char,3> ct = grid.celltype_;
 
+    if (ct(ix,iy,iz) != C_INTERIOR) return;
+
 
     double inv_2dx = grid.inv_2dx_;
     double inv_2dy = grid.inv_2dy_;
@@ -1040,6 +1042,10 @@ static __global__ void k_transport_alpha_x(G_StaggeredGrid grid, double dt){
     /* == x direction == */
     flux += Fx(ix+1,iy,iz) - Fx(ix,iy,iz);
 
+    /* debug*/
+    MyArray<double,3>&sum  = grid.p_tmp_;
+    sum(ix,iy,iz) = flux;
+
     /* == correction == */
     double up = d_get_vx_xface(grid,ix+1,iy,iz);
     double um = d_get_vx_xface(grid,ix,iy,iz);
@@ -1078,6 +1084,10 @@ static __global__ void k_transport_alpha_y(G_StaggeredGrid grid, double dt){
     /* == y direction == */
     flux += Fy(ix,iy+1,iz) - Fy(ix,iy,iz);
 
+    /* debug*/
+    MyArray<double,3>&sum  = grid.p_tmp_;
+    sum(ix,iy,iz) = flux;
+
     /* == correction == */
     double up = d_get_vy_yface(grid,ix,iy+1,iz);
     double um = d_get_vy_yface(grid,ix,iy,iz);
@@ -1115,6 +1125,10 @@ static __global__ void k_transport_alpha_z(G_StaggeredGrid grid, double dt){
 
     /* == z direction == */
     flux += Fz(ix,iy,iz+1) - Fz(ix,iy,iz);
+
+    /* debug*/
+    MyArray<double,3>&sum  = grid.p_tmp_;
+    sum(ix,iy,iz) = flux;
 
     /* == correction == */
     double up = d_get_vz_zface(grid,ix,iy,iz+1);
@@ -1166,9 +1180,11 @@ static __global__ void k_transport_alpha(G_StaggeredGrid grid_){
     const MyArray<double,3>& Fy = grid_.f_Fy_;
     const MyArray<double,3>& Fz = grid_.f_Fz_;
 
+    MyArray<unsigned char,3>ct = grid_.celltype_;
 
 
     if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+    if (ct(ix,iy,iz) != C_INTERIOR) return;
 
     double flux = 0.;
 
@@ -1355,6 +1371,12 @@ static __global__ void k_update_z_face_properties_by_alpha(G_StaggeredGrid grid,
 }
 
 
+__global__ void k_swap_rho(G_StaggeredGrid* grid){
+    double* tmp;
+    tmp =grid->rho_.data_; 
+    grid->rho_.data_=grid->rho_old_.data_; 
+    grid->rho_old_.data_=tmp; 
+}
 
 void G_SMACSolver::update_properties_by_alpha(){
 
@@ -1365,6 +1387,8 @@ void G_SMACSolver::update_properties_by_alpha(){
     const double mu0 = mu0_;
 
     std::swap(grid_.rho_old_.data_,grid_.rho_.data_);
+    k_swap_rho<<<1,1>>>(grid_.d_ptr_);
+
     k_update_cell_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1, mu0, mu1);
     k_update_x_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
     k_update_y_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1);
@@ -1377,19 +1401,18 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
 
     if (steps%3 == 0){
         k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
-
         k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
 
+        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
 
+        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
@@ -1397,42 +1420,50 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
     }else if(steps%3 == 1){
 
         k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
-
         k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
+        /* debug */
+        /*
+        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.p_tmp_.data_, d_r2_,grid_.p_tmp_.size_);
+        double sum;
+        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+        printf("y sum = %3.2e\n",sum);
+        cudaMemset(grid_.p_tmp_.data_,0,sizeof(double)*grid_.p_tmp_.size_);
+        */
 
+        k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
         k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
-
         k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
     }else{
 
 
         k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
-
         k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
         k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
-
         k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
 
+
+        k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_y<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+
+
     }
 
     k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_);

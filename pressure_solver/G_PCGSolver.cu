@@ -120,12 +120,24 @@ static __global__ void k_build_vof_poisson_A(G_StaggeredGrid grid){
     MyArray<double,3> f_bx = grid.f_bx_;
     MyArray<double,3> f_by = grid.f_by_;
     MyArray<double,3> f_bz = grid.f_bz_;
+    MyArray<unsigned char,3> ct=grid.celltype_;
 
     int Nx = grid.Nx_;
     int Ny = grid.Ny_;
     int Nz = grid.Nz_;
 
     if (ix>= Nx+1 ||iy >=Ny+1 || iz >= Nz+1) return;
+    if (ct(ix,iy,iz) != C_INTERIOR){
+        Axp(ix,iy,iz) = 0.;
+        Axm(ix,iy,iz) = 0.;
+        Ayp(ix,iy,iz) = 0.;
+        Aym(ix,iy,iz) = 0.;
+        Azp(ix,iy,iz) = 0.;
+        Azm(ix,iy,iz) = 0.;
+        Adiag(ix,iy,iz) = 0.;
+        invAdiag(ix,iy,iz) = 0.;
+        return;
+    }
 
     Axp(ix,iy,iz) = f_bx(ix+1,iy,iz)*inv_dx2;
     Axm(ix,iy,iz) = f_bx(ix,iy,iz)*inv_dx2;
@@ -214,10 +226,10 @@ static __global__ void k_update_dir(G_StaggeredGrid grid,double *const pcg_scala
 }
 
 /*
-static __global__ void k_swap_rz(double *s){
-    s[RZ_OLD] = s[RZ_NEW];
-}
-*/
+   static __global__ void k_swap_rz(double *s){
+   s[RZ_OLD] = s[RZ_NEW];
+   }
+ */
 
 
 
@@ -228,7 +240,7 @@ G_PCGSolver::G_PCGSolver(){}
 
 G_PCGSolver::~G_PCGSolver(){}
 
-void G_PCGSolver::solve_pcg(G_SMACSolver& solv){                                                       
+void G_PCGSolver::solve(G_SMACSolver& solv){                                                       
 
     G_StaggeredGrid& grid_=solv.grid_;
 
@@ -311,10 +323,10 @@ void G_PCGSolver::solve_pcg(G_SMACSolver& solv){
 
         /* == debug == */
         /*
-        double h_pAp;
-        cudaMemcpy(&h_pAp,&d_pcg_scalars_[PAP],sizeof(double),cudaMemcpyDeviceToHost);
-        printf("pAp = %f\n",h_pAp);
-        */
+           double h_pAp;
+           cudaMemcpy(&h_pAp,&d_pcg_scalars_[PAP],sizeof(double),cudaMemcpyDeviceToHost);
+           printf("pAp = %f\n",h_pAp);
+         */
 
 
 
@@ -369,7 +381,7 @@ void G_PCGSolver::set_gmg(G_GMGSolver & gmg){
     gmg_ = &gmg;
 }
 
-void G_PCGSolver::solve(G_SMACSolver& solv){
+void G_PCGSolver::solve_pcg(G_SMACSolver& solv){
 
     G_StaggeredGrid& grid_=solv.grid_;
 
@@ -454,10 +466,10 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
 
         /* == debug == */
         /*
-        double h_pAp;
-        cudaMemcpy(&h_pAp,&d_pcg_scalars_[PAP],sizeof(double),cudaMemcpyDeviceToHost);
-        printf("pAp = %f\n",h_pAp);
-        */
+           double h_pAp;
+           cudaMemcpy(&h_pAp,&d_pcg_scalars_[PAP],sizeof(double),cudaMemcpyDeviceToHost);
+           printf("pAp = %f\n",h_pAp);
+         */
 
 
 
@@ -495,7 +507,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
             //double rel_res = sqrt(r2) / norm_b;
 
 
-                //printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
+            //printf("norm r = %3.2e, norm b = %3.2e, rel_res = %3.2e \n",sqrt(r2),norm_b,rel_res);
             if (max_divu < tol) {
                 printf("max_divu = %3.2e, dt*max_divu = %3.2e \n",max_divu, dt*max_divu);
                 iter++;
