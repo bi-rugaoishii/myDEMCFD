@@ -662,7 +662,7 @@ void SMACSolver::set_sphere(){
     double r = 0.003;
     double rsq = r*r;
 
-    double v_ini = -1.9;
+    double v_ini = -2.0;
 
     // Zalesak-like slot
     double slot_half_width = 0.0;       

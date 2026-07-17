@@ -45,15 +45,16 @@ int main(){
     }
     const char* outdir ="results";
 
+    int Nx=128;
+    int Ny=128;
+    int Nz=1;
+
+
     /*
     int Nx=192;
     int Ny=64;
     int Nz=192;
     */
-
-    int Nx=88;
-    int Ny=88;
-    int Nz=1;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -142,9 +143,9 @@ int main(){
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-   // solv.set_sphere();
+    //solv.set_sphere();
     //solv.set_sphere_sub_voxel();
-   //solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
+   ////solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
 
    /*
     solv.set_sphere_zalesak();
@@ -163,6 +164,17 @@ int main(){
     float ms;
     h_start = omp_get_wtime();
 
+    /*
+    double cfl_thresh = 0.2;
+    double cfl_alpha_thresh = 0.2;
+    int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
+    Time_mode mode=VARIBALE_TIME_STEP;
+    double outfreqtime = 0.0005;
+    double endTime = 0.02;
+    double max_dt = 5e-5;
+    double initial_dt = 1e-6;
+    */
+
     /* == set cfd time related parameters ==*/
     double cfl_thresh = 0.4;
     double cfl_alpha_thresh = 0.2;
@@ -171,7 +183,7 @@ int main(){
     double outfreqtime = 0.05;
     double endTime = 10.0;
     double max_dt = 1e-2;
-    double initial_dt = 1e-4;
+    double initial_dt = 1e-5;
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
@@ -284,7 +296,6 @@ int main(){
 
             if(cfdtime.isOutStep_){
                 g_solv.gpuTocpu(solv.grid_);
-                printf("total alpha = %f\n",solv.calc_alpha_vol());
                 //solv.check_pressure_jump_by_radius();
                 fileIO.output_vti_binary_cellData(solv.grid_,cfdtime.current_steps_);
                 h_end = omp_get_wtime();

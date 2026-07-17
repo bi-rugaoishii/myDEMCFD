@@ -965,7 +965,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     if (is_xp_interior && is_xm_interior){
         nx =  -(a(ix+1,iy,donorInd) - a(ix-1,iy,donorInd))*inv_2dx;
     }else if (!is_xp_interior && is_xm_interior){
-        nx =  -(a(ix,iy,donorInd) - a(ix,iy-1,donorInd))*inv_dx;
+        nx =  -(a(ix,iy,donorInd) - a(ix-1,iy,donorInd))*inv_dx;
     }else if (is_xp_interior && !is_xm_interior){
         nx =  -(a(ix+1,iy,donorInd) - a(ix,iy,donorInd))*inv_dx;
     }else{
@@ -1023,6 +1023,31 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid grid, double dt)
     Fz(ix,iy,iz) = wz*Fz_thinc + (1.-wz)*Fz_upwind;
 }
 
+static __global__ void k_set_correct_coeff(G_StaggeredGrid grid){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    MyArray<double,3> a = grid.alpha_;
+    MyArray<unsigned char,3>& coeff = grid.correct_coeff_;
+
+
+
+
+    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+
+    MyArray<unsigned char,3> ct= grid.celltype_;
+    if (ct(ix,iy,iz) != C_INTERIOR){
+        return;
+    }
+
+    if(a(ix,iy,iz)>0.5){
+        coeff(ix,iy,iz)=1;
+    }else{
+        coeff(ix,iy,iz)=0;
+    }
+}
+
 static __global__ void k_transport_alpha_x(G_StaggeredGrid grid, double dt){
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
@@ -1053,19 +1078,21 @@ static __global__ void k_transport_alpha_x(G_StaggeredGrid grid, double dt){
     double up = d_get_vx_xface(grid,ix+1,iy,iz);
     double um = d_get_vx_xface(grid,ix,iy,iz);
     double inv_dx = grid.inv_dx_;
+    double coeff = (double)grid.correct_coeff_(ix,iy,iz);
 
-    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dx;
+    flux -= coeff*(up-um)*dt*inv_dx;
+
 
     a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
 
     /* clipping */
     /*
-       if (a_new(ix,iy,iz)<EPS){
-       a_new(ix,iy,iz)=0.;
-       }else if (a_new(ix,iy,iz)>1.){
-       a_new(ix,iy,iz)=1.;
-       }
-     */
+    if (a_new(ix,iy,iz)<EPS){
+        a_new(ix,iy,iz)=0.;
+    }else if (a_new(ix,iy,iz)>1.){
+        a_new(ix,iy,iz)=1.;
+    }
+    */
 
 }
 
@@ -1094,27 +1121,25 @@ static __global__ void k_transport_alpha_y(G_StaggeredGrid grid, double dt){
     /* == y direction == */
     flux += Fy(ix,iy+1,iz) - Fy(ix,iy,iz);
 
-    /* debug*/
-    MyArray<double,3>&sum  = grid.p_tmp_;
-    sum(ix,iy,iz) = flux;
 
     /* == correction == */
     double up = d_get_vy_yface(grid,ix,iy+1,iz);
     double um = d_get_vy_yface(grid,ix,iy,iz);
     double inv_dy = grid.inv_dy_;
+    double coeff = (double)grid.correct_coeff_(ix,iy,iz);
 
-    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dy;
+    flux -= coeff*(up-um)*dt*inv_dy;
 
     a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
 
     /* clipping */
     /*
-       if (a_new(ix,iy,iz)<EPS){
-       a_new(ix,iy,iz)=0.;
-       }else if (a_new(ix,iy,iz)>1.){
-       a_new(ix,iy,iz)=1.;
-       }
-     */
+    if (a_new(ix,iy,iz)<EPS){
+        a_new(ix,iy,iz)=0.;
+    }else if (a_new(ix,iy,iz)>1.){
+        a_new(ix,iy,iz)=1.;
+    }
+    */
 
 }
 
@@ -1142,27 +1167,26 @@ static __global__ void k_transport_alpha_z(G_StaggeredGrid grid, double dt){
     /* == z direction == */
     flux += Fz(ix,iy,iz+1) - Fz(ix,iy,iz);
 
-    /* debug*/
-    MyArray<double,3>&sum  = grid.p_tmp_;
-    sum(ix,iy,iz) = flux;
 
     /* == correction == */
     double up = d_get_vz_zface(grid,ix,iy,iz+1);
     double um = d_get_vz_zface(grid,ix,iy,iz);
     double inv_dz = grid.inv_dz_;
+    double coeff = (double)grid.correct_coeff_(ix,iy,iz);
 
-    flux -= a(ix,iy,iz)*(up-um)*dt*inv_dz;
+    flux -= coeff*(up-um)*dt*inv_dz;
+
 
     a_new(ix,iy,iz) = a(ix,iy,iz) - flux;
 
     /* clipping */
     /*
-       if (a_new(ix,iy,iz)<EPS){
-       a_new(ix,iy,iz)=0.;
-       }else if (a_new(ix,iy,iz)>1.){
-       a_new(ix,iy,iz)=1.;
-       }
-     */
+    if (a_new(ix,iy,iz)<EPS){
+        a_new(ix,iy,iz)=0.;
+    }else if (a_new(ix,iy,iz)>1.){
+        a_new(ix,iy,iz)=1.;
+    }
+    */
 
 }
 
@@ -1420,11 +1444,8 @@ void G_SMACSolver::update_properties_by_alpha(){
 
 void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
 
-    /* debug */
-    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-    double sum;
-    cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-    printf("before alpha sum = %.7e\n",sum);
+
+    k_set_correct_coeff<<<grid_dim_,block_dim_>>>(grid_);
 
 
 
@@ -1434,10 +1455,7 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("1 alpha sum = %.7e\n",sum);
+
 
 
         k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
@@ -1445,10 +1463,6 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("2 alpha sum = %.7e\n",sum);
 
 
         k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
@@ -1456,10 +1470,6 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("3 alpha sum = %.7e\n",sum);
 
     }else if(steps%3 == 1){
 
@@ -1468,39 +1478,19 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("1 alpha sum = %.7e\n",sum);
 
-        /* debug */
-        /*
-           cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.p_tmp_.data_, d_r2_,grid_.p_tmp_.size_);
-           double sum;
-           cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-           printf("y sum = %3.2e\n",sum);
-           cudaMemset(grid_.p_tmp_.data_,0,sizeof(double)*grid_.p_tmp_.size_);
-         */
 
         k_alpha_flux_thincwlic_z<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_z<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("2 alpha sum = %.7e\n",sum);
 
         k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("3 alpha sum = %.7e\n",sum);
 
     }else{
 
@@ -1510,20 +1500,12 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("1 alpha sum = %.7e\n",sum);
 
         k_alpha_flux_thincwlic_x<<<grid_dim_,block_dim_ >>>(grid_, dt);
         k_transport_alpha_x<<<grid_dim_, block_dim_>>>(grid_,dt);
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("2 alpha sum = %.7e\n",sum);
 
 
         k_alpha_flux_thincwlic_y<<<grid_dim_,block_dim_ >>>(grid_, dt);
@@ -1531,16 +1513,16 @@ void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
         /* == swap == */
         std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
 
-        /* debug */
-        cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
-        cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-        printf("3 alpha sum = %.7e\n",sum);
-
 
     }
 
 
     k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_);
+
+    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.alpha_.data_, d_r2_,grid_.alpha_.size_);
+    double sum;
+    cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+    printf("total alpha = %.7e\n",sum);
 
 
 }

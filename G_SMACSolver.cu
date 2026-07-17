@@ -14,50 +14,50 @@
 /* == face boundary related device functions ===*/
 /*===============================================*/
 
-static __device__ __forceinline__ double d_get_vx_xface(G_StaggeredGrid* grid,int ix,int iy, int iz){
+static __device__ __forceinline__ double d_get_vx_xface(G_StaggeredGrid grid,int ix,int iy, int iz){
 
-    unsigned char ftype = grid->f_xtype_(ix,iy,iz);
+    unsigned char ftype = grid.f_xtype_(ix,iy,iz);
 
     if(ftype == F_INTERIOR){
-        return grid->f_vx_(ix,iy,iz);
+        return grid.f_vx_(ix,iy,iz);
     }
 
     if(ftype == F_BOUNDARY){
-        int bid = grid->f_xbcid_(ix,iy,iz);
-        return grid->bc_.vx_(bid);
+        int bid = grid.f_xbcid_(ix,iy,iz);
+        return grid.bc_.vx_(bid);
     }
 
     return 0.;
 }
 
-static __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid* grid,int ix,int iy, int iz){
+static __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid grid,int ix,int iy, int iz){
 
-    unsigned char ftype = grid->f_ytype_(ix,iy,iz);
+    unsigned char ftype = grid.f_ytype_(ix,iy,iz);
 
     if(ftype == F_INTERIOR){
-        return grid->f_vy_(ix,iy,iz);
+        return grid.f_vy_(ix,iy,iz);
     }
 
     if(ftype == F_BOUNDARY){
-        int bid = grid->f_ybcid_(ix,iy,iz);
-        return grid->bc_.vy_(bid);
+        int bid = grid.f_ybcid_(ix,iy,iz);
+        return grid.bc_.vy_(bid);
     }
 
     return 0.;
 
 }
 
-static __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid *grid,int ix,int iy, int iz){
+static __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid grid,int ix,int iy, int iz){
 
-    unsigned char ftype = grid->f_ztype_(ix,iy,iz);
+    unsigned char ftype = grid.f_ztype_(ix,iy,iz);
 
     if(ftype == F_INTERIOR){
-        return grid->f_vz_(ix,iy,iz);
+        return grid.f_vz_(ix,iy,iz);
     }
 
     if(ftype == F_BOUNDARY){
-        int bid = grid->f_zbcid_(ix,iy,iz);
-        return grid->bc_.vz_(bid);
+        int bid = grid.f_zbcid_(ix,iy,iz);
+        return grid.bc_.vz_(bid);
     }
 
     return 0.;
@@ -66,13 +66,13 @@ static __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid *grid,in
 
 
 __device__ __forceinline__
-double d_get_vx_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
-    double vx_inside = grid->f_vx_(ix,iy,iz);
+double d_get_vx_ydir(G_StaggeredGrid grid,int ix,int iy,int iz,int sy){
+    double vx_inside = grid.f_vx_(ix,iy,iz);
 
     int iy2 = iy + sy;
 
-    if (grid->f_xtype_(ix,iy2,iz) == F_INTERIOR) {
-        return grid->f_vx_(ix,iy2,iz);
+    if (grid.f_xtype_(ix,iy2,iz) == F_INTERIOR) {
+        return grid.f_vx_(ix,iy2,iz);
     }
 
     int iyf = sy > 0 ? iy + 1 : iy;
@@ -80,16 +80,16 @@ double d_get_vx_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
     double vx_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_ytype_(ix,iyf,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_ybcid_(ix,iyf,iz);
+    if (grid.f_ytype_(ix,iyf,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_ybcid_(ix,iyf,iz);
         vx_wall += bc.vx_(bid);
         count++;
     }
 
-    if (grid->f_ytype_(ix-1,iyf,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_ybcid_(ix-1,iyf,iz);
+    if (grid.f_ytype_(ix-1,iyf,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_ybcid_(ix-1,iyf,iz);
         vx_wall += bc.vx_(bid);
         count++;
     }
@@ -99,7 +99,7 @@ double d_get_vx_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
         vx_wall /= (double)count;
     }
 
-    unsigned char bid = grid->f_ybcid_(ix,iyf,iz);
+    unsigned char bid = grid.f_ybcid_(ix,iyf,iz);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -112,13 +112,13 @@ double d_get_vx_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
 }
 
 __device__ __forceinline__
-double d_get_vx_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
-    double vx_inside = grid->f_vx_(ix,iy,iz);
+double d_get_vx_zdir(G_StaggeredGrid grid,int ix,int iy,int iz,int sz){
+    double vx_inside = grid.f_vx_(ix,iy,iz);
 
     int iz2 = iz + sz;
 
-    if (grid->f_xtype_(ix,iy,iz2) == F_INTERIOR) {
-        return grid->f_vx_(ix,iy,iz2);
+    if (grid.f_xtype_(ix,iy,iz2) == F_INTERIOR) {
+        return grid.f_vx_(ix,iy,iz2);
     }
 
     int izf = sz > 0 ? iz + 1 : iz;
@@ -126,17 +126,17 @@ double d_get_vx_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
     double vx_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_ztype_(ix,iy,izf) == F_BOUNDARY) {
-        unsigned char bid = grid->f_zbcid_(ix,iy,izf);
+    if (grid.f_ztype_(ix,iy,izf) == F_BOUNDARY) {
+        unsigned char bid = grid.f_zbcid_(ix,iy,izf);
 
         vx_wall += bc.vx_(bid);
         count++;
     }
 
-    if (grid->f_ztype_(ix-1,iy,izf) == F_BOUNDARY) {
-        unsigned char bid = grid->f_zbcid_(ix-1,iy,izf);
+    if (grid.f_ztype_(ix-1,iy,izf) == F_BOUNDARY) {
+        unsigned char bid = grid.f_zbcid_(ix-1,iy,izf);
         vx_wall += bc.vx_(bid);
         count++;
     }
@@ -145,7 +145,7 @@ double d_get_vx_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
         vx_wall /= (double)count;
     }
 
-    unsigned char bid = grid->f_zbcid_(ix,iy,izf);
+    unsigned char bid = grid.f_zbcid_(ix,iy,izf);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -157,13 +157,13 @@ double d_get_vx_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
 }
 
 __device__ __forceinline__
-double d_get_vy_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
-    double vy_inside = grid->f_vy_(ix,iy,iz);
+double d_get_vy_xdir(G_StaggeredGrid grid,int ix,int iy,int iz,int sx){
+    double vy_inside = grid.f_vy_(ix,iy,iz);
 
     int ix2 = ix + sx;
 
-    if (grid->f_ytype_(ix2,iy,iz) == F_INTERIOR) {
-        return grid->f_vy_(ix2,iy,iz);
+    if (grid.f_ytype_(ix2,iy,iz) == F_INTERIOR) {
+        return grid.f_vy_(ix2,iy,iz);
     }
 
     int ixf = sx > 0 ? ix + 1 : ix;
@@ -171,17 +171,17 @@ double d_get_vy_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
     double vy_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_xtype_(ixf,iy,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
+    if (grid.f_xtype_(ixf,iy,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
 
         vy_wall += bc.vy_(bid);
         count++;
     }
 
-    if (grid->f_xtype_(ixf,iy-1,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_xbcid_(ixf,iy-1,iz);
+    if (grid.f_xtype_(ixf,iy-1,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_xbcid_(ixf,iy-1,iz);
         vy_wall += bc.vy_(bid);
         count++;
     }
@@ -190,7 +190,7 @@ double d_get_vy_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
         vy_wall /= (double)count;
     }
 
-    unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
+    unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -202,13 +202,13 @@ double d_get_vy_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
 }
 
 __device__ __forceinline__
-double d_get_vy_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
-    double vy_inside = grid->f_vy_(ix,iy,iz);
+double d_get_vy_zdir(G_StaggeredGrid grid,int ix,int iy,int iz,int sz){
+    double vy_inside = grid.f_vy_(ix,iy,iz);
 
     int iz2 = iz + sz;
 
-    if (grid->f_ytype_(ix,iy,iz2) == F_INTERIOR) {
-        return grid->f_vy_(ix,iy,iz2);
+    if (grid.f_ytype_(ix,iy,iz2) == F_INTERIOR) {
+        return grid.f_vy_(ix,iy,iz2);
     }
 
     int izf = sz > 0 ? iz + 1 : iz;
@@ -216,17 +216,17 @@ double d_get_vy_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
     double vy_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_ztype_(ix,iy,izf) == F_BOUNDARY) {
-        unsigned char bid = grid->f_zbcid_(ix,iy,izf);
+    if (grid.f_ztype_(ix,iy,izf) == F_BOUNDARY) {
+        unsigned char bid = grid.f_zbcid_(ix,iy,izf);
 
         vy_wall += bc.vy_(bid);
         count++;
     }
 
-    if (grid->f_ztype_(ix,iy-1,izf) == F_BOUNDARY) {
-        unsigned char bid = grid->f_zbcid_(ix,iy-1,izf);
+    if (grid.f_ztype_(ix,iy-1,izf) == F_BOUNDARY) {
+        unsigned char bid = grid.f_zbcid_(ix,iy-1,izf);
         vy_wall += bc.vy_(bid);
         count++;
     }
@@ -235,7 +235,7 @@ double d_get_vy_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
         vy_wall /= (double)count;
     }
 
-    unsigned char bid = grid->f_zbcid_(ix,iy,izf);
+    unsigned char bid = grid.f_zbcid_(ix,iy,izf);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -247,13 +247,13 @@ double d_get_vy_zdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sz){
 }
 
 __device__ __forceinline__
-double d_get_vz_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
-    double vz_inside = grid->f_vz_(ix,iy,iz);
+double d_get_vz_xdir(G_StaggeredGrid grid,int ix,int iy,int iz,int sx){
+    double vz_inside = grid.f_vz_(ix,iy,iz);
 
     int ix2 = ix + sx;
 
-    if (grid->f_ztype_(ix2,iy,iz) == F_INTERIOR) {
-        return grid->f_vz_(ix2,iy,iz);
+    if (grid.f_ztype_(ix2,iy,iz) == F_INTERIOR) {
+        return grid.f_vz_(ix2,iy,iz);
     }
 
     int ixf = sx > 0 ? ix + 1 : ix;
@@ -261,17 +261,17 @@ double d_get_vz_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
     double vz_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_xtype_(ixf,iy,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
+    if (grid.f_xtype_(ixf,iy,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
 
         vz_wall += bc.vz_(bid);
         count++;
     }
 
-    if (grid->f_xtype_(ixf,iy,iz-1) == F_BOUNDARY) {
-        unsigned char bid = grid->f_xbcid_(ixf,iy,iz-1);
+    if (grid.f_xtype_(ixf,iy,iz-1) == F_BOUNDARY) {
+        unsigned char bid = grid.f_xbcid_(ixf,iy,iz-1);
         vz_wall += bc.vz_(bid);
         count++;
     }
@@ -280,7 +280,7 @@ double d_get_vz_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
         vz_wall /= (double)count;
     }
 
-    unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
+    unsigned char bid = grid.f_xbcid_(ixf,iy,iz);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -291,13 +291,13 @@ double d_get_vz_xdir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sx){
 }
 
 __device__ __forceinline__
-double d_get_vz_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
-    double vz_inside = grid->f_vz_(ix,iy,iz);
+double d_get_vz_ydir(G_StaggeredGrid grid,int ix,int iy,int iz,int sy){
+    double vz_inside = grid.f_vz_(ix,iy,iz);
 
     int iy2 = iy + sy;
 
-    if (grid->f_ztype_(ix,iy2,iz) == F_INTERIOR) {
-        return grid->f_vz_(ix,iy2,iz);
+    if (grid.f_ztype_(ix,iy2,iz) == F_INTERIOR) {
+        return grid.f_vz_(ix,iy2,iz);
     }
 
     int iyf = sy > 0 ? iy + 1 : iy;
@@ -305,17 +305,17 @@ double d_get_vz_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
     double vz_wall = 0.0;
     int count = 0;
 
-    G_BoundaryCondition &bc=grid->bc_;
+    G_BoundaryCondition &bc=grid.bc_;
 
-    if (grid->f_ytype_(ix,iyf,iz) == F_BOUNDARY) {
-        unsigned char bid = grid->f_ybcid_(ix,iyf,iz);
+    if (grid.f_ytype_(ix,iyf,iz) == F_BOUNDARY) {
+        unsigned char bid = grid.f_ybcid_(ix,iyf,iz);
 
         vz_wall += bc.vz_(bid);
         count++;
     }
 
-    if (grid->f_ytype_(ix,iyf,iz-1) == F_BOUNDARY) {
-        unsigned char bid = grid->f_ybcid_(ix,iyf,iz-1);
+    if (grid.f_ytype_(ix,iyf,iz-1) == F_BOUNDARY) {
+        unsigned char bid = grid.f_ybcid_(ix,iyf,iz-1);
         vz_wall += bc.vz_(bid);
         count++;
     }
@@ -324,7 +324,7 @@ double d_get_vz_ydir(G_StaggeredGrid *grid,int ix,int iy,int iz,int sy){
         vz_wall /= (double)count;
     }
 
-    unsigned char bid =grid->f_ybcid_(ix,iyf,iz);
+    unsigned char bid =grid.f_ybcid_(ix,iyf,iz);
     unsigned char btype = bc.bcType_(bid);
 
     if(btype == BC_SLIP){
@@ -377,46 +377,46 @@ __device__ __forceinline__ double d_minmod(double deltap, double deltam){
 
 }
 
-static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_x(SMACSolver solv,G_StaggeredGrid* grid){
+static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_x(SMACSolver solv,G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
 
-    int Nx = grid->Nx_;
-    int Ny = grid->Ny_;
-    int Nz = grid->Nz_;
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    double inv_dx = grid->inv_dx_;
-    double inv_dy = grid->inv_dy_;
-    double inv_dz = grid->inv_dz_;
-    double inv_dx2 = grid->inv_dx2_;
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+    double inv_dx2 = grid.inv_dx2_;
     double dt= solv.dt_;
 
     double gx = solv.gx_;
 
 
-    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  p = grid.p_;
 
-    MyArray<double,3>  mfx = grid->f_mfx_;
-    MyArray<double,3>  mfy = grid->f_mfy_;
-    MyArray<double,3>  mfz = grid->f_mfz_;
+    MyArray<double,3>  mfx = grid.f_mfx_;
+    MyArray<double,3>  mfy = grid.f_mfy_;
+    MyArray<double,3>  mfz = grid.f_mfz_;
 
-    MyArray<double,3>  rho_old = grid->rho_old_;
-    MyArray<double,3>  mu = grid->mu_;
+    MyArray<double,3>  rho_old = grid.rho_old_;
+    MyArray<double,3>  mu = grid.mu_;
 
-    MyArray<double,3>  f_muy = grid->f_muy_;
-    MyArray<double,3>  f_muz = grid->f_muz_;
+    MyArray<double,3>  f_muy = grid.f_muy_;
+    MyArray<double,3>  f_muz = grid.f_muz_;
 
-    MyArray<double,3>  vx = grid->f_vx_;
+    MyArray<double,3>  vx = grid.f_vx_;
 
-    MyArray<double,3>  f_bx = grid->f_bx_;
+    MyArray<double,3>  f_bx = grid.f_bx_;
 
 
-    MyArray<double,3>  vx_star = grid->f_vx_star_;
+    MyArray<double,3>  vx_star = grid.f_vx_star_;
 
-    MyArray<unsigned char,3>& f_xtype = grid->f_xtype_;
+    MyArray<unsigned char,3>& f_xtype = grid.f_xtype_;
 
     /* == check cell types == */
 
@@ -674,46 +674,46 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_x(SMACSolver solv
     }
 }
 
-static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_y(SMACSolver solv,G_StaggeredGrid* grid){
+static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_y(SMACSolver solv,G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
 
-    int Nx = grid->Nx_;
-    int Ny = grid->Ny_;
-    int Nz = grid->Nz_;
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    double inv_dx = grid->inv_dx_;
-    double inv_dy = grid->inv_dy_;
-    double inv_dz = grid->inv_dz_;
-    double inv_dy2 = grid->inv_dy2_;
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+    double inv_dy2 = grid.inv_dy2_;
     double dt= solv.dt_;
 
     double gy = solv.gy_;
 
 
-    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  p = grid.p_;
 
-    MyArray<double,3>  mfx = grid->f_mfx_;
-    MyArray<double,3>  mfy = grid->f_mfy_;
-    MyArray<double,3>  mfz = grid->f_mfz_;
+    MyArray<double,3>  mfx = grid.f_mfx_;
+    MyArray<double,3>  mfy = grid.f_mfy_;
+    MyArray<double,3>  mfz = grid.f_mfz_;
 
-    MyArray<double,3>  rho_old = grid->rho_old_;
-    MyArray<double,3>  mu = grid->mu_;
+    MyArray<double,3>  rho_old = grid.rho_old_;
+    MyArray<double,3>  mu = grid.mu_;
 
-    MyArray<double,3>  f_mux = grid->f_mux_;
-    MyArray<double,3>  f_muz = grid->f_muz_;
+    MyArray<double,3>  f_mux = grid.f_mux_;
+    MyArray<double,3>  f_muz = grid.f_muz_;
 
-    MyArray<double,3>  vy = grid->f_vy_;
+    MyArray<double,3>  vy = grid.f_vy_;
 
-    MyArray<double,3>  f_by = grid->f_by_;
+    MyArray<double,3>  f_by = grid.f_by_;
 
 
-    MyArray<double,3>  vy_star = grid->f_vy_star_;
+    MyArray<double,3>  vy_star = grid.f_vy_star_;
 
-    MyArray<unsigned char,3>& f_ytype = grid->f_ytype_;
+    MyArray<unsigned char,3>& f_ytype = grid.f_ytype_;
 
     /* == check cell types == */
     /* == vy == */
@@ -953,46 +953,46 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_y(SMACSolver solv
 }
 
 
-static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_z(SMACSolver solv,G_StaggeredGrid* grid){
+static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_z(SMACSolver solv,G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
 
-    int Nx = grid->Nx_;
-    int Ny = grid->Ny_;
-    int Nz = grid->Nz_;
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    double inv_dx = grid->inv_dx_;
-    double inv_dy = grid->inv_dy_;
-    double inv_dz = grid->inv_dz_;
-    double inv_dz2 = grid->inv_dz2_;
+    double inv_dx = grid.inv_dx_;
+    double inv_dy = grid.inv_dy_;
+    double inv_dz = grid.inv_dz_;
+    double inv_dz2 = grid.inv_dz2_;
     double dt= solv.dt_;
 
     double gz = solv.gz_;
 
 
-    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  p = grid.p_;
 
-    MyArray<double,3>  mfx = grid->f_mfx_;
-    MyArray<double,3>  mfy = grid->f_mfy_;
-    MyArray<double,3>  mfz = grid->f_mfz_;
+    MyArray<double,3>  mfx = grid.f_mfx_;
+    MyArray<double,3>  mfy = grid.f_mfy_;
+    MyArray<double,3>  mfz = grid.f_mfz_;
 
-    MyArray<double,3>  rho_old = grid->rho_old_;
-    MyArray<double,3>  mu = grid->mu_;
+    MyArray<double,3>  rho_old = grid.rho_old_;
+    MyArray<double,3>  mu = grid.mu_;
 
-    MyArray<double,3>  f_mux = grid->f_mux_;
-    MyArray<double,3>  f_muy = grid->f_muy_;
+    MyArray<double,3>  f_mux = grid.f_mux_;
+    MyArray<double,3>  f_muy = grid.f_muy_;
 
-    MyArray<double,3>  vz = grid->f_vz_;
+    MyArray<double,3>  vz = grid.f_vz_;
 
-    MyArray<double,3>  f_bz = grid->f_bz_;
+    MyArray<double,3>  f_bz = grid.f_bz_;
 
 
-    MyArray<double,3>  vz_star = grid->f_vz_star_;
+    MyArray<double,3>  vz_star = grid.f_vz_star_;
 
-    MyArray<unsigned char,3>& f_ztype = grid->f_ztype_;
+    MyArray<unsigned char,3>& f_ztype = grid.f_ztype_;
 
     /* == check cell types == */
 
@@ -1239,9 +1239,9 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_z(SMACSolver solv
 
 
 void G_SMACSolver::get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv){
-    k_get_vof_vstar_rhouu_upwind_consistent_x<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
-    k_get_vof_vstar_rhouu_upwind_consistent_y<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
-    k_get_vof_vstar_rhouu_upwind_consistent_z<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+    k_get_vof_vstar_rhouu_upwind_consistent_x<<<grid_dim_,block_dim_>>>(solv,grid_);
+    k_get_vof_vstar_rhouu_upwind_consistent_y<<<grid_dim_,block_dim_>>>(solv,grid_);
+    k_get_vof_vstar_rhouu_upwind_consistent_z<<<grid_dim_,block_dim_>>>(solv,grid_);
 
 }
 

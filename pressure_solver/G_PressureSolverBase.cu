@@ -11,6 +11,17 @@ __global__ void base_k_mult_elementwise_array_to_tmp(MyArray<double,3> b,MyArray
     result(ix,iy,iz)=b(ix+1,iy+1,iz+1)*q(ix+1,iy+1,iz+1);
 }
 
+__global__ void base_k_copy_abs_to_tmp(MyArray<double,3> q,MyArray<double,3> tmp, int Nx, int Ny, int Nz){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    if (ix >=Nx || iy >= Ny || iz >= Nz) return;
+
+
+    tmp(ix,iy,iz)= fabs(q(ix+1,iy+1,iz+1));
+}
+
 __global__ void base_k_copy_to_tmp(MyArray<double,3> q,MyArray<double,3> tmp, int Nx, int Ny, int Nz){
     int ix = blockIdx.x*blockDim.x + threadIdx.x;
     int iy = blockIdx.y*blockDim.y + threadIdx.y;

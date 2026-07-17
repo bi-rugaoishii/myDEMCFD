@@ -98,6 +98,7 @@ static __global__ void k_make_pAp(G_StaggeredGrid grid_){
 
     pcg_tmp(ix-1,iy-1,iz-1)= dir(ix,iy,iz)* Ap_val;
 }
+
 static __global__ void k_build_vof_poisson_A(G_StaggeredGrid grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
@@ -499,7 +500,7 @@ void G_PCGSolver::solve(G_SMACSolver& solv){
             /* get max residual */
 
             //k_get_r2_to_tmp<<<grid_dim_,block_dim_>>>(grid_);
-            base_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(grid_.pcg_r_,grid_.pcg_tmp_,Nx,Ny,Nz);
+            base_k_copy_abs_to_tmp<<<grid_dim_,block_dim_>>>(grid_.pcg_r_,grid_.pcg_tmp_,Nx,Ny,Nz);
             cub::DeviceReduce::Max(cub_temp_storage_, cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,d_dot_,Nx*Ny*Nz);
 
             double max_divu;

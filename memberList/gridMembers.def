@@ -10,6 +10,7 @@ MEMBER(double, rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
 MEMBER(double, rho_old_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
 MEMBER(double, inv_rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, correct_coeff_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 
 MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
