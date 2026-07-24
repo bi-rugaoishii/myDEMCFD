@@ -223,6 +223,7 @@ int main(){
         g_solv.set_block_grid(Nx,Ny,Nz);
 
         g_solv.make_cylinder_ibm(0.3,0.,0.5,0.1);
+        g_solv.set_solid_cell();
     }
 
 
