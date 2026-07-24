@@ -24,9 +24,6 @@
 #define GPU_ON 1
 
 
-__global__ void test_memory(G_StaggeredGrid *grid){
-
-}
 /*
    ============================================================
    メイン
@@ -45,16 +42,16 @@ int main(){
     }
     const char* outdir ="results";
 
-    /*
     int Nx=128;
     int Ny=128;
     int Nz=1;
-    */
 
 
+    /*
     int Nx=96;
     int Ny=32;
     int Nz=96;
+    */
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -71,15 +68,15 @@ int main(){
     //double mu_g = nu*rho_g;
 
 
-    /*
     double sizex=0.584;
     double sizey=0.584;
     double sizez=0.584;
-    */
 
+    /*
     double sizex=0.04;
     double sizey=0.016;
     double sizez=0.04;
+    */
 
 
     double dx=sizex/(double)Nx;
@@ -134,18 +131,20 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    //solv.grid_.place_vof(0.,0.1461,0.,0.292,0.,1,1.0);
+    solv.grid_.place_vof(0.,0.1461,0.,0.292,0.,1,1.0);
     //solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
     //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
+
+
 
 
 
     /*for zalesak test*/
     //solv.initialize_zalesak_disk();
 
-    solv.set_sphere();
+    //solv.set_sphere();
     //solv.set_sphere_sub_voxel();
-   solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
+   //solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
 
    /*
     solv.set_sphere_zalesak();
@@ -164,14 +163,14 @@ int main(){
     float ms;
     h_start = omp_get_wtime();
 
-    double cfl_thresh = 0.2;
+    double cfl_thresh = 0.4;
     double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = 0.0005;
-    double endTime = 0.02;
-    double max_dt = 5e-5;
-    double initial_dt = 1e-6;
+    double outfreqtime = 0.05;
+    double endTime = 10.0;
+    double max_dt = 1e-2;
+    double initial_dt = 1e-5;
 
     /* == set cfd time related parameters ==*/
     /*
@@ -222,6 +221,8 @@ int main(){
         printf("Copying data done\n");
 
         g_solv.set_block_grid(Nx,Ny,Nz);
+
+        g_solv.make_cylinder_ibm(0.25,0.,0.5,0.1);
     }
 
 

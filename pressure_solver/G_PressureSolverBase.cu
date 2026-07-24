@@ -46,33 +46,33 @@ __global__ void base_k_divide(double* const num,const double div){
     num[0]/=div;
 }
 
-__global__ void base_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt){
+__global__ void base_k_make_poisson_rhs(G_StaggeredGrid* grid,double inv_dt){
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
-    int Nx=grid_.Nx_;
-    int Ny=grid_.Ny_;
-    int Nz=grid_.Nz_;
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
 
-    double inv_dx= grid_.inv_dx_;
-    double inv_dy= grid_.inv_dy_;
-    double inv_dz= grid_.inv_dz_;
+    double inv_dx= grid->inv_dx_;
+    double inv_dy= grid->inv_dy_;
+    double inv_dz= grid->inv_dz_;
 
-    const MyArray<double,3>& f_bx = grid_.f_bx_;
-    const MyArray<double,3>& f_by = grid_.f_by_;
-    const MyArray<double,3>& f_bz = grid_.f_bz_;
+    const MyArray<double,3>& f_bx = grid->f_bx_;
+    const MyArray<double,3>& f_by = grid->f_by_;
+    const MyArray<double,3>& f_bz = grid->f_bz_;
 
-    const MyArray<double,3>& f_sx = grid_.f_sx_;
-    const MyArray<double,3>& f_sy = grid_.f_sy_;
-    const MyArray<double,3>& f_sz = grid_.f_sz_;
+    const MyArray<double,3>& f_sx = grid->f_sx_;
+    const MyArray<double,3>& f_sy = grid->f_sy_;
+    const MyArray<double,3>& f_sz = grid->f_sz_;
 
 
     if (iz>= Nz+1 ||  iy >=Ny+1 || ix >= Nx+1) return;
-    const MyArray<double,3>& vx_star=grid_.f_vx_star_;
-    const MyArray<double,3>& vy_star=grid_.f_vy_star_;
-    const MyArray<double,3>& vz_star=grid_.f_vz_star_;
-    MyArray<double,3>& rhs=grid_.rhs_;
-    MyArray<unsigned char,3> ct=grid_.celltype_;
+    const MyArray<double,3>& vx_star=grid->f_vx_star_;
+    const MyArray<double,3>& vy_star=grid->f_vy_star_;
+    const MyArray<double,3>& vz_star=grid->f_vz_star_;
+    MyArray<double,3>& rhs=grid->rhs_;
+    MyArray<unsigned char,3> ct=grid->celltype_;
 
     if(ct(ix,iy,iz)!= C_INTERIOR){
         rhs(ix,iy,iz)=0.;
@@ -120,15 +120,15 @@ __global__ void base_k_add_scalar_to_array(const double a, const double* const b
     q(ix,iy,iz)+=a*b[0];
 }
 
-void G_PressureSolverBase::subtract_cell_mean(G_StaggeredGrid& grid_,MyArray<double,3> p){
-    int Nx = grid_.Nx_;
-    int Ny = grid_.Ny_;
-    int Nz = grid_.Nz_;
+void G_PressureSolverBase::subtract_cell_mean(G_StaggeredGrid& grid,MyArray<double,3> p){
+    int Nx = grid.Nx_;
+    int Ny = grid.Ny_;
+    int Nz = grid.Nz_;
 
 
     double *const sum = &d_pcg_scalars_[SCA_TMP];
-    base_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(p,grid_.pcg_tmp_,Nx,Ny,Nz);
-    cub::DeviceReduce::Sum(cub_temp_storage_,cub_temp_storage_bytes_,grid_.pcg_tmp_.data_,sum,(Nx)*(Ny)*(Nz));
+    base_k_copy_to_tmp<<<grid_dim_,block_dim_>>>(p,grid.pcg_tmp_,Nx,Ny,Nz);
+    cub::DeviceReduce::Sum(cub_temp_storage_,cub_temp_storage_bytes_,grid.pcg_tmp_.data_,sum,(Nx)*(Ny)*(Nz));
 
     double size_inv = 1./(double)(Nx*Ny*Nz);
 

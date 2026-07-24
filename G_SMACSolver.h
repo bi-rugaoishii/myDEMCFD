@@ -101,6 +101,10 @@ struct G_SMACSolver{
     double* d_r2_;
     double* d_dot_;
 
+    /* == IBM related == */
+    void make_cylinder_ibm(double xc, double yc, double zc, double r);
+    void set_solid_cell();
+
     /* == pressure solver == */
     G_PressureSolverBase* pressure_solver_;
     

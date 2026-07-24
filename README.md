@@ -4,7 +4,7 @@ This repository contains a custom CFD/VOF solver under active development.
 The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface-tension modeling.
 The solver has now been extended to 3D free-surface simulations such as water crown and milk crown problems.
 
-The current priority is reducing CUDA kernel argument size by switching large grid arguments from value passing to pointer passing. After that, the main focus is JSON-based simulation configuration, RDF-based curvature calculation, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
+The current priority is JSON-based simulation configuration, RDF-based curvature calculation, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
 
 ---
 
@@ -24,6 +24,7 @@ The current priority is reducing CUDA kernel argument size by switching large gr
 - [x] GMG-preconditioned pressure solver
 - [x] Direction-selective / non-uniform GMG coarsening and validation
 - [x] Full GPU port and PCG kernel fusion
+- [x] Pointer-based CUDA kernel argument passing with grid self pointer
 - [x] CFL-based variable time step
 - [x] Alpha substepping for VOF transport
 - [x] Surface tension implementation
@@ -36,7 +37,6 @@ The current priority is reducing CUDA kernel argument size by switching large gr
 
 ### Main Remaining Work
 
-- [ ] Switch large CUDA kernel arguments from value passing to pointer passing
 - [ ] Read calculation conditions from a JSON configuration file
 - [ ] RDF-based curvature calculation for surface tension
 - [ ] Embedded boundary method
@@ -54,17 +54,16 @@ The current priority is reducing CUDA kernel argument size by switching large gr
 
 # Short-Term Priorities
 
-1. Switch large CUDA kernel arguments from value passing to pointer passing.
-2. Add JSON configuration-file loading for calculation conditions.
-3. Add RDF-based curvature calculation for surface tension.
-4. Add embedded-boundary support using cell/face attributes.
-5. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
-6. Clean up `SolverConfig`, parameter ownership, fixed/CFL time-step switching, and scheme selection.
-7. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
-8. Validate the stress-divergence viscous term for constant and variable viscosity cases.
-9. Validate and improve surface tension using static droplet, Laplace pressure, and spurious-current tests.
-10. Add additional benchmark cases.
-11. Add restart, binary output, and long-running simulation logging.
+1. Add JSON configuration-file loading for calculation conditions.
+2. Add RDF-based curvature calculation for surface tension.
+3. Add embedded-boundary support using cell/face attributes, including STL geometry support.
+4. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
+5. Clean up `SolverConfig`, parameter ownership, fixed/CFL time-step switching, and scheme selection.
+6. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
+7. Validate the stress-divergence viscous term for constant and variable viscosity cases.
+8. Validate and improve surface tension using static droplet, Laplace pressure, and spurious-current tests.
+9. Add additional benchmark cases.
+10. Add restart, binary output, and long-running simulation logging.
 
 ---
 
@@ -73,31 +72,7 @@ The current priority is reducing CUDA kernel argument size by switching large gr
 The sections below follow the same order as `Main Remaining Work`.
 Completed items are kept later in `Completed Major Work`, not as active phases.
 
-## 1. Switch Large CUDA Kernel Arguments from Value Passing to Pointer Passing
-
-The grid structure has grown as the solver moved to 3D and added boundary flags, stress-divergence terms, GMG data, and additional VOF/surface-tension fields. Passing `G_StaggeredGrid` by value to every CUDA kernel is starting to exceed the kernel argument-size limit.
-
-TODO:
-
-- [ ] Change large kernel arguments from value passing to pointer passing
-- [ ] Add a device-side self pointer such as `G_StaggeredGrid* d_self` to the host-side grid object
-- [ ] Update kernels to receive `G_StaggeredGrid* grid` or a lightweight pointer wrapper
-- [ ] Keep small, frequently changed scalar arguments separate when useful
-- [ ] Validate that results are identical after the pointer-passing transition
-
-Recommended direction:
-
-```cpp
-// Before
-kernel<<<grid_dim, block_dim>>>(grid, dt);
-
-// After
-kernel<<<grid_dim, block_dim>>>(grid.d_self_, dt);
-```
-
----
-
-## 2. JSON Configuration File for Calculation Conditions
+## 1. JSON Configuration File for Calculation Conditions
 
 Add a JSON configuration file so simulation conditions can be changed without recompiling. This should cover grid size, domain size, time-step settings, material properties, solver options, output settings, and numerical scheme choices.
 
@@ -110,7 +85,7 @@ TODO:
 
 ---
 
-## 3. RDF-Based Curvature Calculation for Surface Tension
+## 2. RDF-Based Curvature Calculation for Surface Tension
 
 Add RDF-based curvature calculation to improve curvature quality and reduce spurious currents compared with direct alpha-gradient curvature.
 
@@ -123,7 +98,7 @@ TODO:
 
 ---
 
-## 4. Embedded Boundary Method
+## 3. Embedded Boundary Method
 
 Add embedded-boundary support on the structured grid. The existing cell/face attribute system should be reused so that wall handling, Poisson stencils, VOF transport, and viscous terms remain centralized.
 
@@ -136,7 +111,7 @@ TODO:
 
 ---
 
-## 5. 3D Validation and Robustness Checks
+## 4. 3D Validation and Robustness Checks
 
 The solver has been extended from 2D to 3D. The remaining work is validation, boundary robustness, memory/output design, and preparation for water crown / milk crown simulations.
 
@@ -150,7 +125,7 @@ TODO:
 
 ---
 
-## 6. Solver Configuration Cleanup
+## 5. Solver Configuration Cleanup
 
 Clean up solver configuration and scalar parameter ownership so the growing 3D solver remains maintainable.
 
@@ -159,7 +134,7 @@ TODO:
 - [ ] Move numerical options into `SolverConfig`
 - [ ] Connect JSON-loaded settings to `SolverConfig` and `MaterialConfig`
 - [ ] Clarify ownership of grid spacing, time variables, material properties, solver tolerances, and scheme parameters
-- [ ] Decide how scalar parameters are passed to GPU kernels after the pointer-passing transition
+- [ ] Decide how scalar parameters should be passed alongside the pointer-based grid argument
 
 Recommended organization:
 
@@ -179,7 +154,7 @@ MaterialConfig:
 
 ---
 
-## 7. Fixed-dt / Variable-dt Mode Switching
+## 6. Fixed-dt / Variable-dt Mode Switching
 
 CFL-based variable time stepping is implemented, but fixed time step mode should remain available for debugging, reproducibility, and controlled comparisons.
 
@@ -192,7 +167,7 @@ TODO:
 
 ---
 
-## 8. Numerical Scheme Switching
+## 7. Numerical Scheme Switching
 
 Organize numerical method selection so schemes can be switched cleanly without scattering conditionals through the code.
 
@@ -205,7 +180,7 @@ TODO:
 
 ---
 
-## 9. Pressure-Solver Validation and Benchmarking
+## 8. Pressure-Solver Validation and Benchmarking
 
 GPU PCG, standalone GMG, GMG-preconditioned pressure solvers, and direction-selective GMG coarsening are implemented. The remaining work is validation, tuning, and choosing the default.
 
@@ -225,7 +200,7 @@ beta = dt / rho
 
 ---
 
-## 10. Stress-Divergence Viscous-Term Validation
+## 9. Stress-Divergence Viscous-Term Validation
 
 The variable-viscosity viscous term has been replaced with the stress-divergence form. The remaining work is validation and tuning near interfaces and boundaries.
 
@@ -237,7 +212,7 @@ TODO:
 
 ---
 
-## 11. Surface-Tension Validation and Improvement
+## 10. Surface-Tension Validation and Improvement
 
 Surface tension is implemented. The next work is validation, curvature improvement, and spurious-current reduction.
 
@@ -257,7 +232,7 @@ Laplace pressure targets:
 
 ---
 
-## 12. Additional Benchmark Cases
+## 11. Additional Benchmark Cases
 
 Add benchmark cases that are useful for free-surface, high-density-ratio, and surface-tension behavior.
 
@@ -272,7 +247,7 @@ TODO:
 
 ---
 
-## 13. Restart, Binary Output, and Long-Running Simulation Utilities
+## 12. Restart, Binary Output, and Long-Running Simulation Utilities
 
 Large 3D simulations need robust output, restart, and logging.
 
@@ -306,6 +281,7 @@ TODO:
 
 The following items are implemented and are kept here only as a compact history, not as active phases.
 
+- [x] Pointer-based CUDA kernel argument passing with grid self pointer
 - [x] Face/cell indexing cleanup and validation
 - [x] MUSCL-TVD momentum advection with van Leer and minmod limiters
 - [x] Direction-selective / non-uniform GMG coarsening and validation
@@ -321,6 +297,7 @@ The following items are implemented and are kept here only as a compact history,
 ```text
 Already implemented:
     GPU solver
+    pointer-based CUDA kernel argument passing with grid self pointer
     PCG kernel fusion
     WLIC
     flux-direction-based upwind / THINC / WLIC switching near boundaries
@@ -338,14 +315,12 @@ Already implemented:
     variable-viscosity stress-divergence viscous term
 
 Current priority:
-    switch large CUDA kernel arguments from value passing to pointer passing
     JSON-based calculation-condition setup
     RDF-based curvature calculation
     embedded boundary method
     validation and robustness of the 3D solver
 
 Main remaining work:
-    pointer-based CUDA kernel argument passing
     JSON configuration-file loading for calculation conditions
     RDF-based curvature calculation
     embedded boundary method

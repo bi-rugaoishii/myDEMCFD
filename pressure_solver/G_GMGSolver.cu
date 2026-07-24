@@ -188,27 +188,27 @@ static __global__ void k_get_res_levels(G_Levels levels){
 }
 
 
-static __global__ void k_get_res_general(G_StaggeredGrid grid, MyArray<double,3> p, MyArray<double,3>rhs){
+static __global__ void k_get_res_general(G_StaggeredGrid* grid, MyArray<double,3> p, MyArray<double,3>rhs){
    int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
 
-    int Nx=grid.Nx_;
-    int Ny=grid.Ny_;
-    int Nz=grid.Nz_;
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
 
-    MyArray<double,3> &residue = grid.residue_;
+    MyArray<double,3> &residue = grid->residue_;
 
     if (iy >=Ny+1 || ix >= Nx+1|| iz >=Nz+1) return;
 
 
-    double Axp = grid.Axp_(ix,iy,iz);
-    double Axm = grid.Axm_(ix,iy,iz);
-    double Ayp = grid.Ayp_(ix,iy,iz);
-    double Aym = grid.Aym_(ix,iy,iz);
-    double Azp = grid.Azp_(ix,iy,iz);
-    double Azm = grid.Azm_(ix,iy,iz);
-    double Adiag = grid.Adiag_(ix,iy,iz);
+    double Axp = grid->Axp_(ix,iy,iz);
+    double Axm = grid->Axm_(ix,iy,iz);
+    double Ayp = grid->Ayp_(ix,iy,iz);
+    double Aym = grid->Aym_(ix,iy,iz);
+    double Azp = grid->Azp_(ix,iy,iz);
+    double Azm = grid->Azm_(ix,iy,iz);
+    double Adiag = grid->Adiag_(ix,iy,iz);
 
     double p_c = p(ix,iy,iz);
     double p_xp = p(ix+1,iy,iz);
@@ -226,30 +226,30 @@ static __global__ void k_get_res_general(G_StaggeredGrid grid, MyArray<double,3>
 }
 
 
-static __global__ void k_get_res(G_StaggeredGrid grid){
+static __global__ void k_get_res(G_StaggeredGrid* grid){
    int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
 
-    int Nx=grid.Nx_;
-    int Ny=grid.Ny_;
-    int Nz=grid.Nz_;
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
 
-    const MyArray<double,3> &rhs = grid.rhs_;
-    MyArray<double,3> &residue = grid.residue_;
-    const MyArray<double,3>p= grid.p_;
+    const MyArray<double,3> &rhs = grid->rhs_;
+    MyArray<double,3> &residue = grid->residue_;
+    const MyArray<double,3>p= grid->p_;
 
     if (iy >=Ny+1 || ix >= Nx+1|| iz >=Nz+1) return;
 
 
 
-    double Axp = grid.Axp_(ix,iy,iz);
-    double Axm = grid.Axm_(ix,iy,iz);
-    double Ayp = grid.Ayp_(ix,iy,iz);
-    double Aym = grid.Aym_(ix,iy,iz);
-    double Azp = grid.Azp_(ix,iy,iz);
-    double Azm = grid.Azm_(ix,iy,iz);
-    double Adiag = grid.Adiag_(ix,iy,iz);
+    double Axp = grid->Axp_(ix,iy,iz);
+    double Axm = grid->Axm_(ix,iy,iz);
+    double Ayp = grid->Ayp_(ix,iy,iz);
+    double Aym = grid->Aym_(ix,iy,iz);
+    double Azp = grid->Azp_(ix,iy,iz);
+    double Azm = grid->Azm_(ix,iy,iz);
+    double Adiag = grid->Adiag_(ix,iy,iz);
 
     double p_c = p(ix,iy,iz);
     double p_xp = p(ix+1,iy,iz);
@@ -316,12 +316,12 @@ static __global__ void k_propagate_level0_to_array(G_Levels levels, MyArray<doub
 }  
 
 
-static __global__ void k_propagate_level0_to_grid(G_Levels levels, G_StaggeredGrid grid){
+static __global__ void k_propagate_level0_to_grid(G_Levels levels, G_StaggeredGrid* grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
-    MyArray<double,3>& fine_q = grid.p_;
+    MyArray<double,3>& fine_q = grid->p_;
     MyArray<double,3>& coarse_q = levels.q_;
 
     if (iy >=coarse_q.sizey_-1 || ix >= coarse_q.sizex_-1 || iz >= coarse_q.sizez_-1) return;
@@ -413,12 +413,12 @@ static __global__ void k_propagate_level_to_level(G_Levels levels, G_Levels fine
 //   }  
 // */
 //
-static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid grid, G_Levels levels){
+static __global__ void k_restrict_grid_to_level0(G_StaggeredGrid* grid, G_Levels levels){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
-    MyArray<double,3>& residue = grid.residue_;
+    MyArray<double,3>& residue = grid->residue_;
     MyArray<double,3>& coarse_rhs = levels.rhs_;
 
     if (iy >=coarse_rhs.sizey_-1 || ix >= coarse_rhs.sizex_-1 || iz >= coarse_rhs.sizez_-1) return;
@@ -569,20 +569,20 @@ static __global__ void k_create_level_coeffs(G_Levels levels, G_Levels fine_leve
 }
 
 
-static __global__ void k_create_level0_coeffs(G_StaggeredGrid grid,G_Levels levels){
+static __global__ void k_create_level0_coeffs(G_StaggeredGrid* grid,G_Levels levels){
     int ix = blockIdx.x*blockDim.x + threadIdx.x + 1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y + 1;
     int iz = blockIdx.z*blockDim.z + threadIdx.z + 1;
 
 
     MyArray<double,3>& f_bx= levels.f_bx_;
-    MyArray<double,3>& p_f_bx= grid.f_bx_;
+    MyArray<double,3>& p_f_bx= grid->f_bx_;
 
     MyArray<double,3>& f_by= levels.f_by_;
-    MyArray<double,3>& p_f_by= grid.f_by_;
+    MyArray<double,3>& p_f_by= grid->f_by_;
 
     MyArray<double,3>& f_bz= levels.f_bz_;
-    MyArray<double,3>& p_f_bz= grid.f_bz_;
+    MyArray<double,3>& p_f_bz= grid->f_bz_;
 
     bool is_x_coarse = levels.is_x_coarse_;
     bool is_y_coarse = levels.is_y_coarse_;
@@ -716,7 +716,7 @@ static __global__ void k_jacobi_level_iteration(G_Levels levels){
     p_tmp(ix,iy,iz)=(1.0-omega)*p(ix,iy,iz)+omega*(tmp_p+rhs(ix,iy,iz))*invAdiag;
 }
 
-static __global__ void k_jacobi_iteration_general(G_StaggeredGrid grid,MyArray<double,3> p, MyArray<double,3> rhs){
+static __global__ void k_jacobi_iteration_general(G_StaggeredGrid* grid,MyArray<double,3> p_tmp,MyArray<double,3> p, MyArray<double,3> rhs){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
@@ -724,21 +724,20 @@ static __global__ void k_jacobi_iteration_general(G_StaggeredGrid grid,MyArray<d
     double omega=0.6;
 
 
-    MyArray<double,3>& p_tmp=grid.p_tmp_;
 
-    int Nx = grid.Nx_;
-    int Ny = grid.Ny_;
-    int Nz = grid.Nz_;
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
 
     if (iy >=Ny+1 || ix >= Nx+1 || iz >= Nz+1) return;
 
-    double Axp = grid.Axp_(ix,iy,iz);
-    double Axm = grid.Axm_(ix,iy,iz);
-    double Ayp = grid.Ayp_(ix,iy,iz);
-    double Aym = grid.Aym_(ix,iy,iz);
-    double Azp = grid.Azp_(ix,iy,iz);
-    double Azm = grid.Azm_(ix,iy,iz);
-    double invAdiag = grid.invAdiag_(ix,iy,iz);
+    double Axp = grid->Axp_(ix,iy,iz);
+    double Axm = grid->Axm_(ix,iy,iz);
+    double Ayp = grid->Ayp_(ix,iy,iz);
+    double Aym = grid->Aym_(ix,iy,iz);
+    double Azp = grid->Azp_(ix,iy,iz);
+    double Azm = grid->Azm_(ix,iy,iz);
+    double invAdiag = grid->invAdiag_(ix,iy,iz);
 
     double tmp_p =Axp*p(ix+1,iy,iz)+Axm*p(ix-1,iy,iz)+Ayp*p(ix,iy+1,iz)+Aym*p(ix,iy-1,iz)+Azp*p(ix,iy,iz+1)+Azm*p(ix,iy,iz-1);
 
@@ -747,30 +746,30 @@ static __global__ void k_jacobi_iteration_general(G_StaggeredGrid grid,MyArray<d
 }
 
 
-static __global__ void k_jacobi_iteration(G_StaggeredGrid grid){
+static __global__ void k_jacobi_iteration(G_StaggeredGrid* grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
 
-    int Nx=grid.Nx_;
-    int Ny=grid.Ny_;
-    int Nz=grid.Nz_;
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
 
     double omega=0.6;
 
-    MyArray<double,3>& p=grid.p_;
-    MyArray<double,3>& p_tmp=grid.p_tmp_;
-    MyArray<double,3>& rhs=grid.rhs_;
+    MyArray<double,3>& p=grid->p_;
+    MyArray<double,3>& p_tmp=grid->p_tmp_;
+    MyArray<double,3>& rhs=grid->rhs_;
 
     if (iy >=Ny+1 || ix >= Nx+1 || iz >= Nz+1) return;
 
-    double Axp = grid.Axp_(ix,iy,iz);
-    double Axm = grid.Axm_(ix,iy,iz);
-    double Ayp = grid.Ayp_(ix,iy,iz);
-    double Aym = grid.Aym_(ix,iy,iz);
-    double Azp = grid.Azp_(ix,iy,iz);
-    double Azm = grid.Azm_(ix,iy,iz);
-    double invAdiag = grid.invAdiag_(ix,iy,iz);
+    double Axp = grid->Axp_(ix,iy,iz);
+    double Axm = grid->Axm_(ix,iy,iz);
+    double Ayp = grid->Ayp_(ix,iy,iz);
+    double Aym = grid->Aym_(ix,iy,iz);
+    double Azp = grid->Azp_(ix,iy,iz);
+    double Azm = grid->Azm_(ix,iy,iz);
+    double invAdiag = grid->invAdiag_(ix,iy,iz);
 
     double tmp_p =Axp*p(ix+1,iy,iz)+Axm*p(ix-1,iy,iz)+Ayp*p(ix,iy+1,iz)+Aym*p(ix,iy-1,iz)+Azp*p(ix,iy,iz+1)+Azm*p(ix,iy,iz-1);
     p_tmp(ix,iy,iz)=(1.0-omega)*p(ix,iy,iz)+omega*(tmp_p+rhs(ix,iy,iz))*invAdiag;
@@ -912,7 +911,7 @@ void G_GMGSolver::coarse_zero_clear(){
 }
 
 void G_GMGSolver::create_coeffs(G_StaggeredGrid& grid){
-    k_create_level0_coeffs<<<grid_dim_,block_dim_>>>(grid,levels_[0]);
+    k_create_level0_coeffs<<<grid_dim_,block_dim_>>>(grid.d_ptr_,levels_[0]);
     k_create_level_A<<<grid_dim_,block_dim_>>>(levels_[0]);
 
     for (int cur_level=1; cur_level < num_levels_; cur_level++){
@@ -943,14 +942,14 @@ void G_GMGSolver::v_cycle_as_preconditioner(G_StaggeredGrid& grid, MyArray<doubl
     /* === finest level pre smoothing === */
 
     for (int iter = 0; iter < num_iter_fine; iter++){
-        k_jacobi_iteration_general<<<grid_dim_,block_dim_>>>(grid,q,rhs);
+        k_jacobi_iteration_general<<<grid_dim_,block_dim_>>>(grid.d_ptr_,grid.p_tmp_,q,rhs);
         std::swap(grid.p_tmp_.data_,q.data_);
 
     }
 
-    k_get_res_general<<<grid_dim_,block_dim_>>>(grid,q,rhs);
+    k_get_res_general<<<grid_dim_,block_dim_>>>(grid.d_ptr_,q,rhs);
 
-    k_restrict_grid_to_level0<<<grid_dim_,block_dim_>>>(grid,levels_[0]);
+    k_restrict_grid_to_level0<<<grid_dim_,block_dim_>>>(grid.d_ptr_,levels_[0]);
 
     for (int cur_level = 0; cur_level < num_levels_-1; cur_level++){
         for (int iter = 0; iter < num_iter_fine; iter++){
@@ -993,7 +992,7 @@ void G_GMGSolver::v_cycle_as_preconditioner(G_StaggeredGrid& grid, MyArray<doubl
 
     /* == post smoothing == */
     for (int iter = 0; iter < num_iter_fine; iter++){
-        k_jacobi_iteration_general<<<grid_dim_,block_dim_>>>(grid,q,rhs);
+        k_jacobi_iteration_general<<<grid_dim_,block_dim_>>>(grid.d_ptr_,grid.p_tmp_,q,rhs);
         std::swap(grid.p_tmp_.data_,q.data_);
     }
 }
@@ -1012,13 +1011,13 @@ void G_GMGSolver::v_cycle(G_StaggeredGrid& grid){
     /* === finest level pre smoothing === */
 
     for (int iter = 0; iter < num_iter_fine; iter++){
-        k_jacobi_iteration<<<grid_dim_,block_dim_>>>(grid);
+        k_jacobi_iteration<<<grid_dim_,block_dim_>>>(grid.d_ptr_);
         std::swap(grid.p_tmp_.data_,grid.p_.data_);
     }
 
-    k_get_res<<<grid_dim_,block_dim_>>>(grid);
+    k_get_res<<<grid_dim_,block_dim_>>>(grid.d_ptr_);
 
-    k_restrict_grid_to_level0<<<grid_dim_,block_dim_>>>(grid,levels_[0]);
+    k_restrict_grid_to_level0<<<grid_dim_,block_dim_>>>(grid.d_ptr_,levels_[0]);
 
     /* == mid coarse level smoothing == */
     for (int cur_level = 0; cur_level < num_levels_-1; cur_level++){
@@ -1055,7 +1054,7 @@ void G_GMGSolver::v_cycle(G_StaggeredGrid& grid){
         if (cur_level !=0){
             k_propagate_level_to_level<<<grid_dim_,block_dim_>>>(levels_[cur_level],levels_[cur_level-1]);
         }else{
-            k_propagate_level0_to_grid<<<grid_dim_,block_dim_>>>(levels_[cur_level],grid);
+            k_propagate_level0_to_grid<<<grid_dim_,block_dim_>>>(levels_[cur_level],grid.d_ptr_);
 
         }
     }
@@ -1063,7 +1062,7 @@ void G_GMGSolver::v_cycle(G_StaggeredGrid& grid){
 
     /* == post smoothing == */
     for (int iter = 0; iter < num_iter_fine; iter++){
-        k_jacobi_iteration<<<grid_dim_,block_dim_>>>(grid);
+        k_jacobi_iteration<<<grid_dim_,block_dim_>>>(grid.d_ptr_);
         std::swap(grid.p_tmp_.data_,grid.p_.data_);
     }
 }

@@ -4,6 +4,10 @@
 
 MEMBER(double,sigma_,1,1,1,SAVE_OFF)
 
+/* immersed boundary parameters*/
+MEMBER(double, ibm_solid_fraction_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+
+
 /* cell center parameters*/
 
 MEMBER(double, rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell

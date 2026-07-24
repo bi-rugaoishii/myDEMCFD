@@ -161,6 +161,7 @@ void FileInOut::output_vti_binary_cellData(const StaggeredGrid& grid, int step){
     const double dz = grid.dz_;
 
     const MyArray<double,3>& p = grid.p_;
+    const MyArray<double,3>& ibm_solid_frac = grid.ibm_solid_fraction_;
     const MyArray<double,3>& alpha = grid.alpha_;
     const MyArray<double,3>& vx = grid.f_vx_;
     const MyArray<double,3>& vy = grid.f_vy_;
@@ -173,7 +174,7 @@ void FileInOut::output_vti_binary_cellData(const StaggeredGrid& grid, int step){
     const size_t offset_pressure = 0;
     const size_t offset_alpha = offset_pressure + sizeof(uint32_t) + bytes_scalar;
     const size_t offset_velocity = offset_alpha + sizeof(uint32_t) + bytes_scalar;
-    const size_t offset_divergence = offset_velocity + sizeof(uint32_t) + bytes_vector;
+    const size_t offset_ibm_solid_fraction = offset_velocity + sizeof(uint32_t) + bytes_vector;
 
     float* buf = (float*)malloc(sizeof(float)*ncells*3);
     if(buf == NULL){
@@ -196,7 +197,7 @@ void FileInOut::output_vti_binary_cellData(const StaggeredGrid& grid, int step){
     fprintf(fp, "        <DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\"%zu\"/>\n", offset_pressure);
     fprintf(fp, "        <DataArray type=\"Float32\" Name=\"alpha\" format=\"appended\" offset=\"%zu\"/>\n", offset_alpha);
     fprintf(fp, "        <DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"%zu\"/>\n", offset_velocity);
-    fprintf(fp, "        <DataArray type=\"Float32\" Name=\"divergence\" format=\"appended\" offset=\"%zu\"/>\n", offset_divergence);
+    fprintf(fp, "        <DataArray type=\"Float32\" Name=\"ibm_solid_fraction\" format=\"appended\" offset=\"%zu\"/>\n", offset_ibm_solid_fraction);
     fprintf(fp, "      </CellData>\n");
     fprintf(fp, "    </Piece>\n");
     fprintf(fp, "  </ImageData>\n");
@@ -243,12 +244,8 @@ void FileInOut::output_vti_binary_cellData(const StaggeredGrid& grid, int step){
     for(int iz=1; iz<=Nz; iz++){
         for(int iy=1; iy<=Ny; iy++){
             for(int ix=1; ix<=Nx; ix++){
-                double div =
-                    (vx(ix+1,iy,iz) - vx(ix,iy,iz))*grid.inv_dx_
-                  + (vy(ix,iy+1,iz) - vy(ix,iy,iz))*grid.inv_dy_
-                  + (vz(ix,iy,iz+1) - vz(ix,iy,iz))*grid.inv_dz_;
 
-                buf[n++] = (float)div;
+                buf[n++] = (float)ibm_solid_frac(ix,iy,iz);
             }
         }
     }

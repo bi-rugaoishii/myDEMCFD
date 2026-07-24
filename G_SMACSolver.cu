@@ -1323,32 +1323,32 @@ void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
 }
 
-static __global__  void  k_calc_cfl(G_StaggeredGrid grid_,double dt){
+static __global__  void  k_calc_cfl(G_StaggeredGrid* grid,double dt){
 
     int ix=blockIdx.x*blockDim.x+threadIdx.x+1; //+1 for ghost cell
     int iy=blockIdx.y*blockDim.y+threadIdx.y+1; 
     int iz=blockIdx.z*blockDim.z+threadIdx.z+1; 
 
-    int Nx=grid_.Nx_;
-    int Ny=grid_.Ny_;
-    int Nz=grid_.Nz_;
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
 
     if (ix >=Nx+1 || iy >=Ny+1 || iz >= Nz+1) return;
 
 
-    MyArray<double,3> vx = grid_.f_vx_;
-    MyArray<double,3> vy = grid_.f_vy_;
-    MyArray<double,3> vz = grid_.f_vz_;
-    MyArray<double,3> cfl = grid_.cfl_;
-    MyArray<double,3> cfl_visc = grid_.cfl_visc_;
-    MyArray<double,3> inv_rho = grid_.inv_rho_;
-    MyArray<double,3> mu = grid_.mu_;
-    double inv_dx = grid_.inv_dx_;
-    double inv_dy = grid_.inv_dy_;
-    double inv_dz = grid_.inv_dz_;
-    double inv_dx2 = grid_.inv_dx2_;
-    double inv_dy2 = grid_.inv_dy2_;
-    double inv_dz2 = grid_.inv_dz2_;
+    MyArray<double,3> vx = grid->f_vx_;
+    MyArray<double,3> vy = grid->f_vy_;
+    MyArray<double,3> vz = grid->f_vz_;
+    MyArray<double,3> cfl = grid->cfl_;
+    MyArray<double,3> cfl_visc = grid->cfl_visc_;
+    MyArray<double,3> inv_rho = grid->inv_rho_;
+    MyArray<double,3> mu = grid->mu_;
+    double inv_dx = grid->inv_dx_;
+    double inv_dy = grid->inv_dy_;
+    double inv_dz = grid->inv_dz_;
+    double inv_dx2 = grid->inv_dx2_;
+    double inv_dy2 = grid->inv_dy2_;
+    double inv_dz2 = grid->inv_dz2_;
 
 
     double vx_xp = fabs(vx(ix+1,iy,iz));
@@ -1374,7 +1374,7 @@ double G_SMACSolver::calc_cfl(){
     int Ny=grid_.Ny_;
     int Nz=grid_.Nz_;
 
-    k_calc_cfl<<<grid_dim_,block_dim_>>>(grid_,dt);
+    k_calc_cfl<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,dt);
     cub::DeviceReduce::Max(cub_temp_storage_,cub_temp_storage_bytes_,grid_.cfl_.data_,&d_pcg_scalars_[CFL],Nx*Ny*Nz);
     double h_cfl;
     cudaMemcpy(&h_cfl,&d_pcg_scalars_[CFL],sizeof(double),cudaMemcpyDeviceToHost);

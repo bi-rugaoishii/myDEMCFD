@@ -88,7 +88,7 @@ void SMACSolver::set_face_internal_direction(){
     for(int iz=1; iz<=Nz+1; iz++){
         for(int iy=1; iy<=Ny; iy++){
             for(int ix=1; ix<=Nx; ix++){
-                if(f_ytype(ix,iy,iz)==F_BOUNDARY){
+                if(f_ztype(ix,iy,iz)==F_BOUNDARY){
                     unsigned char ctypep = ctype(ix,iy,iz);
                     if(ctypep == C_INTERIOR || ctypep== C_NEAR_BOUNDARY){
                         f_zinternal_id(ix,iy,iz)=0;

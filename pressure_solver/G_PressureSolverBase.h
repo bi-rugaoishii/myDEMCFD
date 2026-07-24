@@ -9,9 +9,9 @@ struct G_SMACSolver;
 
 __global__ void base_k_divide(double* const num,const double div);
 __global__ void base_k_mult_elementwise_array_to_tmp(MyArray<double,3> b,MyArray<double,3> q,MyArray<double,3> result,int Nx, int Ny, int Nz);
-__global__ void base_k_fix_pressure_reference(G_StaggeredGrid grid_);
-__global__ void base_k_make_poisson_rhs(G_StaggeredGrid grid_,double inv_dt);
-__global__ void k_shift_pressure_reference(G_StaggeredGrid grid_);
+__global__ void base_k_fix_pressure_reference(G_StaggeredGrid* grid_);
+__global__ void base_k_make_poisson_rhs(G_StaggeredGrid* grid_,double inv_dt);
+__global__ void k_shift_pressure_reference(G_StaggeredGrid* grid_);
 
 __global__ void base_k_copy_to_tmp(MyArray<double,3> q,MyArray<double,3> tmp, int Nx, int Ny, int Nz);
 __global__ void base_k_copy_abs_to_tmp(MyArray<double,3> q,MyArray<double,3> tmp, int Nx, int Ny, int Nz);
