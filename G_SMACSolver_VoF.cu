@@ -1433,6 +1433,8 @@ void G_SMACSolver::update_properties_by_alpha(){
     const double mu0 = mu0_;
 
     std::swap(grid_.rho_old_.data_,grid_.rho_.data_);
+    cudaDeviceSynchronize();
+    /* debug */
     k_swap_rho<<<1,1>>>(grid_.d_ptr_);
 
     k_update_cell_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_,rho0, rho1, mu0, mu1);

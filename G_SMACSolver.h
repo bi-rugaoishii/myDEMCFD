@@ -86,7 +86,7 @@ struct G_SMACSolver{
     inline void set_block_grid(int Nx, int Ny, int Nz){
         int BLOCK_X = 8;
         int BLOCK_Y = 8;
-        int BLOCK_Z = 8;
+        int BLOCK_Z = 4;
 
         block_dim_ = dim3(BLOCK_X,BLOCK_Y,BLOCK_Z);
 
