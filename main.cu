@@ -82,9 +82,9 @@ int main(){
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
-    double sigma = 0.072;
+    //double sigma = 0.072;
     //double sigma = 0.00072;
-    //double sigma = 1e-16;
+    double sigma = 1e-16;
     //int endSteps = 10000;
     //int outStepsFreq=100;
 
@@ -131,7 +131,7 @@ int main(){
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.1461,0.,0.292,0.,1,1.0);
+    solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,1,1.0);
     //solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
     //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
 
@@ -168,7 +168,7 @@ int main(){
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
-    double endTime = 10.0;
+    double endTime = 20.0;
     double max_dt = 1e-2;
     double initial_dt = 1e-5;
 
@@ -222,7 +222,7 @@ int main(){
 
         g_solv.set_block_grid(Nx,Ny,Nz);
 
-        g_solv.make_cylinder_ibm(0.25,0.,0.5,0.1);
+        g_solv.make_cylinder_ibm(0.3,0.,0.5,0.1);
     }
 
 

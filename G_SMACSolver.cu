@@ -670,7 +670,14 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_x(SMACSolver solv
         tmp_vx -=  (p(ix,iy,iz) - p(ix-1,iy,iz))*inv_dx;
 
 
+
         vx_star(ix,iy,iz)=f_inv_rho*vx_111*f_rho_old+dt*(f_inv_rho*tmp_vx+gx);
+
+        /* == add ibm == */
+        double solid_frac = grid->f_ibm_solid_fraction_x_(ix,iy,iz);
+
+        /* == assuming v_ibm = 0 for now. it actually is (1-frac)*v_star + frac *v_ibm*/
+        vx_star(ix,iy,iz) = (1.0-solid_frac)*vx_star(ix,iy,iz);
     }
 }
 
@@ -947,6 +954,12 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_y(SMACSolver solv
         /* == add pressure gradient == */
         tmp_vy -=  (p(ix,iy,iz) - p(ix,iy-1,iz))*inv_dy;
         vy_star(ix,iy,iz)=f_inv_rho*vy_111*f_rho_old+dt*(f_inv_rho*tmp_vy+gy);
+        
+        /* == add ibm == */
+        double solid_frac = grid->f_ibm_solid_fraction_y_(ix,iy,iz);
+
+        /* == assuming v_ibm = 0 for now. it actually is (1-frac)*v_star + frac *v_ibm*/
+        vy_star(ix,iy,iz) = (1.0-solid_frac)*vy_star(ix,iy,iz);
 
     }
 
@@ -1231,6 +1244,12 @@ static __global__ void k_get_vof_vstar_rhouu_upwind_consistent_z(SMACSolver solv
         tmp_vz -=  (p(ix,iy,iz) - p(ix,iy,iz-1))*inv_dz;
 
         vz_star(ix,iy,iz)=f_inv_rho*vz_111*f_rho_old+dt*(f_inv_rho*tmp_vz+gz);
+
+        /* == add ibm == */
+        double solid_frac = grid->f_ibm_solid_fraction_z_(ix,iy,iz);
+
+        /* == assuming v_ibm = 0 for now. it actually is (1-frac)*v_star + frac *v_ibm*/
+        vz_star(ix,iy,iz) = (1.0-solid_frac)*vz_star(ix,iy,iz);
 
     }
 
