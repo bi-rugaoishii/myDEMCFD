@@ -16,6 +16,7 @@
 
 struct G_PCGSolver:G_PressureSolverBase{
     using Base=G_PressureSolverBase;
+    using SolveImpl = void (G_PCGSolver::*)(G_SMACSolver&);
 
 
     G_PCGSolver();
@@ -23,10 +24,15 @@ struct G_PCGSolver:G_PressureSolverBase{
 
 
     void solve(G_SMACSolver& solv) override;
+    void set_solver(PCG_TYPES types);
+
     void solve_pcg(G_SMACSolver& solv);
-    void solve_pureneumann(G_SMACSolver& solv);
+    void solve_pureneumann_pcg(G_SMACSolver& solv);
+    void solve_gmgpcg(G_SMACSolver& solv);
+    void solve_pureneumann_gmgpcg(G_SMACSolver& solv);
     void set_gmg(G_GMGSolver& gmg) ;
 
+    SolveImpl solve_impl_;
     G_GMGSolver* gmg_;
 };
 

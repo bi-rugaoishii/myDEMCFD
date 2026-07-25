@@ -42,16 +42,16 @@ int main(){
     }
     const char* outdir ="results";
 
+    /*
     int Nx=256;
     int Ny=64;
     int Nz=1;
-
-
-    /*
-    int Nx=96;
-    int Ny=32;
-    int Nz=96;
     */
+
+
+    int Nx=128;
+    int Ny=128;
+    int Nz=1;
 
     double rho = 1.;
     double rho_w = 1000.;
@@ -59,18 +59,22 @@ int main(){
     double rho_g = 1.;
 
     double u_lid = 0.;
-    //double nu = 0.001;
+    double nu = 0.001;
     //double nu = 0.;
-    double nu = 5e-4;
+    //double nu = 5e-4;
 
 
-    //double mu_w = 1.0e-3;
-    //double mu_g = 1.8e-5;
-    double mu_w = nu*rho_w;
-    double mu_g = nu*rho_g;
+    double mu_w = 1.0e-3;
+    double mu_g = 1.8e-5;
+    //double mu_w = nu*rho_w;
+    //double mu_g = nu*rho_g;
 
-
+    /*
     double sizex=2.0;
+    double sizey=0.5;
+    double sizez=0.5;
+    */
+    double sizex=0.5;
     double sizey=0.5;
     double sizez=0.5;
 
@@ -90,7 +94,7 @@ int main(){
     //int endSteps = 10000;
     //int outStepsFreq=100;
 
-    double Re = u_lid*sizex/nu;
+    //double Re = u_lid*sizex/nu;
     double dt=0.001;
 
     FileInOut fileIO;
@@ -103,20 +107,21 @@ int main(){
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
 
-    //solv.set_gravity(0., -9.81, 0.);
-   solv.set_gravity(0., 0,0.);
+    solv.set_gravity(0., -9.81, 0.);
+   //solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
+
     solv.set_mus(mu_g,mu_w);
    
     /* == set boundary id numbers == */
-    int num_bc_id = 5;
+    int num_bc_id = 3;
     solv.grid_.set_num_bc_id(num_bc_id);
 
 
     solv.solver_malloc();
 
     double wallvel=0.000;
-    double invel=1.000;
+    //double invel=1.000;
 
     solv.set_face_type();
     solv.set_cell_type();
@@ -125,22 +130,38 @@ int main(){
     solv.grid_.set_boundary_id(AXIS_Y,1,Ny+1); // dir bid index
     solv.grid_.set_boundary_id(AXIS_Z,2,Nz+1);
     solv.grid_.set_boundary_id(AXIS_Z,2,1);
-    solv.grid_.set_boundary_id(AXIS_X,3,1);
-    solv.grid_.set_boundary_id(AXIS_X,4,Nx+1);
+
+    //solv.grid_.set_boundary_id(AXIS_X,3,1);
+   // solv.grid_.set_boundary_id(AXIS_X,4,Nx+1);
 
     solv.grid_.bc_.set_boundary_velocity(1, wallvel, 0., 0.);
-    solv.grid_.bc_.set_boundary_velocity(3, invel, 0., 0.);
+    //solv.grid_.bc_.set_boundary_velocity(3, invel, 0., 0.);
     solv.grid_.bc_.set_bctype(1, BC_NOSLIP);
     solv.grid_.bc_.set_bctype(2, BC_SLIP);
+    /*
     solv.grid_.bc_.set_bctype(3, BC_INFLOW);
     solv.grid_.bc_.set_bctype(4, BC_OUTLET);
+    */
+
+    /* check if its pure neumann */
+    bool isPureNeumann=true;
+
+    for(int i=0; i<num_bc_id; i++){
+        unsigned char bctype =  solv.grid_.bc_.bcType_(i);
+        
+        if(bctype == BC_OUTLET || bctype == BC_INFLOW){
+            isPureNeumann = false;
+        }
+    } 
+
+
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    //solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,0.5,1.0);
-    //solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
+    solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,0.5,1.0);
+    solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
     //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
 
 
@@ -233,10 +254,12 @@ int main(){
         g_solv.set_block_grid(Nx,Ny,Nz);
 
         
+        /*
         printf("creating cylinder ibm\n");
         g_solv.make_cylinder_ibm(0.5,0.25,0.25,0.05);
         g_solv.set_solid_cell();
         printf("creating cylinder done\n");
+        */
     }
 
 
@@ -249,6 +272,15 @@ int main(){
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
     pcgSolver.set_gmg(gmgSolver);
+
+    /* choose solver according to the boundary condition*/
+    if(isPureNeumann){
+        pcgSolver.set_solver(PURENEUMANN_GMG_PCG);
+        printf("\n\nPURENEUMANN MODE!!!\n\n");
+    }else{
+        pcgSolver.set_solver(GMG_PCG);
+        //pcgSolver.set_solver(STANDARD_PCG);
+    }
 
     /* ============================= 
        ======== main loop ==========

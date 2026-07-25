@@ -22,6 +22,13 @@ enum CellType: unsigned char{
     C_SOLID
 };
 
+enum PCG_TYPES: unsigned char{
+    STANDARD_PCG,
+    PURENEUMANN_STANDARD_PCG,
+    GMG_PCG,
+    PURENEUMANN_GMG_PCG
+};
+
 enum AXIS: unsigned char{
     AXIS_X,
     AXIS_Y,
