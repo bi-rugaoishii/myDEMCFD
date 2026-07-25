@@ -42,8 +42,8 @@ int main(){
     }
     const char* outdir ="results";
 
-    int Nx=128;
-    int Ny=128;
+    int Nx=256;
+    int Ny=64;
     int Nz=1;
 
 
@@ -59,18 +59,20 @@ int main(){
     double rho_g = 1.;
 
     double u_lid = 0.;
-    double nu = 0.01;
+    //double nu = 0.001;
+    double nu = 0.;
+    //double nu = 5e-4;
 
 
-    double mu_w = 1.0e-3;
-    double mu_g = 1.8e-5;
-    //double mu_w = nu*rho_w;
-    //double mu_g = nu*rho_g;
+    //double mu_w = 1.0e-3;
+    //double mu_g = 1.8e-5;
+    double mu_w = nu*rho_w;
+    double mu_g = nu*rho_g;
 
 
-    double sizex=0.584;
-    double sizey=0.584;
-    double sizez=0.584;
+    double sizex=4.0;
+    double sizey=0.5;
+    double sizez=0.5;
 
     /*
     double sizex=0.04;
@@ -82,9 +84,9 @@ int main(){
     double dx=sizex/(double)Nx;
     double dy=sizey/(double)Ny;
     double dz=sizez/(double)Nz;
-    //double sigma = 0.072;
+    double sigma = 0.072;
     //double sigma = 0.00072;
-    double sigma = 1e-16;
+    //double sigma = 1e-16;
     //int endSteps = 10000;
     //int outStepsFreq=100;
 
@@ -101,37 +103,43 @@ int main(){
     solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
 
 
-    solv.set_gravity(0., -9.81, 0.);
-   // solv.set_gravity(0., 0,0.);
+    //solv.set_gravity(0., -9.81, 0.);
+   solv.set_gravity(0., 0,0.);
     solv.set_rhos(rho_g,rho_w);
     solv.set_mus(mu_g,mu_w);
    
     /* == set boundary id numbers == */
-    int num_bc_id = 3;
+    int num_bc_id = 5;
     solv.grid_.set_num_bc_id(num_bc_id);
 
 
     solv.solver_malloc();
 
     double wallvel=0.000;
+    double wallvel2=1.000;
 
     solv.set_face_type();
     solv.set_cell_type();
     solv.set_face_internal_direction();
 
-    solv.grid_.set_boundary_id(1,1,Ny+1); // dir bid index
-    solv.grid_.set_boundary_id(2,2,Nz+1);
-    solv.grid_.set_boundary_id(2,2,1);
+    solv.grid_.set_boundary_id(AXIS_Y,1,Ny+1); // dir bid index
+    solv.grid_.set_boundary_id(AXIS_Z,2,Nz+1);
+    solv.grid_.set_boundary_id(AXIS_Z,2,1);
+    solv.grid_.set_boundary_id(AXIS_X,3,1);
+    solv.grid_.set_boundary_id(AXIS_X,4,Nx+1);
 
     solv.grid_.bc_.set_boundary_velocity(1, wallvel, 0., 0.);
+    solv.grid_.bc_.set_boundary_velocity(3, wallvel2, 0., 0.);
     solv.grid_.bc_.set_bctype(1, BC_NOSLIP);
-    solv.grid_.bc_.set_bctype(2, BC_NOSLIP);
+    solv.grid_.bc_.set_bctype(2, BC_SLIP);
+    solv.grid_.bc_.set_bctype(3, BC_INFLOW);
+    solv.grid_.bc_.set_bctype(4, BC_OUTLET);
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
     //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,1,1.0);
+    //solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,0.5,1.0);
     //solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
     //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
 
@@ -163,8 +171,8 @@ int main(){
     float ms;
     h_start = omp_get_wtime();
 
-    double cfl_thresh = 0.4;
-    double cfl_alpha_thresh = 0.2;
+    double cfl_thresh = 0.05;
+    double cfl_alpha_thresh = 0.05;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
@@ -222,8 +230,13 @@ int main(){
 
         g_solv.set_block_grid(Nx,Ny,Nz);
 
-        g_solv.make_cylinder_ibm(0.3,0.,0.5,0.1);
+        
+        /*
+        printf("creating cylinder ibm\n");
+        g_solv.make_cylinder_ibm(0.5,0.25,0.25,0.05);
         g_solv.set_solid_cell();
+        printf("creating cylinder done\n");
+        */
     }
 
 
@@ -281,10 +294,9 @@ int main(){
             g_solv.calc_surface_tension();
 
             g_solv.compute_mass_flux_from_alpha_flux(solv);
-            g_solv.get_vof_vstar_rhouu_upwind_consistent(solv);
+            g_solv.get_vof_vstar_rhouu_consistent(solv);
 
-            /* == needs boundary condition in general ==*/
-            /* == we are skipping it since we assume wall stationary in normal direction ==*/
+            g_solv.update_vstar_boundary();
 
 
             printf("starting poisson\n");
@@ -292,11 +304,13 @@ int main(){
 
             g_solv.correct_vof_velocity(solv);
 
-            /* == needs boundary condition in general ==*/
-            /* == we are skipping it since we assume stationary in normal direction ==*/
 
 
             if(cfdtime.isOutStep_){
+
+                /* this is only for output in order to interpolate velocity to cell centers*/
+                g_solv.update_v_boundary();
+
                 g_solv.gpuTocpu(solv.grid_);
                 //solv.check_pressure_jump_by_radius();
                 fileIO.output_vti_binary_cellData(solv.grid_,cfdtime.current_steps_);
@@ -322,10 +336,10 @@ int main(){
 
     }
 
-  solv.solver_free();
-  if(GPU_ON==1){
-      g_solv.solver_free();
-      gmgSolver.free_levels();
+    solv.solver_free();
+    if(GPU_ON==1){
+        g_solv.solver_free();
+        gmgSolver.free_levels();
     }
 
     printf("my CFD Done!!!\n");

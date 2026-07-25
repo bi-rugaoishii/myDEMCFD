@@ -6,6 +6,7 @@ MEMBER(double,sigma_,1,1,1,SAVE_OFF)
 
 /* immersed boundary parameters*/
 MEMBER(double, ibm_solid_fraction_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, ibm_fluid_fraction_inv_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
 
 
 /* cell center parameters*/
@@ -16,6 +17,7 @@ MEMBER(double, inv_rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(unsigned char, correct_coeff_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_with_solidfrac_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 
 MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, ny_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)

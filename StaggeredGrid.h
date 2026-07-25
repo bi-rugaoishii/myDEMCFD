@@ -21,7 +21,7 @@ struct StaggeredGrid{
     #include "memberList/gridMembers.def"
     #undef MEMBER
 
-    void set_boundary_id(int dir,unsigned char bid, int index); 
+    void set_boundary_id(AXIS dir,unsigned char bid, int index); 
     void set_num_bc_id(int num_bc_id);
     void place_vof(double minx,double maxx, double miny, double maxy,double minz, double maxz, double alpha);
     void place_solid(double minx,double maxx, double miny, double maxy,double minz, double maxz, unsigned char bid);
@@ -71,9 +71,9 @@ inline void StaggeredGrid::place_solid(double minx,double maxx, double miny, dou
 }
 
 
-inline void StaggeredGrid::set_boundary_id(int dir,unsigned char bid, int index){ 
+inline void StaggeredGrid::set_boundary_id(AXIS dir,unsigned char bid, int index){ 
 
-    if(dir==0){
+    if(dir==AXIS_X){
 
         if(index >= f_xbcid_.sizex_){
             printf("index %d is over sizex %d!!!!!\n", index, f_xbcid_.sizex_);
@@ -86,7 +86,7 @@ inline void StaggeredGrid::set_boundary_id(int dir,unsigned char bid, int index)
         }
     }
 
-    if(dir==1){
+    if(dir==AXIS_Y){
 
         if(index >= f_ybcid_.sizey_){
             printf("index %d is over sizey %d!!!!!\n", index, f_ybcid_.sizey_);
@@ -99,7 +99,7 @@ inline void StaggeredGrid::set_boundary_id(int dir,unsigned char bid, int index)
         }
     }
 
-    if(dir==2){
+    if(dir==AXIS_Z){
         if(index >= f_zbcid_.sizez_){
             printf("index %d is over sizez %d!!!!!\n", index, f_zbcid_.sizez_);
         }

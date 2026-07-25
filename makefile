@@ -13,6 +13,7 @@ OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o\
 		FileInOut.o \
 		G_SMACSolver_VoF.o \
 		G_SMACSolver_IBM.o \
+		G_BoundaryFunctions.o \
 		pressure_solver/G_PressureSolverBase.o\
 		pressure_solver/G_PCGSolver.o\
 		pressure_solver/G_GMGSolver.o\

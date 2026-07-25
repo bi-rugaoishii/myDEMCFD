@@ -11,7 +11,8 @@ enum BoundaryType: unsigned char{
     BC_NOSLIP,
     BC_SLIP,
     BC_INFLOW,
-    BC_OUTFLOW
+    BC_OUTFLOW,
+    BC_OUTLET
 };
 
 enum CellType: unsigned char{
@@ -19,4 +20,10 @@ enum CellType: unsigned char{
     C_NEAR_BOUNDARY,
     C_GHOST,
     C_SOLID
+};
+
+enum AXIS: unsigned char{
+    AXIS_X,
+    AXIS_Y,
+    AXIS_Z
 };

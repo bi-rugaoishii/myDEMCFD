@@ -68,7 +68,10 @@ struct G_SMACSolver{
     void set_boundary_array(double *const q);
     void set_boundary_alpha(int Nx, int Ny);
 
-    void get_vof_vstar_rhouu_upwind_consistent(SMACSolver solv);
+    void get_vof_vstar_rhouu_consistent(SMACSolver solv);
+
+    void update_vstar_boundary();
+    void update_v_boundary();
 
 
     void fix_pressure();

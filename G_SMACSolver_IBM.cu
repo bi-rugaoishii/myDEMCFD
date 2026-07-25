@@ -84,6 +84,10 @@ static __global__ void k_get_solid_fraction(G_StaggeredGrid *grid, CylinderIBM c
 
 
     grid->ibm_solid_fraction_(ix,iy,iz)= solidfraction;
+
+    if(solidfraction <1.- EPS){
+        grid->ibm_fluid_fraction_inv_(ix,iy,iz)= 1./(1.-solidfraction);
+    }
 }
 
 /* solid fraction of velocity control volume */
