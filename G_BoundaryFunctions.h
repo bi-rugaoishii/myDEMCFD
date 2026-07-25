@@ -1,6 +1,7 @@
 #pragma once
 #include "MyArray.h"
 #include "G_StaggeredGrid.h"
+#include "SMACSolver.h"
 /*===============================================*/
 /* == face boundary related device functions ===*/
 /*===============================================*/
@@ -25,23 +26,15 @@
             return 0.;
         }else if(bcType == BC_OUTLET){
 
-           int int_id_shift = grid->f_xinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vx_(ix-1,iy,iz);
-           }else{
-               v_boundary = grid->f_vx_(ix+1,iy,iz);
-           }
+            return grid->f_vx_(ix,iy,iz);
 
-
-           return v_boundary;
         }
     }
 
     return 0.;
-}
+ }
 
- __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid* grid,int ix,int iy, int iz){
+__device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid* grid,int ix,int iy, int iz){
 
     unsigned char ftype = grid->f_ytype_(ix,iy,iz);
 
@@ -54,20 +47,17 @@
         unsigned char bcType = grid->bc_.bcType_(bid);
 
         if(bcType == BC_INFLOW){
+
             return grid->bc_.vy_(bid);
+
         }else if(bcType == BC_NOSLIP){
+
             return 0.;
+
         }else if(bcType == BC_OUTLET){
 
-           int int_id_shift = grid->f_yinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vy_(ix,iy-1,iz);
-           }else{
-               v_boundary = grid->f_vy_(ix,iy+1,iz);
-           }
+            return grid->f_vy_(ix,iy,iz);
 
-           return v_boundary;
         }
     }
 
@@ -75,7 +65,7 @@
 
 }
 
- __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid* grid,int ix,int iy, int iz){
+__device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid* grid,int ix,int iy, int iz){
 
     unsigned char ftype = grid->f_ztype_(ix,iy,iz);
 
@@ -93,16 +83,7 @@
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){
-
-           int int_id_shift = grid->f_zinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vz_(ix,iy,iz-1);
-           }else{
-               v_boundary = grid->f_vz_(ix,iy,iz+1);
-           }
-
-           return v_boundary;
+            return grid->f_vz_(ix,iy,iz);
         }
     }
 
@@ -380,7 +361,7 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
     }
 }
 
- __device__ __forceinline__ double d_get_vxstar_xface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
+__device__ __forceinline__ double d_get_vxstar_xface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
 
     unsigned char ftype = grid->f_xtype_(ix,iy,iz);
 
@@ -400,23 +381,23 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
             return 0.;
         }else if(bcType == BC_OUTLET){
 
-           int int_id_shift = grid->f_xinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vx_star_(ix-1,iy,iz);
-           }else{
-               v_boundary = grid->f_vx_star_(ix+1,iy,iz);
-           }
+            int int_id_shift = grid->f_xinternal_id_(ix,iy,iz);
+            double v_boundary = 0.;
+            if(int_id_shift < 0){
+                v_boundary = grid->f_vx_star_(ix-1,iy,iz);
+            }else{
+                v_boundary = grid->f_vx_star_(ix+1,iy,iz);
+            }
 
 
-           return v_boundary;
+            return v_boundary;
         }
     }
 
     return 0.;
 }
 
- __device__ __forceinline__ double d_get_vystar_yface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
+__device__ __forceinline__ double d_get_vystar_yface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
 
     unsigned char ftype = grid->f_ytype_(ix,iy,iz);
 
@@ -436,16 +417,16 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
             return 0.;
         }else if(bcType == BC_OUTLET){
 
-           int int_id_shift = grid->f_yinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vy_star_(ix,iy-1,iz);
-           }else{
-               v_boundary = grid->f_vy_star_(ix,iy+1,iz);
-           }
+            int int_id_shift = grid->f_yinternal_id_(ix,iy,iz);
+            double v_boundary = 0.;
+            if(int_id_shift < 0){
+                v_boundary = grid->f_vy_star_(ix,iy-1,iz);
+            }else{
+                v_boundary = grid->f_vy_star_(ix,iy+1,iz);
+            }
 
 
-           return v_boundary;
+            return v_boundary;
         }
     }
 
@@ -454,7 +435,7 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
 
 
 
- __device__ __forceinline__ double d_get_vzstar_zface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
+__device__ __forceinline__ double d_get_vzstar_zface(G_StaggeredGrid* grid ,int ix,int iy, int iz){
 
     unsigned char ftype = grid->f_ztype_(ix,iy,iz);
 
@@ -474,16 +455,16 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
             return 0.;
         }else if(bcType == BC_OUTLET){
 
-           int int_id_shift = grid->f_zinternal_id_(ix,iy,iz);
-           double v_boundary = 0.;
-           if(int_id_shift < 0){
-               v_boundary = grid->f_vz_star_(ix,iy,iz-1);
-           }else{
-               v_boundary = grid->f_vz_star_(ix,iy,iz+1);
-           }
+            int int_id_shift = grid->f_zinternal_id_(ix,iy,iz);
+            double v_boundary = 0.;
+            if(int_id_shift < 0){
+                v_boundary = grid->f_vz_star_(ix,iy,iz-1);
+            }else{
+                v_boundary = grid->f_vz_star_(ix,iy,iz+1);
+            }
 
 
-           return v_boundary;
+            return v_boundary;
         }
     }
 
@@ -497,3 +478,7 @@ __global__ void k_update_vzstar_boundary(G_StaggeredGrid* grid);
 __global__ void k_update_vx_boundary(G_StaggeredGrid* grid);
 __global__ void k_update_vy_boundary(G_StaggeredGrid* grid);
 __global__ void k_update_vz_boundary(G_StaggeredGrid* grid);
+
+__global__ void k_update_vx_outlet(SMACSolver solv,G_StaggeredGrid* grid);
+__global__ void k_update_vy_outlet(SMACSolver solv,G_StaggeredGrid* grid);
+__global__ void k_update_vz_outlet(SMACSolver solv,G_StaggeredGrid* grid);

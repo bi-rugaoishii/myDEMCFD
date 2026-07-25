@@ -699,6 +699,29 @@ void SMACSolver::set_sphere(){
 }
 
 
+void SMACSolver::set_initial_x_velocity(double ini_v){
+    int Nx = grid_.Nx_;
+    int Ny = grid_.Ny_;
+    int Nz = grid_.Nz_;
+
+
+    MyArray<double,3>& vx = grid_.f_vx_;
+
+
+
+
+    // vx/u: x-faces
+    // size: ix = 0..Nx+2, iy = 0..Ny+1, iz = 0..Nz+1
+    for(int iz=0; iz<Nz+2; iz++){
+        for(int iy=0; iy<Ny+2; iy++){
+            for(int ix=0; ix<Nx+3; ix++){
+                vx(ix,iy,iz) = ini_v;
+            }
+        }
+    }
+
+}
+
 
 void SMACSolver::set_zalesak_rotation_velocity(){
     int Nx = grid_.Nx_;

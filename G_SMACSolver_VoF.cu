@@ -566,10 +566,11 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid* grid, double dt
     }
 
     // x ghost  face
-    if (f_xtype(ix,iy,iz)==F_GHOST || f_xtype(ix,iy,iz)==F_BOUNDARY){
+    if (f_xtype(ix,iy,iz)==F_GHOST){
         Fx(ix,iy,iz) = 0.0;
         return ;
     }
+
 
 
     double vxf = vx(ix,iy,iz);
@@ -589,6 +590,20 @@ static __global__ void k_alpha_flux_thincwlic_x(G_StaggeredGrid* grid, double dt
     if(ctyped != C_INTERIOR){
         Fx(ix,iy,iz) = 0.;
         return;
+    }
+
+    if (f_xtype(ix,iy,iz)==F_BOUNDARY){
+        int int_id = grid->f_xinternal_id_(ix,iy,iz);
+        int bid = grid->f_xbcid_(ix,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_OUTLET){
+            Fx(ix,iy,iz) = vxf*axf*dtbydx;
+            return;
+        }else{
+            Fx(ix,iy,iz)=0.;
+            return;
+        }
     }
 
     if (ctypep != C_INTERIOR || ctypem != C_INTERIOR ) {
@@ -714,7 +729,7 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid* grid, double dt
 
 
     // y ghost  face
-    if (f_ytype(ix,iy,iz)==F_GHOST || f_ytype(ix,iy,iz)==F_BOUNDARY){
+    if (f_ytype(ix,iy,iz)==F_GHOST){
         Fy(ix,iy,iz) = 0.0;
         return ;
     }
@@ -736,6 +751,20 @@ static __global__ void k_alpha_flux_thincwlic_y(G_StaggeredGrid* grid, double dt
     if(ctyped != C_INTERIOR){
         Fy(ix,iy,iz) = 0.;
         return;
+    }
+
+    if (f_ytype(ix,iy,iz)==F_BOUNDARY){
+        int int_id = grid->f_yinternal_id_(ix,iy,iz);
+        int bid = grid->f_ybcid_(ix,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_OUTLET){
+            Fy(ix,iy,iz) = vyf*ayf*dtbydy;
+            return;
+        }else{
+            Fy(ix,iy,iz)=0.;
+            return;
+        }
     }
 
     if (ctypep != C_INTERIOR || ctypem != C_INTERIOR ) {
@@ -882,6 +911,21 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid* grid, double dt
         Fz(ix,iy,iz) = 0.;
         return;
     }
+
+    if (f_ztype(ix,iy,iz)==F_BOUNDARY){
+        int int_id = grid->f_zinternal_id_(ix,iy,iz);
+        int bid = grid->f_zbcid_(ix,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_OUTLET){
+            Fz(ix,iy,iz) = vzf*azf*dtbydz;
+            return;
+        }else{
+            Fz(ix,iy,iz)=0.;
+            return;
+        }
+    }
+
 
     if (ctypep != C_INTERIOR || ctypem != C_INTERIOR) {
         Fz(ix,iy,iz) = vzf*azf*dtbydz;
@@ -1034,12 +1078,12 @@ static __global__ void k_transport_alpha_x(G_StaggeredGrid* grid, double dt){
 
     /* clipping */
     /*
-    if (a_new(ix,iy,iz)<EPS){
-        a_new(ix,iy,iz)=0.;
-    }else if (a_new(ix,iy,iz)>1.){
-        a_new(ix,iy,iz)=1.;
-    }
-    */
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
 
 }
 
@@ -1081,12 +1125,12 @@ static __global__ void k_transport_alpha_y(G_StaggeredGrid* grid, double dt){
 
     /* clipping */
     /*
-    if (a_new(ix,iy,iz)<EPS){
-        a_new(ix,iy,iz)=0.;
-    }else if (a_new(ix,iy,iz)>1.){
-        a_new(ix,iy,iz)=1.;
-    }
-    */
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
 
 }
 
@@ -1128,33 +1172,33 @@ static __global__ void k_transport_alpha_z(G_StaggeredGrid* grid, double dt){
 
     /* clipping */
     /*
-    if (a_new(ix,iy,iz)<EPS){
-        a_new(ix,iy,iz)=0.;
-    }else if (a_new(ix,iy,iz)>1.){
-        a_new(ix,iy,iz)=1.;
-    }
-    */
+       if (a_new(ix,iy,iz)<EPS){
+       a_new(ix,iy,iz)=0.;
+       }else if (a_new(ix,iy,iz)>1.){
+       a_new(ix,iy,iz)=1.;
+       }
+     */
 
 }
 
 /*
-static __global__ void k_calc_alpha_with_solidfrac(G_StaggeredGrid* grid){
-    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
-    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
-    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+   static __global__ void k_calc_alpha_with_solidfrac(G_StaggeredGrid* grid){
+   int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+   int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+   int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
 
-    MyArray<double,3>& a = grid->alpha_;
-    MyArray<double,3>& asf = grid->alpha_with_solidfrac_;
-    MyArray<double,3>& sf = grid->ibm_solid_fraction_;
+   MyArray<double,3>& a = grid->alpha_;
+   MyArray<double,3>& asf = grid->alpha_with_solidfrac_;
+   MyArray<double,3>& sf = grid->ibm_solid_fraction_;
 
 
 
-    if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
+   if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
 
-    asf(ix,iy,iz)=a(ix,iy,iz)*(1.-sf(ix,iy,iz));
+   asf(ix,iy,iz)=a(ix,iy,iz)*(1.-sf(ix,iy,iz));
 
-}
-*/
+   }
+ */
 
 
 static __global__ void k_clip_alpha(G_StaggeredGrid* grid){
@@ -1583,38 +1627,56 @@ static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_Sta
     if(iy>=Ny+2 || ix>= Nx+3 || iz >= Nz+2){
         /* do nothing */
     }else{
-        if(grid->f_xtype_(ix,iy,iz) == F_INTERIOR){
-            double q = vx(ix,iy,iz);                    // u_f
-            double alpha_q = Fx(ix,iy,iz)* dxbydt; // u_f * alpha_f
-            mfx(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
-        }else{
-            mfx(ix,iy,iz) = 0.0; // rho*u
-        }
+        double q = vx(ix,iy,iz);                    // u_f
+        double alpha_q = Fx(ix,iy,iz)* dxbydt; // u_f * alpha_f
+        mfx(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+
+        /*
+           if(grid->f_xtype_(ix,iy,iz) == F_INTERIOR){
+           double q = vx(ix,iy,iz);                    // u_f
+           double alpha_q = Fx(ix,iy,iz)* dxbydt; // u_f * alpha_f
+           mfx(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+           }else{
+           mfx(ix,iy,iz) = 0.0; // rho*u
+           }
+         */
 
     }
 
     if(iy>=Ny+3 || ix>= Nx+2 || iz>= Nz+2){
         /* do nothing */
     }else{
-        if(grid->f_ytype_(ix,iy,iz) == F_INTERIOR){
-            double q = vy(ix,iy,iz);                    // u_f
-            double alpha_q = Fy(ix,iy,iz)* dybydt; // u_f * alpha_f
-            mfy(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
-        }else{
-            mfy(ix,iy,iz) = 0.0; // rho*u
-        }
+
+        double q = vy(ix,iy,iz);                    // u_f
+        double alpha_q = Fy(ix,iy,iz)* dybydt; // u_f * alpha_f
+        mfy(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+
+        /*
+           if(grid->f_ytype_(ix,iy,iz) == F_INTERIOR){
+           double q = vy(ix,iy,iz);                    // u_f
+           double alpha_q = Fy(ix,iy,iz)* dybydt; // u_f * alpha_f
+           mfy(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+           }else{
+           mfy(ix,iy,iz) = 0.0; // rho*u
+           }
+         */
     }
 
     if(iy>=Ny+2 || ix>= Nx+2 || iz>= Nz+3){
         /* do nothing */
     }else{
-        if(grid->f_ztype_(ix,iy,iz) == F_INTERIOR){
-            double q = vz(ix,iy,iz);                    // u_f
-            double alpha_q = Fz(ix,iy,iz)* dzbydt; // u_f * alpha_f
-            mfz(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
-        }else{
-            mfz(ix,iy,iz) = 0.0; // rho*u
-        }
+        double q = vz(ix,iy,iz);                    // u_f
+        double alpha_q = Fz(ix,iy,iz)* dzbydt; // u_f * alpha_f
+        mfz(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+        /*
+           if(grid->f_ztype_(ix,iy,iz) == F_INTERIOR){
+           double q = vz(ix,iy,iz);                    // u_f
+           double alpha_q = Fz(ix,iy,iz)* dzbydt; // u_f * alpha_f
+           mfz(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
+           }else{
+           mfz(ix,iy,iz) = 0.0; // rho*u
+           }
+         */
     }
 }
 
@@ -1639,8 +1701,9 @@ static __global__ void k_update_x_face_boundary_properties(G_StaggeredGrid* grid
     MyArray<double,3> f_rhox = grid->f_rhox_;
     MyArray<double,3> f_mux = grid->f_mux_;
     MyArray<double,3>  f_bx = grid->f_bx_;
+    //MyArray<double,3> mfx = grid->f_mfx_;
 
-        /* pressure is assumed to be zero at the boundary*/
+    /* pressure is assumed to be zero at the boundary*/
 
     if(grid->f_xtype_(ix,iy,iz) == F_BOUNDARY){
         int int_id = grid->f_xinternal_id_(ix,iy,iz);
@@ -1656,8 +1719,10 @@ static __global__ void k_update_x_face_boundary_properties(G_StaggeredGrid* grid
 
             if(int_id_shift < 0){
                 b_beta = 2.0*grid->f_bx_(ix-1,iy,iz);
+                //mfx(ix,iy,iz) = mfx(ix-1,iy,iz);
             }else{
                 b_beta = 2.0*grid->f_bx_(ix+1,iy,iz);
+                //mfx(ix,iy,iz) = mfx(ix+1,iy,iz);
             }
 
             f_bx(ix,iy,iz)=b_beta;
@@ -1685,6 +1750,7 @@ static __global__ void k_update_y_face_boundary_properties(G_StaggeredGrid* grid
     MyArray<double,3> f_rhoy = grid->f_rhoy_;
     MyArray<double,3> f_muy = grid->f_muy_;
     MyArray<double,3>  f_by = grid->f_by_;
+    //MyArray<double,3> mfy = grid->f_mfy_;
 
     if(grid->f_ytype_(ix,iy,iz) == F_BOUNDARY){
         int int_id = grid->f_yinternal_id_(ix,iy,iz);
@@ -1701,8 +1767,10 @@ static __global__ void k_update_y_face_boundary_properties(G_StaggeredGrid* grid
 
             if(int_id < 0){
                 b_beta = 2.0*grid->f_by_(ix,iy-1,iz);
+                //mfy(ix,iy,iz) = mfy(ix,iy-1,iz);
             }else{
                 b_beta = 2.0*grid->f_by_(ix,iy+1,iz);
+                //mfy(ix,iy,iz) = mfy(ix,iy+1,iz);
             }
 
             f_by(ix,iy,iz)=b_beta;
@@ -1730,6 +1798,7 @@ static __global__ void k_update_z_face_boundary_properties(G_StaggeredGrid* grid
     MyArray<double,3> f_rhoz = grid->f_rhoz_;
     MyArray<double,3> f_muz = grid->f_muz_;
     MyArray<double,3>  f_bz = grid->f_bz_;
+    //MyArray<double,3> mfz = grid->f_mfz_;
 
     if(grid->f_ztype_(ix,iy,iz) == F_BOUNDARY){
         int int_id = grid->f_zinternal_id_(ix,iy,iz);
@@ -1746,8 +1815,10 @@ static __global__ void k_update_z_face_boundary_properties(G_StaggeredGrid* grid
 
             if(int_id < 0){
                 b_beta = 2.0*grid->f_bz_(ix,iy,iz-1);
+                //mfz(ix,iy,iz) = mfz(ix,iy,iz-1);
             }else{
                 b_beta = 2.0*grid->f_bz_(ix,iy,iz+1);
+                //mfz(ix,iy,iz) = mfz(ix,iy,iz+1);
             }
 
             f_bz(ix,iy,iz)=b_beta;

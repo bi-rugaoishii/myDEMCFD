@@ -355,6 +355,7 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_x(SMACSolver solv,G_Stag
 
         /* == assuming v_ibm = 0 for now. it actually is (1-frac)*v_star + frac *v_ibm*/
         vx_star(ix,iy,iz) = (1.0-solid_frac)*vx_star(ix,iy,iz);
+
     }
 }
 
@@ -933,8 +934,42 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_z(SMACSolver solv,G_Stag
 
 }
 
+/* debug */
+__global__ void k_check_vxstar_boundary(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    unsigned char ftype = grid->f_xtype_(ix,iy,iz);
+    MyArray<double,3>  vx_star = grid->f_vx_star_;
+
+
+    if(ftype == F_BOUNDARY){
+        int bid = grid->f_xbcid_(ix,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        if(bcType == BC_OUTLET){
+            /* debug*/
+            printf("%d %d %d vx_star = %f \n", ix,iy,iz,vx_star(ix,iy,iz));
+            printf("%d %d %d vx_star = %f \n", ix-1,iy,iz,vx_star(ix,iy,iz));
+        }
+
+    }else{
+        return;
+    }
+}
+
 void G_SMACSolver::update_vstar_boundary(){
     k_update_vxstar_boundary<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    /*debug*/
+    //k_check_vxstar_boundary<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
     k_update_vystar_boundary<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
     k_update_vzstar_boundary<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 }
@@ -1029,6 +1064,11 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
 
 void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     k_correct_vof_velocity<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
+    k_update_vx_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+    k_update_vy_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+    k_update_vz_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
     cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
 }
 

@@ -60,8 +60,8 @@ int main(){
 
     double u_lid = 0.;
     //double nu = 0.001;
-    double nu = 0.;
-    //double nu = 5e-4;
+    //double nu = 0.;
+    double nu = 5e-4;
 
 
     //double mu_w = 1.0e-3;
@@ -70,7 +70,7 @@ int main(){
     double mu_g = nu*rho_g;
 
 
-    double sizex=4.0;
+    double sizex=2.0;
     double sizey=0.5;
     double sizez=0.5;
 
@@ -116,7 +116,7 @@ int main(){
     solv.solver_malloc();
 
     double wallvel=0.000;
-    double wallvel2=1.000;
+    double invel=1.000;
 
     solv.set_face_type();
     solv.set_cell_type();
@@ -129,7 +129,7 @@ int main(){
     solv.grid_.set_boundary_id(AXIS_X,4,Nx+1);
 
     solv.grid_.bc_.set_boundary_velocity(1, wallvel, 0., 0.);
-    solv.grid_.bc_.set_boundary_velocity(3, wallvel2, 0., 0.);
+    solv.grid_.bc_.set_boundary_velocity(3, invel, 0., 0.);
     solv.grid_.bc_.set_bctype(1, BC_NOSLIP);
     solv.grid_.bc_.set_bctype(2, BC_SLIP);
     solv.grid_.bc_.set_bctype(3, BC_INFLOW);
@@ -159,6 +159,8 @@ int main(){
     solv.set_zalesak_rotation_velocity();
     */
 
+    //solv.set_initial_x_velocity(invel);
+
     //solv.set_boundary_neumann(solv.grid_.p_);
     //solv.set_boundary_neumann(solv.grid_.alpha_);
     solv.update_properties_by_alpha_initial();
@@ -171,12 +173,12 @@ int main(){
     float ms;
     h_start = omp_get_wtime();
 
-    double cfl_thresh = 0.05;
-    double cfl_alpha_thresh = 0.05;
+    double cfl_thresh = 0.4;
+    double cfl_alpha_thresh = 0.2;
     int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
     Time_mode mode=VARIBALE_TIME_STEP;
     double outfreqtime = 0.05;
-    double endTime = 20.0;
+    double endTime = 10.0;
     double max_dt = 1e-2;
     double initial_dt = 1e-5;
 
@@ -231,12 +233,10 @@ int main(){
         g_solv.set_block_grid(Nx,Ny,Nz);
 
         
-        /*
         printf("creating cylinder ibm\n");
         g_solv.make_cylinder_ibm(0.5,0.25,0.25,0.05);
         g_solv.set_solid_cell();
         printf("creating cylinder done\n");
-        */
     }
 
 
@@ -289,11 +289,13 @@ int main(){
             /* == transport alpha done == */
 
             g_solv.update_properties_by_alpha();
+            g_solv.compute_mass_flux_from_alpha_flux(solv);
+
             g_solv.update_boundary_faces();
 
             g_solv.calc_surface_tension();
 
-            g_solv.compute_mass_flux_from_alpha_flux(solv);
+
             g_solv.get_vof_vstar_rhouu_consistent(solv);
 
             g_solv.update_vstar_boundary();
@@ -309,7 +311,6 @@ int main(){
             if(cfdtime.isOutStep_){
 
                 /* this is only for output in order to interpolate velocity to cell centers*/
-                g_solv.update_v_boundary();
 
                 g_solv.gpuTocpu(solv.grid_);
                 //solv.check_pressure_jump_by_radius();

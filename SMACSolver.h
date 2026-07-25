@@ -85,6 +85,8 @@ struct SMACSolver{
     void initialize_disk();
     void set_zalesak_rotation_velocity();
     void check_pressure_jump_by_radius();
+
+    void set_initial_x_velocity(double ini_v);
 };
 
 
