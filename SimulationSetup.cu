@@ -119,6 +119,9 @@ void apply_initial_conditions(
         case InitialConditionType::SolidCylinder:
             break;
 
+        case InitialConditionType::SolidCylinderInv:
+            break;
+
         default:
             throw std::runtime_error(
                 "unsupported initial condition");
@@ -147,10 +150,16 @@ void apply_initial_conditions_device(
 
         case InitialConditionType::SolidCylinder:
             printf("creating cylinder ibm\n");
-            printf("%f %f %f %f\n",initial.center.x,initial.center.y,initial.center.z,initial.radius);
             solver.make_cylinder_ibm(initial.center.x,initial.center.y,initial.center.z,initial.radius);
             printf("creating cylinder done\n");
             break;
+
+        case InitialConditionType::SolidCylinderInv:
+            printf("creating cylinder inv ibm\n");
+            solver.make_cylinder_ibm_inv(initial.center.x,initial.center.y,initial.center.z,initial.radius);
+            printf("creating cylinder done\n");
+            break;
+
 
         default:
             throw std::runtime_error(

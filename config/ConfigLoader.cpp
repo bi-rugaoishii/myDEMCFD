@@ -664,6 +664,31 @@ InitialConditionConfig parse_initial_condition(
         return result;
     }
 
+    if (type == "solid_cylinder_inv") {
+        result.type =
+            InitialConditionType::SolidCylinderInv;
+
+        result.center =
+            read_vec3(
+                    value,
+                    "center",
+                    path);
+
+        result.radius =
+            read_number(
+                    value,
+                    "radius",
+                    path);
+
+        result.solid_id =
+            read_integer(
+                    value,
+                    "solid_id",
+                    path);
+
+        return result;
+    }
+
     if (type == "solid_cylinder") {
         result.type =
             InitialConditionType::SolidCylinder;

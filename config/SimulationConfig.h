@@ -106,7 +106,8 @@ enum class InitialConditionType
     VofBox,
     VofSphere,
     SolidBox,
-    SolidCylinder
+    SolidCylinder,
+    SolidCylinderInv,
 };
 
 struct InitialConditionConfig

@@ -170,10 +170,6 @@ int main(int argc, char** argv){
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
-    /* output initial data */
-    fileIO.output_vti_binary_cellData(solv.grid_,0.);
-
-    printf("output initial data done \n");
 
     /* == gpu initialization == */
     G_SMACSolver g_solv;
@@ -239,6 +235,12 @@ int main(int argc, char** argv){
     /* ============================= 
        ======== main loop ==========
        ============================= */
+
+    /* output initial data */
+    g_solv.gpuTocpu(solv.grid_);
+    fileIO.output_vti_binary_cellData(solv.grid_,0.);
+
+    printf("output initial data done \n");
 
 
     int cur_step = 0;
