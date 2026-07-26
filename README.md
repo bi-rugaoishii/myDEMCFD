@@ -4,7 +4,7 @@ This repository contains a custom CFD/VOF solver under active development.
 The solver started as a 2D structured-grid, staggered/MAC-grid incompressible flow solver with VOF free-surface tracking, GPU acceleration, variable-density pressure projection, geometric multigrid pressure solvers, and surface-tension modeling.
 The solver has now been extended to 3D free-surface simulations such as water crown and milk crown problems.
 
-The current priority is JSON-based simulation configuration, RDF-based curvature calculation, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
+The current priority is RDF-based curvature calculation, embedded-boundary support, validation, robustness, pressure-solver benchmarking, and preparation for long-running 3D simulations.
 
 ---
 
@@ -25,27 +25,26 @@ The current priority is JSON-based simulation configuration, RDF-based curvature
 - [x] Direction-selective / non-uniform GMG coarsening and validation
 - [x] Full GPU port and PCG kernel fusion
 - [x] Pointer-based CUDA kernel argument passing with grid self pointer
+- [x] JSON-based calculation-condition setup
 - [x] CFL-based variable time step
 - [x] Alpha substepping for VOF transport
 - [x] Surface tension implementation
 - [x] Face/cell indexing convention cleanup and validation
 - [x] 3D MAC-grid extension
 - [x] 3D boundary-cell attribute based boundary handling
-- [x] Variable-viscosity stress-divergence viscous term
+- [x] Variable-viscosity viscous-term formulation
 - [x] Basic validation: lid-driven cavity, OpenFOAM comparison, dam break, Zalesak slotted disk
 - [x] Basic diagnostics: alpha conservation, divergence, CFL / dt, PCG residuals
 
 ### Main Remaining Work
 
-- [ ] Read calculation conditions from a JSON configuration file
 - [ ] RDF-based curvature calculation for surface tension
 - [ ] Embedded boundary method
 - [ ] 3D validation and robustness checks
 - [ ] Solver configuration cleanup
-- [ ] Fixed-dt / variable-dt mode switching
 - [ ] Numerical scheme switching
 - [ ] Pressure-solver validation and benchmarking
-- [ ] Stress-divergence viscous-term validation
+- [ ] Implicit viscous-term formulation
 - [ ] Surface-tension validation and improvement
 - [ ] Additional benchmark cases
 - [ ] Restart, binary output, and long-running simulation utilities
@@ -54,16 +53,15 @@ The current priority is JSON-based simulation configuration, RDF-based curvature
 
 # Short-Term Priorities
 
-1. Add JSON configuration-file loading for calculation conditions.
-2. Add RDF-based curvature calculation for surface tension.
-3. Add embedded-boundary support using cell/face attributes, including STL geometry support.
-4. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
-5. Clean up `SolverConfig`, parameter ownership, fixed/CFL time-step switching, and scheme selection.
-6. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
-7. Validate the stress-divergence viscous term for constant and variable viscosity cases.
-8. Validate and improve surface tension using static droplet, Laplace pressure, and spurious-current tests.
-9. Add additional benchmark cases.
-10. Add restart, binary output, and long-running simulation logging.
+1. Add RDF-based curvature calculation for surface tension.
+2. Add embedded-boundary support using cell/face attributes, including STL geometry support.
+3. Validate the 3D solver with small-grid tests, divergence checks, and simple projection tests.
+4. Clean up `SolverConfig`, parameter ownership, CFL time-step settings, and scheme selection.
+5. Validate PCG, GMG, and GMG-preconditioned pressure solvers in 3D.
+6. Add and validate implicit treatment of the viscous term.
+7. Validate and improve surface tension using static droplet, Laplace pressure, and spurious-current tests.
+8. Add additional benchmark cases.
+9. Add restart, binary output, and long-running simulation logging.
 
 ---
 
@@ -72,20 +70,7 @@ The current priority is JSON-based simulation configuration, RDF-based curvature
 The sections below follow the same order as `Main Remaining Work`.
 Completed items are kept later in `Completed Major Work`, not as active phases.
 
-## 1. JSON Configuration File for Calculation Conditions
-
-Add a JSON configuration file so simulation conditions can be changed without recompiling. This should cover grid size, domain size, time-step settings, material properties, solver options, output settings, and numerical scheme choices.
-
-TODO:
-
-- [ ] Define the JSON schema for calculation conditions
-- [ ] Load JSON settings into `SolverConfig`, `MaterialConfig`, and grid/domain settings
-- [ ] Validate required fields and provide safe defaults where appropriate
-- [ ] Save a copy of the used configuration with simulation outputs
-
----
-
-## 2. RDF-Based Curvature Calculation for Surface Tension
+## 1. RDF-Based Curvature Calculation for Surface Tension
 
 Add RDF-based curvature calculation to improve curvature quality and reduce spurious currents compared with direct alpha-gradient curvature.
 
@@ -98,7 +83,7 @@ TODO:
 
 ---
 
-## 3. Embedded Boundary Method
+## 2. Embedded Boundary Method
 
 Add embedded-boundary support on the structured grid. The existing cell/face attribute system should be reused so that wall handling, Poisson stencils, VOF transport, and viscous terms remain centralized.
 
@@ -111,7 +96,7 @@ TODO:
 
 ---
 
-## 4. 3D Validation and Robustness Checks
+## 3. 3D Validation and Robustness Checks
 
 The solver has been extended from 2D to 3D. The remaining work is validation, boundary robustness, memory/output design, and preparation for water crown / milk crown simulations.
 
@@ -125,14 +110,13 @@ TODO:
 
 ---
 
-## 5. Solver Configuration Cleanup
+## 4. Solver Configuration Cleanup
 
 Clean up solver configuration and scalar parameter ownership so the growing 3D solver remains maintainable.
 
 TODO:
 
 - [ ] Move numerical options into `SolverConfig`
-- [ ] Connect JSON-loaded settings to `SolverConfig` and `MaterialConfig`
 - [ ] Clarify ownership of grid spacing, time variables, material properties, solver tolerances, and scheme parameters
 - [ ] Decide how scalar parameters should be passed alongside the pointer-based grid argument
 
@@ -146,7 +130,7 @@ Solver:
     dt, t_now, step, output scheduling, time-step orchestration
 
 SolverConfig:
-    method switches, dt settings, CFL settings, tolerances, output settings
+    method switches, CFL/time-step settings, tolerances, output settings
 
 MaterialConfig:
     rho_l, rho_g, mu_l, mu_g, sigma
@@ -154,20 +138,7 @@ MaterialConfig:
 
 ---
 
-## 6. Fixed-dt / Variable-dt Mode Switching
-
-CFL-based variable time stepping is implemented, but fixed time step mode should remain available for debugging, reproducibility, and controlled comparisons.
-
-TODO:
-
-- [ ] Add fixed time step mode to `SolverConfig`
-- [ ] Keep CFL mode as the default for production runs if appropriate
-- [ ] Check consistency between physical-time output and both time-step modes
-- [ ] Keep alpha substepping configurable in both modes
-
----
-
-## 7. Numerical Scheme Switching
+## 5. Numerical Scheme Switching
 
 Organize numerical method selection so schemes can be switched cleanly without scattering conditionals through the code.
 
@@ -180,7 +151,7 @@ TODO:
 
 ---
 
-## 8. Pressure-Solver Validation and Benchmarking
+## 6. Pressure-Solver Validation and Benchmarking
 
 GPU PCG, standalone GMG, GMG-preconditioned pressure solvers, and direction-selective GMG coarsening are implemented. The remaining work is validation, tuning, and choosing the default.
 
@@ -200,19 +171,20 @@ beta = dt / rho
 
 ---
 
-## 9. Stress-Divergence Viscous-Term Validation
+## 7. Implicit Viscous-Term Formulation
 
-The variable-viscosity viscous term has been replaced with the stress-divergence form. The remaining work is validation and tuning near interfaces and boundaries.
+Add an implicit treatment of the viscous term so viscous stability constraints can be relaxed, especially for small cells, high viscosity, and embedded-boundary cases.
 
 TODO:
 
-- [ ] Validate the term for constant-viscosity cases against the old Laplacian form
-- [ ] Test stability and accuracy at high viscosity ratio
-- [ ] Check interaction with 3D boundary-cell attributes and free-surface cells
+- [ ] Decide the matrix form for the implicit viscous update
+- [ ] Start with the diagonal / Laplacian-like part if full coupling is too large
+- [ ] Connect the implicit viscous solve to boundary conditions and cell/face attributes
+- [ ] Validate stability and accuracy for constant and variable viscosity cases
 
 ---
 
-## 10. Surface-Tension Validation and Improvement
+## 8. Surface-Tension Validation and Improvement
 
 Surface tension is implemented. The next work is validation, curvature improvement, and spurious-current reduction.
 
@@ -232,7 +204,7 @@ Laplace pressure targets:
 
 ---
 
-## 11. Additional Benchmark Cases
+## 9. Additional Benchmark Cases
 
 Add benchmark cases that are useful for free-surface, high-density-ratio, and surface-tension behavior.
 
@@ -247,7 +219,7 @@ TODO:
 
 ---
 
-## 12. Restart, Binary Output, and Long-Running Simulation Utilities
+## 10. Restart, Binary Output, and Long-Running Simulation Utilities
 
 Large 3D simulations need robust output, restart, and logging.
 
@@ -282,12 +254,13 @@ TODO:
 The following items are implemented and are kept here only as a compact history, not as active phases.
 
 - [x] Pointer-based CUDA kernel argument passing with grid self pointer
+- [x] JSON-based calculation-condition setup
 - [x] Face/cell indexing cleanup and validation
 - [x] MUSCL-TVD momentum advection with van Leer and minmod limiters
 - [x] Direction-selective / non-uniform GMG coarsening and validation
 - [x] Core 3D MAC-grid extension
 - [x] 3D boundary-cell attribute system
-- [x] Variable-viscosity stress-divergence implementation
+- [x] Variable-viscosity viscous-term formulation
 - [x] Flux-direction-based THINC/WLIC switching near boundaries
 
 ---
@@ -298,6 +271,7 @@ The following items are implemented and are kept here only as a compact history,
 Already implemented:
     GPU solver
     pointer-based CUDA kernel argument passing with grid self pointer
+    JSON-based calculation-condition setup
     PCG kernel fusion
     WLIC
     flux-direction-based upwind / THINC / WLIC switching near boundaries
@@ -312,24 +286,21 @@ Already implemented:
     face/cell indexing cleanup and validation
     3D MAC-grid extension
     3D boundary-cell attribute system
-    variable-viscosity stress-divergence viscous term
+    variable-viscosity viscous-term formulation
 
 Current priority:
-    JSON-based calculation-condition setup
     RDF-based curvature calculation
     embedded boundary method
     validation and robustness of the 3D solver
 
 Main remaining work:
-    JSON configuration-file loading for calculation conditions
     RDF-based curvature calculation
     embedded boundary method
     3D validation and robustness checks
     solver configuration cleanup
-    fixed-dt / variable-dt mode switching
     numerical scheme switching
     pressure-solver validation and benchmarking
-    stress-divergence viscous-term validation
+    implicit viscous-term formulation
     surface-tension validation and improvement
     additional benchmark cases
     restart, binary output, and long-running simulation utilities
