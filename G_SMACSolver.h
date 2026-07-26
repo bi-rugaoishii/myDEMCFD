@@ -8,14 +8,11 @@
 struct G_PressureSolverBase;
 struct G_SMACSolver{
     G_StaggeredGrid grid_;
-    double nu_;
-    double rho_;
     double rho1_,rho0_;
     double mu1_,mu0_;
     double t_now_;
-    double dt_;
-    double inv_dt_;
-    double u_lid_;
+    double dt_=0.001;
+    double inv_dt_=1./dt_;
     double gx_,gy_,gz_; //gravity
     
     double *d_pcg_scalars_;
@@ -25,7 +22,7 @@ struct G_SMACSolver{
     dim3 block_dim_;
     dim3 grid_dim_; //grid size for cuda
 
-    void set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex, double sizey, double sizez, int Nx, int Ny, int Nz);
+    void set_calc_properties(double sizex, double sizey, double sizez, int Nx, int Ny, int Nz);
 
     /* == surface tension related == */
     void calc_surface_tension();

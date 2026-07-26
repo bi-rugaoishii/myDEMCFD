@@ -10,6 +10,9 @@
 #include "G_StaggeredGrid.h"
 #include "misc.h"
 #include "SMACSolver.h"
+#include "config/ConfigLoader.h"
+#include "config/SimulationConfig.h"
+#include "SimulationSetup.h"
 #include "pressure_solver/G_PressureSolverBase.h"
 #include "pressure_solver/G_PCGSolver.h"
 #include "pressure_solver/G_GMGSolver.h"
@@ -21,7 +24,6 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#define GPU_ON 1
 
 
 /*
@@ -32,70 +34,77 @@
 
 
 
-int main(){
+int main(int argc, char** argv){
     setvbuf(stdout,NULL,_IOLBF,0);
     setvbuf(stderr,NULL,_IONBF,0);
     printf("Starting myCFD\n\n");
 
-    if (GPU_ON==1){
-        printf("GPU IS ON!!!!\n");
+    const std::string config_filename = argc >=2 ? argv[1] : "config.json";
+
+    SimulationConfig config;
+
+    try {
+        config = load_simulation_config(config_filename);
+    }catch (const std::exception& error) {
+        fprintf(stderr,"Failed to load configuration:\n%s\n", error.what());
+        return EXIT_FAILURE;
     }
-    const char* outdir ="results";
-
-    /*
-    int Nx=256;
-    int Ny=64;
-    int Nz=1;
-    */
 
 
-    int Nx=128;
-    int Ny=128;
-    int Nz=1;
+    printf("Configuration file: %s\n", config_filename.c_str());
 
-    double rho = 1.;
-    double rho_w = 1000.;
-    //double rho_w = 1.;
-    double rho_g = 1.;
+    config.validate();
 
-    double u_lid = 0.;
-    double nu = 0.001;
-    //double nu = 0.;
-    //double nu = 5e-4;
+    const bool use_gpu = config.hardware.use_gpu;
 
+    if (use_gpu){
+        printf("GPU IS ON!!!!\n");
+    }else{
+        fprintf(
+                stderr,
+                "CPU calculation loop is not implemented "
+                "in this main function.\n");
 
-    double mu_w = 1.0e-3;
-    double mu_g = 1.8e-5;
-    //double mu_w = nu*rho_w;
-    //double mu_g = nu*rho_g;
+        return EXIT_FAILURE;
+    }
 
-    /*
-    double sizex=2.0;
-    double sizey=0.5;
-    double sizez=0.5;
-    */
-    double sizex=0.5;
-    double sizey=0.5;
-    double sizez=0.5;
+    const char* outdir = config.output.directory.c_str();
 
-    /*
-    double sizex=0.04;
-    double sizey=0.016;
-    double sizez=0.04;
-    */
+    const int Nx = config.grid.Nx;
+    const int Ny = config.grid.Ny;
+    const int Nz = config.grid.Nz;
+
+    const double sizex =
+        config.grid.size_x;
+
+    const double sizey =
+        config.grid.size_y;
+
+    const double sizez =
+        config.grid.size_z;
 
 
-    double dx=sizex/(double)Nx;
-    double dy=sizey/(double)Ny;
-    double dz=sizez/(double)Nz;
-    double sigma = 0.072;
-    //double sigma = 0.00072;
-    //double sigma = 1e-16;
-    //int endSteps = 10000;
-    //int outStepsFreq=100;
+    const double rho_g =
+        config.fluid.phase0.density;
 
-    //double Re = u_lid*sizex/nu;
-    double dt=0.001;
+    const double rho_w =
+        config.fluid.phase1.density;
+
+    const double mu_g =
+        config.fluid.phase0.viscosity;
+
+    const double mu_w =
+        config.fluid.phase1.viscosity;
+
+    const double sigma =
+        config.fluid.surface_tension;
+
+
+
+
+
+
+
 
     FileInOut fileIO;
     fileIO.solver_output_init(outdir);
@@ -104,86 +113,42 @@ int main(){
     SMACSolver solv;
 
     /* == set properties ==*/
-    solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey, sizez, Nx, Ny, Nz);
+    solv.set_calc_properties(sizex, sizey, sizez, Nx, Ny, Nz);
 
-
-    solv.set_gravity(0., -9.81, 0.);
-   //solv.set_gravity(0., 0,0.);
+    solv.set_gravity(config.fluid.gravity.x,config.fluid.gravity.y,config.fluid.gravity.z);
     solv.set_rhos(rho_g,rho_w);
-
     solv.set_mus(mu_g,mu_w);
-   
+
     /* == set boundary id numbers == */
-    int num_bc_id = 3;
+    int num_bc_id = config.get_num_boundary_ids();
     solv.grid_.set_num_bc_id(num_bc_id);
 
 
     solv.solver_malloc();
 
-    double wallvel=0.000;
-    //double invel=1.000;
 
     solv.set_face_type();
     solv.set_cell_type();
     solv.set_face_internal_direction();
 
-    solv.grid_.set_boundary_id(AXIS_Y,1,Ny+1); // dir bid index
-    solv.grid_.set_boundary_id(AXIS_Z,2,Nz+1);
-    solv.grid_.set_boundary_id(AXIS_Z,2,1);
-
-    //solv.grid_.set_boundary_id(AXIS_X,3,1);
-   // solv.grid_.set_boundary_id(AXIS_X,4,Nx+1);
-
-    solv.grid_.bc_.set_boundary_velocity(1, wallvel, 0., 0.);
-    //solv.grid_.bc_.set_boundary_velocity(3, invel, 0., 0.);
-    solv.grid_.bc_.set_bctype(1, BC_NOSLIP);
-    solv.grid_.bc_.set_bctype(2, BC_SLIP);
-    /*
-    solv.grid_.bc_.set_bctype(3, BC_INFLOW);
-    solv.grid_.bc_.set_bctype(4, BC_OUTLET);
-    */
 
     /* check if its pure neumann */
-    bool isPureNeumann=true;
+    bool isPureNeumann=config.is_pure_neumann();
 
-    for(int i=0; i<num_bc_id; i++){
-        unsigned char bctype =  solv.grid_.bc_.bcType_(i);
-        
-        if(bctype == BC_OUTLET || bctype == BC_INFLOW){
-            isPureNeumann = false;
-        }
-    } 
 
 
 
     solv.grid_.sigma_(0) =sigma; // temporal implementation
 
     solv.grid_.get_cell_coord();
-    //solv.grid_.place_vof(0.,0.2,0.,0.5,1.0);
-    solv.grid_.place_vof(0.,0.1461,0.,0.4,0.,0.5,1.0);
-    solv.grid_.place_solid(0.292,0.316,0.,0.048,0.,1.0,1);
-    //solv.grid_.place_vof(0.4,0.5,0.4,0.5,0.,1.0,1.0);
+
+
+    SimulationSetup::apply_boundary_conditions(solv,config);
+    SimulationSetup::apply_initial_conditions(solv,config);
 
 
 
 
-
-    /*for zalesak test*/
-    //solv.initialize_zalesak_disk();
-
-    //solv.set_sphere();
-    //solv.set_sphere_sub_voxel();
-   //solv.grid_.place_vof(0.,1.0,0.,0.0015,0.,1.0,1.0);
-
-   /*
-    solv.set_sphere_zalesak();
-    solv.set_zalesak_rotation_velocity();
-    */
-
-    //solv.set_initial_x_velocity(invel);
-
-    //solv.set_boundary_neumann(solv.grid_.p_);
-    //solv.set_boundary_neumann(solv.grid_.alpha_);
     solv.update_properties_by_alpha_initial();
 
 
@@ -194,26 +159,14 @@ int main(){
     float ms;
     h_start = omp_get_wtime();
 
-    double cfl_thresh = 0.4;
-    double cfl_alpha_thresh = 0.2;
-    int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
+    double cfl_thresh = config.time.cfl;
+    int alpha_substeps = config.get_alpha_substeps();
     Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = 0.05;
-    double endTime = 10.0;
-    double max_dt = 1e-2;
-    double initial_dt = 1e-5;
+    double outfreqtime = config.time.interval;
+    double endTime = config.time.end_time;
+    double max_dt = config.time.maximum_dt;
+    double initial_dt = config.time.initial_dt;
 
-    /* == set cfd time related parameters ==*/
-    /*
-    double cfl_thresh = 0.4;
-    double cfl_alpha_thresh = 0.2;
-    int alpha_substeps = (int)ceil(cfl_thresh/cfl_alpha_thresh);
-    Time_mode mode=VARIBALE_TIME_STEP;
-    double outfreqtime = 0.05;
-    double endTime = 10.0;
-    double max_dt = 1e-2;
-    double initial_dt = 1e-5;
-    */
 
     CFDTime cfdtime(initial_dt,max_dt,outfreqtime,endTime,cfl_thresh,mode);
 
@@ -224,11 +177,11 @@ int main(){
 
     /* == gpu initialization == */
     G_SMACSolver g_solv;
-    g_solv.set_calc_properties(rho, dt,u_lid, nu, sizex, sizey,sizez, Nx, Ny, Nz);
+    g_solv.set_calc_properties(sizex, sizey,sizez, Nx, Ny, Nz);
 
-    if(GPU_ON ==1){
+    if(use_gpu){
 
-        
+
         g_solv.grid_.bc_.num_boundary_id_ = solv.grid_.bc_.num_boundary_id_;
 
 
@@ -236,7 +189,7 @@ int main(){
         g_solv.solver_malloc();
         printf("Allocated!\n");
 
-        
+
 
 
         printf("Copying data to gpu\n");
@@ -253,13 +206,14 @@ int main(){
 
         g_solv.set_block_grid(Nx,Ny,Nz);
 
-        
-        /*
-        printf("creating cylinder ibm\n");
-        g_solv.make_cylinder_ibm(0.5,0.25,0.25,0.05);
+
+
+        SimulationSetup::apply_initial_conditions_device(g_solv,config);
+
+        cudaDeviceSynchronize();
+        printf("Applying solid cell\n");
         g_solv.set_solid_cell();
-        printf("creating cylinder done\n");
-        */
+        printf("Applying solid cell done\n");
     }
 
 
@@ -267,7 +221,7 @@ int main(){
     pcgSolver.copyData(g_solv);
     g_solv.pressure_solver_ = &pcgSolver;
 
-    int num_levels = 4;
+    int num_levels = config.pressure_solver.gmg_levels;
     G_GMGSolver gmgSolver;
     gmgSolver.initialize(g_solv,num_levels);
     gmgSolver.copyData(g_solv);
@@ -276,7 +230,7 @@ int main(){
     /* choose solver according to the boundary condition*/
     if(isPureNeumann){
         pcgSolver.set_solver(PURENEUMANN_GMG_PCG);
-        printf("\n\nPURENEUMANN MODE!!!\n\n");
+        printf("\n\n PURENEUMANN\n\n");
     }else{
         pcgSolver.set_solver(GMG_PCG);
         //pcgSolver.set_solver(STANDARD_PCG);
@@ -288,7 +242,7 @@ int main(){
 
 
     int cur_step = 0;
-    if (GPU_ON==1){
+    if (use_gpu){
         while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
 
             /* == setup time == */
@@ -370,7 +324,7 @@ int main(){
     }
 
     solv.solver_free();
-    if(GPU_ON==1){
+    if(use_gpu){
         g_solv.solver_free();
         gmgSolver.free_levels();
     }

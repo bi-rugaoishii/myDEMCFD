@@ -448,18 +448,13 @@ void G_SMACSolver::calc_surface_tension(){
    ======== set properties =====
    ============================*/
 
-void G_SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
-    rho_=rho;
-    u_lid_=u_lid;
-    nu_=nu;
+void G_SMACSolver::set_calc_properties(double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
     grid_.sizex_=sizex;
     grid_.sizey_=sizey;
     grid_.sizez_=sizez;
     grid_.Nx_=Nx;
     grid_.Ny_=Ny;
     grid_.Nz_=Nz;
-    dt_=dt;
-    inv_dt_=1./dt;
 
     grid_.dx_ = sizex/(double)Nx;
     grid_.dy_ = sizey/(double)Ny;

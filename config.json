@@ -1,0 +1,114 @@
+{
+  "hardware": {
+    "use_gpu": true
+  },
+
+  "output": {
+    "directory": "results"
+  },
+
+
+
+  "fluid": {
+
+    "phase0": {
+      "density": 1.0,
+      "viscosity": 1.8e-5,
+      "comment":"gas"
+    },
+
+    "phase1": {
+      "density": 1000.0,
+      "viscosity": 1.0e-3,
+      "comment":"water"
+    },
+
+    "surface_tension": 0.072,
+    "gravity": [0.0, -9.81, 0.0]
+  },
+
+  "time": {
+    "initial_dt": 1.0e-6,
+    "maximum_dt": 5.0e-5,
+    "end_time": 0.02,
+    "interval": 0.0005,
+    "comment": "[s]",
+    "cfl": 0.2,
+    "vof_cfl": 0.2
+  },
+
+  "pressure_solver": {
+    "gmg_levels": 4
+  },
+
+  "boundary_conditions": [
+    {
+      "id": 1,
+      "type": "noslip",
+      "velocity": [0.0, 0.0, 0.0]
+    }
+  ],
+
+  "comment": "types are noslip, slip, inflow, outlet",
+
+  "boundary_faces": [
+      {
+          "axis": "x",
+          "side": "min",
+          "boundary_id": 1
+      },
+
+      {
+          "axis": "x",
+          "side": "max",
+          "boundary_id": 1
+      },
+
+
+      {
+          "axis": "y",
+          "side": "min",
+          "boundary_id": 1
+      },
+
+      {
+          "axis": "y",
+          "side": "max",
+          "boundary_id": 1
+      },
+      {
+          "axis": "z",
+          "side": "min",
+          "boundary_id": 1
+      },
+      {
+          "axis": "z",
+          "side": "max",
+          "boundary_id": 1
+      }
+  ],
+
+  "grid": {
+    "cells": [128, 64, 128],
+    "size": [0.04, 0.02, 0.04],
+    "comment":"size is in m"
+  },
+
+  "initial_conditions": [
+    {
+      "type": "vof_box",
+      "minimum": [0.0, 0.0, 0.0],
+      "maximum": [0.1, 0.0015, 1.0],
+      "alpha": 1.0
+    },
+
+    {
+      "type": "vof_sphere",
+      "radius": 0.003,
+      "center": [0.02, 0.01, 0.02],
+      "alpha": 1.0,
+      "vini": -2.0
+    }
+
+  ]
+}

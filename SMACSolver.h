@@ -3,21 +3,18 @@
 
 struct SMACSolver{
     StaggeredGrid grid_;
-    double nu_;
-    double rho_;
     double rho1_,rho0_;
     double mu1_,mu0_;
     double t_now_;
-    double dt_;
-    double inv_dt_;
-    double u_lid_;
+    double dt_=0.001;
+    double inv_dt_ = 1./dt_;
     double gx_,gy_,gz_; //gravity
 
 
 
     /* == functions == */
 
-    void set_calc_properties(double rho,double dt, double u_lid, double nu, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz);
+    void set_calc_properties(double sizex, double sizey,double sizez, int Nx, int Ny, int Nz);
 
     void set_face_type();
 
@@ -78,7 +75,7 @@ struct SMACSolver{
     /* == for debugging ==*/
     void check_nan_all(const char* tag);
 
-    void set_sphere();
+    void set_sphere(double center_x, double center_y, double center_z, double r, double v_ini);
     void set_sphere_sub_voxel();
     void initialize_zalesak_disk();
     void set_sphere_zalesak();

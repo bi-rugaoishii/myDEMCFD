@@ -7,18 +7,13 @@
 #include <cstring>
 
 
-void SMACSolver::set_calc_properties(double rho, double dt,double u_lid, double nu, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
-    rho_=rho;
-    u_lid_=u_lid;
-    nu_=nu;
+void SMACSolver::set_calc_properties( double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
     grid_.sizex_=sizex;
     grid_.sizey_=sizey;
     grid_.sizez_=sizez;
     grid_.Nx_=Nx;
     grid_.Ny_=Ny;
     grid_.Nz_=Nz;
-    dt_=dt;
-    inv_dt_=1./dt;
 
     grid_.dx_ = sizex/(double)Nx;
     grid_.dy_ = sizey/(double)Ny;
@@ -640,7 +635,7 @@ void SMACSolver::set_sphere_zalesak(){
 }
 
 
-void SMACSolver::set_sphere(){
+void SMACSolver::set_sphere(double center_x, double center_y, double center_z, double r, double v_ini){
     int Nx = grid_.Nx_;
     int Ny = grid_.Ny_;
     int Nz = grid_.Nz_;
@@ -656,13 +651,8 @@ void SMACSolver::set_sphere(){
     MyArray<double,3> f_vy = grid_.f_vy_;
     
 
-    double center_x = 0.02;
-    double center_y = 0.007;
-    double center_z = 0.02;
-    double r = 0.003;
     double rsq = r*r;
 
-    double v_ini = -2.0;
 
     // Zalesak-like slot
     double slot_half_width = 0.0;       

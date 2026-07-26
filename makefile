@@ -2,6 +2,7 @@ CC = nvcc
 CC_C = g++
 ARCH = sm_70 
 CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  
+INCLUDE = -Ithird_party
 GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false 
 #CFLAGS = -O0 -g -G
 #CFLAGS = -O3  -pg
@@ -11,6 +12,7 @@ CONLYFLAGS = -O3
 LIBS = -lm 
 OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o\
 		FileInOut.o \
+		SimulationSetup.o\
 		G_SMACSolver_VoF.o \
 		G_SMACSolver_IBM.o \
 		G_BoundaryFunctions.o \
@@ -18,6 +20,8 @@ OBJS =  main.o SMACSolver.o CFDTime.o G_SMACSolver.o\
 		pressure_solver/G_PCGSolver.o\
 		pressure_solver/G_GMGSolver.o\
 		pressure_solver/G_Levels.o\
+		config/ConfigLoader.o\
+		config/SimulationConfig.o
 		   
 
 PROGRAM = myCFD
@@ -31,7 +35,7 @@ $(PROGRAM): $(OBJS)
 	$(CC) $(CFLAGS) $(GPUFLAGS) -c $< -o $@
 
 %.o : %.cpp
-	$(CC_C) $(CONLYFLAGS) -c $< -o $@
+	$(CC_C) $(CONLYFLAGS) $(INCLUDE) -c $< -o $@
 
 clean:
 	rm -f $(PROGRAM)  $(OBJS)
