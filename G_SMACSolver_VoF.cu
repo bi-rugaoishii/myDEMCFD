@@ -883,7 +883,7 @@ static __global__ void k_alpha_flux_thincwlic_z(G_StaggeredGrid* grid, double dt
     }
 
     // z ghost  face
-    if (f_ztype(ix,iy,iz)==F_GHOST || f_ztype(ix,iy,iz)==F_BOUNDARY){
+    if (f_ztype(ix,iy,iz)==F_GHOST){
         Fz(ix,iy,iz) = 0.0;
         return ;
     }
