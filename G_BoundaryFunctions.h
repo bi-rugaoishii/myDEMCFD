@@ -21,7 +21,8 @@
 
 
         if(bcType == BC_INFLOW){
-            return grid->bc_.vx_(bid);
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vx_(bid);
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){
@@ -48,7 +49,8 @@ __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid* grid,int ix,in
 
         if(bcType == BC_INFLOW){
 
-            return grid->bc_.vy_(bid);
+            double lambda = grid->f_ibm_area_solid_fraction_y_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vy_(bid);
 
         }else if(bcType == BC_NOSLIP){
 
@@ -79,7 +81,10 @@ __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid* grid,int ix,in
         unsigned char bcType = grid->bc_.bcType_(bid);
 
         if(bcType == BC_INFLOW){
-            return grid->bc_.vz_(bid);
+
+            double lambda = grid->f_ibm_area_solid_fraction_z_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vz_(bid);
+
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){
@@ -129,7 +134,7 @@ double d_get_vx_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
     unsigned char bid = grid->f_ybcid_(ix,iyf,iz);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vx_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vx_wall - vx_inside;
@@ -175,7 +180,7 @@ double d_get_vx_zdir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sz){
     unsigned char bid = grid->f_zbcid_(ix,iy,izf);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vx_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vx_wall - vx_inside;
@@ -220,7 +225,7 @@ double d_get_vy_xdir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sx){
     unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vy_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vy_wall - vy_inside;
@@ -265,7 +270,7 @@ double d_get_vy_zdir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sz){
     unsigned char bid = grid->f_zbcid_(ix,iy,izf);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vy_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vy_wall - vy_inside;
@@ -310,7 +315,7 @@ double d_get_vz_xdir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sx){
     unsigned char bid = grid->f_xbcid_(ixf,iy,iz);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vz_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vz_wall - vz_inside;
@@ -354,7 +359,7 @@ double d_get_vz_ydir(G_StaggeredGrid* grid,int ix,int iy,int iz,int sy){
     unsigned char bid =grid->f_ybcid_(ix,iyf,iz);
     unsigned char btype = bc.bcType_(bid);
 
-    if(btype == BC_SLIP){
+    if(btype == BC_SLIP || btype == BC_OUTLET){
         return vz_inside;
     }else{   //assuming NO_SLIP for now
         return 2.0*vz_wall - vz_inside;
@@ -376,7 +381,10 @@ __device__ __forceinline__ double d_get_vxstar_xface(G_StaggeredGrid* grid ,int 
 
 
         if(bcType == BC_INFLOW){
-            return grid->bc_.vx_(bid);
+
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vx_(bid);
+
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){
@@ -412,7 +420,10 @@ __device__ __forceinline__ double d_get_vystar_yface(G_StaggeredGrid* grid ,int 
 
 
         if(bcType == BC_INFLOW){
-            return grid->bc_.vy_(bid);
+
+            double lambda = grid->f_ibm_area_solid_fraction_y_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vy_(bid);
+
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){
@@ -450,7 +461,10 @@ __device__ __forceinline__ double d_get_vzstar_zface(G_StaggeredGrid* grid ,int 
 
 
         if(bcType == BC_INFLOW){
-            return grid->bc_.vz_(bid);
+
+            double lambda = grid->f_ibm_area_solid_fraction_z_(ix,iy,iz); 
+            return (1.-lambda)*grid->bc_.vz_(bid);
+
         }else if(bcType == BC_NOSLIP){
             return 0.;
         }else if(bcType == BC_OUTLET){

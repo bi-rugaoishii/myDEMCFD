@@ -13,6 +13,7 @@
 static constexpr int IBM_SAMPLE_N = 8;
 static constexpr double IBM_SAMPLE_TOTAL = IBM_SAMPLE_N*IBM_SAMPLE_N*IBM_SAMPLE_N;
 static constexpr double INV_IBM_SAMPLE_TOTAL = 1./IBM_SAMPLE_TOTAL;
+static constexpr double INV_IBM_FACE_SAMPLE_TOTAL = 1./(double)(IBM_SAMPLE_N*IBM_SAMPLE_N);
 static constexpr double IBM_SAMPLE_FACT = 1./(double)(IBM_SAMPLE_N);
 
 struct CylinderIBM{
@@ -199,6 +200,102 @@ static __global__ void k_get_solid_fraction_staggered_x(G_StaggeredGrid *grid, C
     grid->f_ibm_solid_fraction_x_(ix,iy,iz)= solidfraction;
 }
 
+static __global__ void k_get_face_solid_fraction_staggered_x(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx+1 || iy > Ny || iz > Nz){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double yini = yc - grid->dy_*0.5;
+    const double zini = zc - grid->dz_*0.5;
+
+    const double sample_dy = grid->dy_ * IBM_SAMPLE_FACT;
+    const double sample_dz = grid->dz_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incz=0; incz<IBM_SAMPLE_N; incz++){
+        for (int incy=0; incy<IBM_SAMPLE_N; incy++){
+                const double y_pt = yini + sample_dy*(incy+0.5);
+                const double z_pt = zini + sample_dz*(incz+0.5);
+
+                if(d_is_inside_cylinder(xc,y_pt,z_pt,cyl)){
+                    numpts += 1;
+                }
+            }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_x_(ix,iy,iz)= solidfraction;
+}
+
+static __global__ void k_get_face_solid_fraction_staggered_y(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx || iy > Ny+1 || iz > Nz){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double xini = xc - grid->dx_*0.5;
+    const double zini = zc - grid->dz_*0.5;
+
+    const double sample_dx = grid->dx_ * IBM_SAMPLE_FACT;
+    const double sample_dz = grid->dz_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incz=0; incz<IBM_SAMPLE_N; incz++){
+        for (int incx=0; incx<IBM_SAMPLE_N; incx++){
+            const double x_pt = xini + sample_dx*(incx+0.5);
+            const double z_pt = zini + sample_dz*(incz+0.5);
+
+            if(d_is_inside_cylinder(x_pt,yc,z_pt,cyl)){
+                numpts += 1;
+            }
+        }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_y_(ix,iy,iz)= solidfraction;
+}
+
 static __global__ void k_get_solid_fraction_staggered_y(G_StaggeredGrid *grid, CylinderIBM cyl){
 
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
@@ -358,6 +455,55 @@ static __global__ void k_get_solid_fraction_staggered_x_inv(G_StaggeredGrid *gri
     grid->f_ibm_solid_fraction_x_(ix,iy,iz)= solidfraction;
 }
 
+static __global__ void k_get_face_solid_fraction_staggered_x_inv(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx+1 || iy > Ny || iz > Nz){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double yini = yc - grid->dy_*0.5;
+    const double zini = zc - grid->dz_*0.5;
+
+    const double sample_dy = grid->dy_ * IBM_SAMPLE_FACT;
+    const double sample_dz = grid->dz_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incz=0; incz<IBM_SAMPLE_N; incz++){
+        for (int incy=0; incy<IBM_SAMPLE_N; incy++){
+                const double y_pt = yini + sample_dy*(incy+0.5);
+                const double z_pt = zini + sample_dz*(incz+0.5);
+
+                if(!d_is_inside_cylinder(xc,y_pt,z_pt,cyl)){
+                    numpts += 1;
+                }
+            }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_x_(ix,iy,iz)= solidfraction;
+}
+
+
 static __global__ void k_get_solid_fraction_staggered_y_inv(G_StaggeredGrid *grid, CylinderIBM cyl){
 
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
@@ -409,6 +555,54 @@ static __global__ void k_get_solid_fraction_staggered_y_inv(G_StaggeredGrid *gri
 
 
     grid->f_ibm_solid_fraction_y_(ix,iy,iz)= solidfraction;
+}
+
+static __global__ void k_get_face_solid_fraction_staggered_y_inv(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx || iy > Ny+1 || iz > Nz){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double xini = xc - grid->dx_*0.5;
+    const double zini = zc - grid->dz_*0.5;
+
+    const double sample_dx = grid->dx_ * IBM_SAMPLE_FACT;
+    const double sample_dz = grid->dz_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incz=0; incz<IBM_SAMPLE_N; incz++){
+        for (int incx=0; incx<IBM_SAMPLE_N; incx++){
+            const double x_pt = xini + sample_dx*(incx+0.5);
+            const double z_pt = zini + sample_dz*(incz+0.5);
+
+            if(!d_is_inside_cylinder(x_pt,yc,z_pt,cyl)){
+                numpts += 1;
+            }
+        }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_y_(ix,iy,iz)= solidfraction;
 }
 
 static __global__ void k_get_solid_fraction_staggered_z_inv(G_StaggeredGrid *grid, CylinderIBM cyl){
@@ -463,6 +657,108 @@ static __global__ void k_get_solid_fraction_staggered_z_inv(G_StaggeredGrid *gri
 
     grid->f_ibm_solid_fraction_z_(ix,iy,iz)= solidfraction;
 }
+
+static __global__ void k_get_face_solid_fraction_staggered_z(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx || iy > Ny || iz > Nz+1){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double xini = xc - grid->dx_*0.5;
+    const double yini = yc - grid->dy_*0.5;
+
+    const double sample_dx = grid->dx_ * IBM_SAMPLE_FACT;
+    const double sample_dy = grid->dy_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incy=0; incy<IBM_SAMPLE_N; incy++){
+        for (int incx=0; incx<IBM_SAMPLE_N; incx++){
+            const double x_pt = xini + sample_dx*(incx+0.5);
+            const double y_pt = yini + sample_dy*(incy+0.5);
+
+            if(d_is_inside_cylinder(x_pt,y_pt,zc,cyl)){
+                numpts += 1;
+            }
+        }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_z_(ix,iy,iz)= solidfraction;
+}
+
+
+static __global__ void k_get_face_solid_fraction_staggered_z_inv(G_StaggeredGrid *grid, CylinderIBM cyl){
+
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix > Nx || iy > Ny || iz > Nz+1){
+        return;
+    }
+
+    const double xc = grid->x_(ix,iy,iz);  
+    const double yc = grid->y_(ix,iy,iz);  
+    const double zc = grid->z_(ix,iy,iz);  
+
+    const double xini = xc - grid->dx_*0.5;
+    const double yini = yc - grid->dy_*0.5;
+
+    const double sample_dx = grid->dx_ * IBM_SAMPLE_FACT;
+    const double sample_dy = grid->dy_ * IBM_SAMPLE_FACT;
+
+    int numpts = 0;
+
+    for (int incy=0; incy<IBM_SAMPLE_N; incy++){
+        for (int incx=0; incx<IBM_SAMPLE_N; incx++){
+            const double x_pt = xini + sample_dx*(incx+0.5);
+            const double y_pt = yini + sample_dy*(incy+0.5);
+
+            if(!d_is_inside_cylinder(x_pt,y_pt,zc,cyl)){
+                numpts += 1;
+            }
+        }
+    }
+
+    double solidfraction = (double)numpts*INV_IBM_FACE_SAMPLE_TOTAL;
+
+
+
+    /* clip */
+    if(solidfraction>1.-1.e-2){
+        solidfraction = 1.0;
+    }
+
+
+    grid->f_ibm_area_solid_fraction_z_(ix,iy,iz)= solidfraction;
+}
+
 
 static __global__ void k_set_solid_cell_from_ibm(G_StaggeredGrid *grid){
 
@@ -568,6 +864,10 @@ void G_SMACSolver::make_cylinder_ibm_inv(double xc, double yc, double zc, double
     k_get_solid_fraction_staggered_x_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
     k_get_solid_fraction_staggered_y_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
     k_get_solid_fraction_staggered_z_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+
+    k_get_face_solid_fraction_staggered_x_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+    k_get_face_solid_fraction_staggered_y_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+    k_get_face_solid_fraction_staggered_z_inv<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
 }
 void G_SMACSolver::make_cylinder_ibm(double xc, double yc, double zc, double r){
     CylinderIBM cyl;
@@ -582,6 +882,10 @@ void G_SMACSolver::make_cylinder_ibm(double xc, double yc, double zc, double r){
     k_get_solid_fraction_staggered_x<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
     k_get_solid_fraction_staggered_y<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
     k_get_solid_fraction_staggered_z<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+
+    k_get_face_solid_fraction_staggered_x<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+    k_get_face_solid_fraction_staggered_y<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
+    k_get_face_solid_fraction_staggered_z<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,cyl);
 }
 
 void G_SMACSolver::set_solid_cell(){

@@ -1597,9 +1597,6 @@ static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_Sta
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
-    MyArray<double,3> vx  = grid->f_vx_;
-    MyArray<double,3> vy  = grid->f_vy_;
-    MyArray<double,3> vz  = grid->f_vz_;
     MyArray<double,3> Fx  = grid->f_Fx_accum_;
     MyArray<double,3> Fy  = grid->f_Fy_accum_;
     MyArray<double,3> Fz  = grid->f_Fz_accum_;
@@ -1622,7 +1619,7 @@ static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_Sta
     if(iy>=Ny+2 || ix>= Nx+3 || iz >= Nz+2){
         /* do nothing */
     }else{
-        double q = vx(ix,iy,iz);                    // u_f
+        double q = d_get_vx_xface(grid,ix,iy,iz);                    // u_f
         double alpha_q = Fx(ix,iy,iz)* dxbydt; // u_f * alpha_f
         mfx(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
 
@@ -1642,7 +1639,7 @@ static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_Sta
         /* do nothing */
     }else{
 
-        double q = vy(ix,iy,iz);                    // u_f
+        double q = d_get_vy_yface(grid,ix,iy,iz);                    // u_f
         double alpha_q = Fy(ix,iy,iz)* dybydt; // u_f * alpha_f
         mfy(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
 
@@ -1660,7 +1657,7 @@ static __global__ void k_compute_mass_flux_from_alpha_flux(SMACSolver solv,G_Sta
     if(iy>=Ny+2 || ix>= Nx+2 || iz>= Nz+3){
         /* do nothing */
     }else{
-        double q = vz(ix,iy,iz);                    // u_f
+        double q = d_get_vz_zface(grid,ix,iy,iz);                    // u_f
         double alpha_q = Fz(ix,iy,iz)* dzbydt; // u_f * alpha_f
         mfz(ix,iy,iz) = rho0 * q + drho * alpha_q; // rho*u
         /*

@@ -121,3 +121,8 @@ MEMBER(double, f_ibm_solid_fraction_x_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
 MEMBER(double, f_ibm_solid_fraction_y_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
 MEMBER(double, f_ibm_solid_fraction_z_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
 
+/* face area solid fraction */
+MEMBER(double, f_ibm_area_solid_fraction_x_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_area_solid_fraction_y_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_area_solid_fraction_z_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+

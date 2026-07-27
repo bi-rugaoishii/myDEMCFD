@@ -36,7 +36,7 @@ void CFDTime::updateTime(double cfl){
             dt_=max_dt_;
         }
 
-        if(fabs(current_time_+dt_-nextOut_) <= 1e-12){
+        if(fabs(current_time_+dt_-nextOut_) <= 1e-8){
             isOutStep_ = true;
             nextOut_+=out_freq_time_;
         }

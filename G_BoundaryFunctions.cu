@@ -31,11 +31,11 @@ __global__ void k_update_vystar_boundary(G_StaggeredGrid* grid){
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
-    unsigned char ftype = grid->f_ytype_(ix,iy,iz);
 
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
+    unsigned char ftype = grid->f_ytype_(ix,iy,iz);
     MyArray<double,3>  vy_star = grid->f_vy_star_;
 
 
@@ -55,11 +55,11 @@ __global__ void k_update_vzstar_boundary(G_StaggeredGrid* grid){
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
-    unsigned char ftype = grid->f_ztype_(ix,iy,iz);
 
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
+    unsigned char ftype = grid->f_ztype_(ix,iy,iz);
     MyArray<double,3>  vz_star = grid->f_vz_star_;
 
 
@@ -101,11 +101,11 @@ __global__ void k_update_vy_boundary(G_StaggeredGrid* grid){
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
-    unsigned char ftype = grid->f_ytype_(ix,iy,iz);
 
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
+    unsigned char ftype = grid->f_ytype_(ix,iy,iz);
     MyArray<double,3>  vy = grid->f_vy_;
 
 
@@ -125,11 +125,11 @@ __global__ void k_update_vz_boundary(G_StaggeredGrid* grid){
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
-    unsigned char ftype = grid->f_ztype_(ix,iy,iz);
 
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
+    unsigned char ftype = grid->f_ztype_(ix,iy,iz);
     MyArray<double,3>  vz = grid->f_vz_;
 
 
@@ -208,7 +208,7 @@ __global__ void k_update_vy_outlet(SMACSolver solv, G_StaggeredGrid* grid){
         if(bcType == BC_OUTLET){
             int int_id_shift = grid->f_yinternal_id_(ix,iy,iz);
 
-            int sign = int_id_shift < 0 ? -1:1 ;
+            int sign = int_id_shift < 0 ? 1:-1 ;
             vy(ix,iy,iz) = vy_star(ix,iy,iz) + sign*f_by(ix,iy,iz)*dt*p(ix,iy+int_id_shift,iz)*inv_dy;
             return;
         }
@@ -244,7 +244,7 @@ __global__ void k_update_vz_outlet(SMACSolver solv, G_StaggeredGrid* grid){
 
         if(bcType == BC_OUTLET){
             int int_id_shift = grid->f_zinternal_id_(ix,iy,iz);
-            int sign = int_id_shift < 0 ? -1:1 ;
+            int sign = int_id_shift < 0 ? 1:-1 ;
 
             vz(ix,iy,iz) = vz_star(ix,iy,iz) + sign*f_bz(ix,iy,iz)*dt*p(ix,iy,iz+int_id_shift)*inv_dz;
             return;
