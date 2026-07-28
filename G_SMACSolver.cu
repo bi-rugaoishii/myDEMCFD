@@ -1184,9 +1184,22 @@ void G_SMACSolver::solver_malloc(){
     cudaMalloc((void**)&d_r2_, sizeof(double));
     cudaMalloc((void**)&d_dot_, sizeof(double));
 
-    void* tmp=nullptr;
-    cub::DeviceReduce::Sum(tmp, cub_temp_storage_bytes_, grid_.pcg_r_.data_, d_r2_,Nx*Ny*Nz);
+    /* use this temporarly to make big array */
+    double *tmp_malloc=nullptr;
+    cudaMalloc((void**)&tmp_malloc, sizeof(double)*(Nx+3)*(Ny+3)*(Nz+3));
+
+
+    size_t max_temp_bytes = 0;
+    size_t sum_temp_bytes = 0;
+
+    cub::DeviceReduce::Sum(nullptr, sum_temp_bytes, tmp_malloc, d_r2_,(Nx+3)*(Ny+3)*(Nz+3));
+    cub::DeviceReduce::Max(nullptr, max_temp_bytes, tmp_malloc, d_r2_,(Nx+3)*(Ny+3)*(Nz+3));
+
+    cub_temp_storage_bytes_ = std::max(max_temp_bytes, sum_temp_bytes);
+
     cudaMalloc((void**)&cub_temp_storage_, cub_temp_storage_bytes_);
+
+    cudaFree(tmp_malloc);
 
     /* malloc struct */
     cudaMalloc((void**)&grid_.d_ptr_,sizeof(G_StaggeredGrid));
