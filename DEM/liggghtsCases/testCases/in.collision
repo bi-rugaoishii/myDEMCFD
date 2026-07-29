@@ -1,0 +1,42 @@
+units si
+atom_style granular
+dimension 3
+boundary f f f
+newton off
+
+region box block -1 1 -1 1 -1 1
+create_box 1 box
+
+create_atoms 1 single 0.0 0.0 0.0
+create_atoms 1 single -0.2 0.005 0.0
+
+set atom 1 diameter 0.02 density 1000
+set atom 2 diameter 0.02 density 1000
+
+set atom 1 vx 0.0 vy 0.0 vz 0.0
+set atom 2 vx 1.0 vy 0.0 vz 0.0
+
+communicate single vel yes
+neigh_modify delay 0
+
+pair_style gran model hooke tangential history
+pair_coeff * *
+
+fix m0 all property/global characteristicVelocity scalar 1.0
+fix m1 all property/global youngsModulus peratomtype 3.0e8
+fix m2 all property/global poissonsRatio peratomtype 0.0
+fix m3 all property/global coefficientRestitution peratomtypepair 1 0.3
+fix m5 all property/global coefficientFriction peratomtypepair 1 0.7
+
+fix integr all nve/sphere
+
+timestep 1e-5
+
+
+dump d1 all custom 1000 dump.txt id x y z vx vy vz omegax omegay omegaz
+#compute c1 all pair/gran/local pos force
+compute c1 all pair/gran/local  force_normal force_tangential delta
+dump d2 all local 1 contact.txt c_c1[1] c_c1[2] c_c1[3] c_c1[4] c_c1[5] c_c1[6] c_c1[7] 
+
+run 200000
+

@@ -1,0 +1,56 @@
+/* vertices */
+MEMBER(double, mx, Nv)
+MEMBER(double, my, Nv)
+MEMBER(double, mz, Nv)
+
+/* normals */
+MEMBER(double, nx, Nt)
+MEMBER(double, ny, Nt)
+MEMBER(double, nz, Nt)
+MEMBER(double, d,  Nt)
+
+/* edge */
+/* defined by pair of vertex indices */
+MEMBER(int, edge, Nv*2)
+
+/* edge vectors */
+MEMBER(double, e01x, Nt)
+MEMBER(double, e01y, Nt)
+MEMBER(double, e01z, Nt)
+
+MEMBER(double, e02x, Nt)
+MEMBER(double, e02y, Nt)
+MEMBER(double, e02z, Nt)
+
+MEMBER(double, e12x, Nt)
+MEMBER(double, e12y, Nt)
+MEMBER(double, e12z, Nt)
+
+/* barycentric */
+MEMBER(double, d00,    Nt)
+MEMBER(double, d00inv, Nt)
+MEMBER(double, d01,    Nt)
+MEMBER(double, d11,    Nt)
+MEMBER(double, d11inv, Nt)
+MEMBER(double, d22,    Nt)
+MEMBER(double, d22inv, Nt)
+MEMBER(double, denom,  Nt)
+
+/* used for aabb */
+MEMBER(double, minx, Nt)
+MEMBER(double, maxx, Nt)
+MEMBER(double, miny, Nt)
+MEMBER(double, maxy, Nt)
+MEMBER(double, minz, Nt)
+MEMBER(double, maxz, Nt)
+
+/* triangle vertex indices */
+MEMBER(int, tri_i0, Nt)
+MEMBER(int, tri_i1, Nt)
+MEMBER(int, tri_i2, Nt)
+
+/* triangle edge indices */
+MEMBER(int, tri_e0, Nt)
+MEMBER(int, tri_e1, Nt)
+MEMBER(int, tri_e2, Nt)
+

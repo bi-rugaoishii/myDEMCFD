@@ -1,0 +1,14 @@
+/* aabb */
+MEMBER(double, minx, maxNodes)
+MEMBER(double, miny, maxNodes)
+MEMBER(double, minz, maxNodes)
+MEMBER(double, maxx, maxNodes)
+MEMBER(double, maxy, maxNodes)
+MEMBER(double, maxz, maxNodes)
+
+/* node */
+MEMBER(int, left,  maxNodes)
+MEMBER(int, right, maxNodes)
+
+// leafなら三角形index, 内部ノードなら-1
+MEMBER(int, tri,   maxNodes)

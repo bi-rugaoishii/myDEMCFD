@@ -1,0 +1,7 @@
+results/
+*.ini
+*.o
+*.log
+*.out
+*.glsl
+*.stl

@@ -1,0 +1,62 @@
+{
+    "boundingBox":{
+        "minx": -0.2,
+        "maxx": 0.2,
+        "miny":-0.5,
+        "maxy":0.8,
+        "minz":-0.2,
+        "maxz":0.2,
+        "comment":"this is not used, but kept for debugging"
+    },
+
+    "walls":{
+        "filepaths": [
+            "geometry/spiral.stl"
+        ]
+    },
+
+    "inlet":{
+        "inputMode":"shuffle",
+        "COMMENT":"allowed input modes are 'shuffle', 'files' ",
+        "numParticle":10000,
+        "shuffle":{
+            "minx":-0.55,
+            "maxx": 0.0,
+            "miny":2.9,
+            "maxy":3.8,
+            "minz":-0.55,
+            "maxz":0.0
+        },
+
+        "file":"initParticle.txt"
+
+    },
+
+    "particleTypes":{
+        "particle0":{
+            "density":1000.,
+            "radius":0.005,
+            "CoR":0.3,
+            "k":5.0e5,
+            "mu":0.3
+        }
+    },
+    "others":{
+        "seed":1,
+        "dtFactor":15,
+        "startTime":0,
+        "endTime":2.0,
+        "outputTiming":0.01,
+        "gpuOn":1
+    },
+
+    "gravity":{
+        "x":0.,
+        "y":-9.81,
+        "z":0.
+    }
+}
+
+
+
+

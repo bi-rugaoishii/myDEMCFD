@@ -1,0 +1,62 @@
+{
+    "boundingBox":{
+        "minx": -0.2,
+        "maxx": 0.2,
+        "miny":-0.5,
+        "maxy":0.8,
+        "minz":-0.2,
+        "maxz":0.2,
+        "comment":"this is not used, but kept for debugging"
+    },
+
+    "walls":{
+        "filepaths": [
+            "geometry/simpleBox.stl"
+        ]
+    },
+
+    "inlet":{
+        "inputMode":"shuffle",
+        "COMMENT":"allowed input modes are 'shuffle', 'files' ",
+        "numParticle":200,
+        "shuffle":{
+            "minx":-0.4,
+            "maxx": 0.4,
+            "miny":0.5,
+            "maxy":4.0,
+            "minz":-0.4,
+            "maxz":0.4
+        },
+
+        "file":"initParticle.txt"
+
+    },
+
+    "particleTypes":{
+        "particle0":{
+            "density":1000.,
+            "radius":0.1,
+            "CoR":0.3,
+            "k":1.0e6,
+            "mu":0.3
+        }
+    },
+    "others":{
+        "seed":1,
+        "dtFactor":15,
+        "startTime":0,
+        "endTime":20.0,
+        "outputTiming":0.01,
+        "gpuOn":0
+    },
+
+    "gravity":{
+        "x":0.,
+        "y":-9.81,
+        "z":0.
+    }
+}
+
+
+
+

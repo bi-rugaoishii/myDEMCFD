@@ -1,0 +1,1223 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/dakahoshi/myProgram/gpudem_WIP/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+$(PROGRAM)	makefile	/^$(PROGRAM): $(OBJS)$/;"	t
+%.o	makefile	/^%.o : %.c$/;"	t
+%.o	makefile	/^%.o : %.cu$/;"	t
+0	cases/10000Particles_spiral/demSettings.json	/^            "geometry\/spiral.stl"$/;"	s	array:walls.filepaths
+0	cases/100SimpleBox/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	cases/100SimpleBox_verlet/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	cases/30000SimpleBox/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	cases/30000SimpleBox_glitch/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	cases/3SimpleBox_naive/demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+0	demSettings.json	/^            "geometry\/simpleBox.stl"$/;"	s	array:walls.filepaths
+ARCH	makefile	/^ARCH = sm_70 $/;"	m
+AsynchronousReader	csv.h	/^class AsynchronousReader {$/;"	c	namespace:io::detail
+BVH	BVH.h	/^typedef struct BVH{$/;"	s
+BVH	BVH.h	/^} BVH;$/;"	t	typeref:struct:BVH
+BoundingBox	BoundingBox.h	/^typedef struct BoundingBox{$/;"	s
+BoundingBox	BoundingBox.h	/^} BoundingBox;$/;"	t	typeref:struct:BoundingBox
+BuildTask	BVH.cu	/^} BuildTask;$/;"	t	typeref:struct:__anona81005cb0108	file:
+ByteSourceBase	csv.h	/^class ByteSourceBase {$/;"	c	namespace:io
+CC	makefile	/^CC = nvcc$/;"	m
+CC_C	makefile	/^CC_C = gcc$/;"	m
+CFLAGS	makefile	/^CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  $/;"	m
+CJSON_CDECL	cJSON_d.c	/^    void (CJSON_CDECL *deallocate)(void *pointer);$/;"	m	struct:internal_hooks	typeref:typename:void (* deallocate)(void * pointer)	file:
+CJSON_CDECL	cJSON_d.c	/^    void *(CJSON_CDECL *allocate)(size_t size);$/;"	m	struct:internal_hooks	typeref:typename:void * (* allocate)(size_t size)	file:
+CJSON_CDECL	cJSON_d.c	/^    void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);$/;"	m	struct:internal_hooks	typeref:typename:void * (* reallocate)(void * pointer,size_t size)	file:
+CJSON_CDECL	cJSON_d.h	/^      void (CJSON_CDECL *free_fn)(void *ptr);$/;"	m	struct:cJSON_Hooks	typeref:typename:void (* free_fn)(void * ptr)
+CJSON_CDECL	cJSON_d.h	/^      void *(CJSON_CDECL *malloc_fn)(size_t sz);$/;"	m	struct:cJSON_Hooks	typeref:typename:void * (* malloc_fn)(size_t sz)
+CJSON_CDECL	cJSON_d.h	/^#define CJSON_CDECL /;"	d
+CJSON_CIRCULAR_LIMIT	cJSON_d.h	/^#define CJSON_CIRCULAR_LIMIT /;"	d
+CJSON_EXPORT_SYMBOLS	cJSON_d.h	/^#define CJSON_EXPORT_SYMBOLS$/;"	d
+CJSON_NESTING_LIMIT	cJSON_d.h	/^#define CJSON_NESTING_LIMIT /;"	d
+CJSON_PUBLIC	cJSON_d.h	/^#define CJSON_PUBLIC(/;"	d
+CJSON_STDCALL	cJSON_d.h	/^#define CJSON_STDCALL /;"	d
+CJSON_VERSION_MAJOR	cJSON_d.h	/^#define CJSON_VERSION_MAJOR /;"	d
+CJSON_VERSION_MINOR	cJSON_d.h	/^#define CJSON_VERSION_MINOR /;"	d
+CJSON_VERSION_PATCH	cJSON_d.h	/^#define CJSON_VERSION_PATCH /;"	d
+COMMENT	cases/10000Particles_spiral/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/100SimpleBox/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/100SimpleBox_verlet/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/30000SimpleBox/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/30000SimpleBox_glitch/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	cases/3SimpleBox_naive/demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+COMMENT	demSettings.json	/^        "COMMENT":"allowed input modes are 'shuffle', 'files' ",$/;"	s	object:inlet
+CONLYFLAGS	makefile	/^CONLYFLAGS = -O3  $/;"	m
+CSVReader	csv.h	/^  explicit CSVReader(Args &&... args) : in(std::forward<Args>(args)...) {$/;"	f	class:io::CSVReader
+CSVReader	csv.h	/^class CSVReader {$/;"	c	namespace:io
+CSV_H	csv.h	/^#define CSV_H$/;"	d
+CoR	cases/10000Particles_spiral/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/100SimpleBox/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/100SimpleBox_verlet/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/30000SimpleBox/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/30000SimpleBox_glitch/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	cases/3SimpleBox_naive/demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+CoR	demSettings.json	/^            "CoR":0.3,$/;"	n	object:particleTypes.particle0
+ContactCache	ContactCache.h	/^    ContactCache(){}$/;"	f	struct:ContactCache	typeref:typename:__host__ __device__
+ContactCache	ContactCache.h	/^typedef struct ContactCache{$/;"	s
+ContactCache	ContactCache.h	/^}ContactCache;$/;"	t	typeref:struct:ContactCache
+Current glitches	README.md	/^# Current glitches$/;"	c
+DIM	cpu_dem.h	/^#define DIM /;"	d
+DIM	device_dem.cu	/^#define DIM /;"	d	file:
+DIM	hardCodedParameters.h	/^#define DIM /;"	d
+DIM	output.h	/^#define DIM /;"	d
+DeviceBVH	BVH.h	/^typedef struct DeviceBVH{$/;"	s
+DeviceBVH	BVH.h	/^} DeviceBVH;$/;"	t	typeref:struct:DeviceBVH
+DeviceBoundingBox	BoundingBox.h	/^typedef struct DeviceBoundingBox{$/;"	s
+DeviceBoundingBox	BoundingBox.h	/^} DeviceBoundingBox;$/;"	t	typeref:struct:DeviceBoundingBox
+DeviceMemory	ParticleSystem.h	/^struct DeviceMemory{$/;"	s
+DeviceTriangleMesh	TriangleMesh.h	/^typedef struct DeviceTriangleMesh {$/;"	s
+DeviceTriangleMesh	TriangleMesh.h	/^} DeviceTriangleMesh;$/;"	t	typeref:struct:DeviceTriangleMesh
+GPUFLAGS	makefile	/^GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false -lineinfo$/;"	m
+HashEntry	TriangleMesh.h	/^} HashEntry;$/;"	t	typeref:struct:__anond1da66be0108
+HostMemory	ParticleSystem.h	/^struct HostMemory{$/;"	s
+LIBS	makefile	/^LIBS = -lm $/;"	m
+LineReader	csv.h	/^  LineReader(const char *file_name, FILE *file) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const char *file_name, const char *data_begin,$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const char *file_name, std::istream &in) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const char *file_name,$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const std::string &file_name, FILE *file) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const std::string &file_name, const char *data_begin,$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const std::string &file_name, std::istream &in) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  LineReader(const std::string &file_name,$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  explicit LineReader(const char *file_name) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^  explicit LineReader(const std::string &file_name) {$/;"	f	class:io::LineReader
+LineReader	csv.h	/^class LineReader {$/;"	c	namespace:io
+MAX_NEI	hardCodedParameters.h	/^#define MAX_NEI /;"	d
+MAX_TRI	BoundingBox.h	/^    int MAX_TRI;$/;"	m	struct:BoundingBox	typeref:typename:int
+MAX_TRI	BoundingBox.h	/^    int MAX_TRI;$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+MEMBER	ParticleSystem.cu	/^    #define MEMBER(/;"	d	file:
+MEMBER	ParticleSystem.h	/^    #define MEMBER(/;"	d
+N	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:BoundingBox	typeref:typename:int
+N	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+N	ParticleSystem.h	/^    int N;$/;"	m	struct:ParticleSysShared	typeref:typename:int
+NAN	cJSON_d.c	/^#define NAN /;"	d	file:
+NONDIM	main.cu	/^#define NONDIM /;"	d	file:
+NonOwningIStreamByteSource	csv.h	/^  explicit NonOwningIStreamByteSource(std::istream &in) : in(in) {}$/;"	f	class:io::detail::NonOwningIStreamByteSource
+NonOwningIStreamByteSource	csv.h	/^class NonOwningIStreamByteSource : public ByteSourceBase {$/;"	c	namespace:io::detail
+NonOwningStringByteSource	csv.h	/^  NonOwningStringByteSource(const char *str, long long size)$/;"	f	class:io::detail::NonOwningStringByteSource
+NonOwningStringByteSource	csv.h	/^class NonOwningStringByteSource : public ByteSourceBase {$/;"	c	namespace:io::detail
+OBJS	makefile	/^OBJS =  main.o ParticleSystem.o cJSON_d.o TriangleMesh.o settings_loader.o solver_output.o  BVH./;"	m
+OUTPUT	main.cu	/^#define OUTPUT /;"	d	file:
+OwningStdIOByteSourceBase	csv.h	/^  explicit OwningStdIOByteSourceBase(FILE *file) : file(file) {$/;"	f	class:io::detail::OwningStdIOByteSourceBase
+OwningStdIOByteSourceBase	csv.h	/^class OwningStdIOByteSourceBase : public ByteSourceBase {$/;"	c	namespace:io::detail
+PI	hardCodedParameters.h	/^#define PI /;"	d
+PROGRAM	makefile	/^PROGRAM = myDEM3d$/;"	m
+ParticleSys	ParticleSystem.h	/^struct ParticleSys<DeviceMemory> : ParticleSysShared {$/;"	s
+ParticleSys	ParticleSystem.h	/^struct ParticleSys<HostMemory> : ParticleSysShared {$/;"	s
+ParticleSysShared	ParticleSystem.h	/^struct ParticleSysShared {$/;"	s
+SAVE_OFF	hardCodedParameters.h	/^#define SAVE_OFF /;"	d
+SAVE_ON	hardCodedParameters.h	/^#define SAVE_ON /;"	d
+SETTINGS_LOADER_H_	settings_loader.h	/^#define SETTINGS_LOADER_H_$/;"	d
+SMALL_NUM	hardCodedParameters.h	/^#define SMALL_NUM /;"	d
+SOLVER_OUTPUT_H	solver_output.h	/^#define SOLVER_OUTPUT_H$/;"	d
+SynchronousReader	csv.h	/^class SynchronousReader {$/;"	c	namespace:io::detail
+TODO	README.md	/^# TODO$/;"	c
+TriangleContactCache	TriangleContactCache.h	/^    TriangleContactCache(){}$/;"	f	struct:TriangleContactCache	typeref:typename:__host__ __device__
+TriangleContactCache	TriangleContactCache.h	/^typedef struct TriangleContactCache{$/;"	s
+TriangleContactCache	TriangleContactCache.h	/^}TriangleContactCache;$/;"	t	typeref:struct:TriangleContactCache
+TriangleMesh	TriangleMesh.h	/^typedef struct TriangleMesh {$/;"	s
+TriangleMesh	TriangleMesh.h	/^} TriangleMesh;$/;"	t	typeref:struct:TriangleMesh
+Vec3	Vec3.h	/^        Vec3(){}$/;"	f	struct:Vec3	typeref:typename:__host__ __device__
+Vec3	Vec3.h	/^        Vec3(double X,double Y,double Z)$/;"	f	struct:Vec3	typeref:typename:__host__ __device__
+Vec3	Vec3.h	/^typedef struct Vec3{$/;"	s
+Vec3	Vec3.h	/^}Vec3;$/;"	t	typeref:struct:Vec3
+VertexHash	TriangleMesh.h	/^} VertexHash;$/;"	t	typeref:struct:__anond1da66be0208
+WIP	README.md	/^# WIP$/;"	c
+_BOUNDINGBOX_H_	BoundingBox.h	/^#define _BOUNDINGBOX_H_$/;"	d
+_BVH_H_	BVH.h	/^#define _BVH_H_$/;"	d
+_CONTACTCACHE_H_	ContactCache.h	/^#define _CONTACTCACHE_H_$/;"	d
+_CPU_DEM_H_	cpu_dem.h	/^#define _CPU_DEM_H_$/;"	d
+_CRT_SECURE_NO_DEPRECATE	cJSON_d.c	/^#define _CRT_SECURE_NO_DEPRECATE$/;"	d	file:
+_DEVICE_DEM_H_	device_dem.h	/^#define _DEVICE_DEM_H_$/;"	d
+_OUTPUT_H_	output.h	/^#define _OUTPUT_H_$/;"	d
+_TRIANGLECONTACTCACHE_H_	TriangleContactCache.h	/^#define _TRIANGLECONTACTCACHE_H_$/;"	d
+_TRIANGLEMESH_H_	TriangleMesh.h	/^#define _TRIANGLEMESH_H_$/;"	d
+_VEC3_H_	Vec3.h	/^#define _VEC3_H_$/;"	d
+__WINDOWS__	cJSON_d.h	/^#define __WINDOWS__$/;"	d
+__anon0f3f85e70102	csv.h	/^    worker = std::thread([&] {$/;"	f	function:io::detail::AsynchronousReader::init	file:
+__anon0f3f85e70202	csv.h	/^          read_requested_condition.wait(guard, [&] {$/;"	f	function:io::detail::AsynchronousReader::init::__anon0f3f85e70102	file:
+__anon0f3f85e70302	csv.h	/^        guard, [&] { return read_byte_count != -1 || read_error; });$/;"	f	function:io::detail::AsynchronousReader::finish_read	file:
+__anona81005cb0108	BVH.cu	/^typedef struct {$/;"	s	file:
+__anond1da66be0108	TriangleMesh.h	/^typedef struct {$/;"	s
+__anond1da66be0208	TriangleMesh.h	/^typedef struct {$/;"	s
+__anonfc6642560108	cJSON_d.c	/^typedef struct {$/;"	s	file:
+__anonfc6642560208	cJSON_d.c	/^{$/;"	s	file:
+__anonfc6642560308	cJSON_d.c	/^{$/;"	s	file:
+a	python/compareRoll.py	/^    a = (5.0\/7.0) * g * np.sin(theta)$/;"	v
+a	python/compareRoll.py	/^    a = g * (np.sin(theta) - mu * np.cos(theta))$/;"	v
+add_item_to_array	cJSON_d.c	/^static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)$/;"	f	typeref:typename:cJSON_bool	file:
+add_item_to_object	cJSON_d.c	/^static cJSON_bool add_item_to_object(cJSON * const object, const char * const string, cJSON * co/;"	f	typeref:typename:cJSON_bool	file:
+all	makefile	/^all: $(PROGRAM)$/;"	t
+allocate	ParticleSystem.cu	/^void allocate(ParticleSys<DeviceMemory> *d_ps){$/;"	f	typeref:typename:void
+allocate	ParticleSystem.cu	/^void allocate(ParticleSys<HostMemory> *ps){$/;"	f	typeref:typename:void
+allocate	ParticleSystem.h	/^        static T* allocate(int N){$/;"	f	struct:DeviceMemory	typeref:typename:T *
+allocate	ParticleSystem.h	/^    static T* allocate(int N){$/;"	f	struct:HostMemory	typeref:typename:T *
+analyze_collision	python/analyze_collision.py	/^def analyze_collision(x1,x2,v1_before,v2_before,v1_after,v2_after):$/;"	f
+base	csv.h	/^struct base : std::exception {$/;"	s	namespace:io::error
+block_len	csv.h	/^  static const int block_len = 1 << 20;$/;"	m	class:io::LineReader	typeref:typename:const int
+boundingBox	cases/10000Particles_spiral/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/100SimpleBox/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/100SimpleBox_verlet/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/30000SimpleBox/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/30000SimpleBox_glitch/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	cases/3SimpleBox_naive/demSettings.json	/^    "boundingBox":{$/;"	o
+boundingBox	demSettings.json	/^    "boundingBox":{$/;"	o
+buffer	cJSON_d.c	/^    unsigned char *buffer;$/;"	m	struct:__anonfc6642560308	typeref:typename:unsigned char *	file:
+buffer	csv.h	/^  char *buffer;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:char *
+buffer	csv.h	/^  char *buffer;$/;"	m	class:io::detail::SynchronousReader	typeref:typename:char *
+buffer	csv.h	/^  std::unique_ptr<char[]> buffer; \/\/ must be constructed before (and thus$/;"	m	class:io::LineReader	typeref:typename:std::unique_ptr<char[]>
+buffer_at_offset	cJSON_d.c	/^#define buffer_at_offset(/;"	d	file:
+buffer_skip_whitespace	cJSON_d.c	/^static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)$/;"	f	typeref:typename:parse_buffer *	file:
+buildBVH	BVH.cu	/^int buildBVH(BVH* bvh, TriangleMesh *mesh){$/;"	f	typeref:typename:int
+build_filename	solver_output.cu	/^static void build_filename($/;"	f	typeref:typename:void	file:
+byte_source	csv.h	/^  std::unique_ptr<ByteSourceBase> byte_source;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::unique_ptr<ByteSourceBase>
+byte_source	csv.h	/^  std::unique_ptr<ByteSourceBase> byte_source;$/;"	m	class:io::detail::SynchronousReader	typeref:typename:std::unique_ptr<ByteSourceBase>
+cJSON	cJSON_d.h	/^typedef struct cJSON$/;"	s
+cJSON	cJSON_d.h	/^} cJSON;$/;"	t	typeref:struct:cJSON
+cJSON_AddArrayToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name)$/;"	f	typeref:typename:cJSON *
+cJSON_AddBoolToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * const name, const /;"	f	typeref:typename:cJSON *
+cJSON_AddFalseToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddFalseToObject(cJSON * const object, const char * const name)$/;"	f	typeref:typename:cJSON *
+cJSON_AddItemReferenceToArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_AddItemReferenceToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON/;"	f	typeref:typename:cJSON_bool
+cJSON_AddItemToArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_AddItemToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_AddItemToObjectCS	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_AddNullToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name)$/;"	f	typeref:typename:cJSON *
+cJSON_AddNumberToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, cons/;"	f	typeref:typename:cJSON *
+cJSON_AddObjectToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * const name)$/;"	f	typeref:typename:cJSON *
+cJSON_AddRawToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * const name, const c/;"	f	typeref:typename:cJSON *
+cJSON_AddStringToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, cons/;"	f	typeref:typename:cJSON *
+cJSON_AddTrueToObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * const name)$/;"	f	typeref:typename:cJSON *
+cJSON_Array	cJSON_d.h	/^#define cJSON_Array /;"	d
+cJSON_ArrayForEach	cJSON_d.h	/^#define cJSON_ArrayForEach(/;"	d
+cJSON_Compare	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON/;"	f	typeref:typename:cJSON_bool
+cJSON_CreateArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateArray(void)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateArrayReference	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateArrayReference(const cJSON *child) {$/;"	f	typeref:typename:cJSON *
+cJSON_CreateBool	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateDoubleArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateFalse	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateFalse(void)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateFloatArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateIntArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateNull	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateNumber	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateObjectReference	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateObjectReference(const cJSON *child)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateRaw	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateRaw(const char *raw)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateString	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateStringArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateStringReference	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateStringReference(const char *string)$/;"	f	typeref:typename:cJSON *
+cJSON_CreateTrue	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_CreateTrue(void)$/;"	f	typeref:typename:cJSON *
+cJSON_Delete	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)$/;"	f	typeref:typename:void
+cJSON_DeleteItemFromArray	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_DeleteItemFromArray(cJSON *array, int which)$/;"	f	typeref:typename:void
+cJSON_DeleteItemFromObject	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_DeleteItemFromObject(cJSON *object, const char *string)$/;"	f	typeref:typename:void
+cJSON_DeleteItemFromObjectCaseSensitive	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_DeleteItemFromObjectCaseSensitive(cJSON *object, const char *string)$/;"	f	typeref:typename:void
+cJSON_DetachItemFromArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromArray(cJSON *array, int which)$/;"	f	typeref:typename:cJSON *
+cJSON_DetachItemFromObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string)$/;"	f	typeref:typename:cJSON *
+cJSON_DetachItemFromObjectCaseSensitive	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObjectCaseSensitive(cJSON *object, const char *string)$/;"	f	typeref:typename:cJSON *
+cJSON_DetachItemViaPointer	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const item)$/;"	f	typeref:typename:cJSON *
+cJSON_Duplicate	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)$/;"	f	typeref:typename:cJSON *
+cJSON_Duplicate_rec	cJSON_d.c	/^cJSON * cJSON_Duplicate_rec(const cJSON *item, size_t depth, cJSON_bool recurse)$/;"	f	typeref:typename:cJSON *
+cJSON_False	cJSON_d.h	/^#define cJSON_False /;"	d
+cJSON_GetArrayItem	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index)$/;"	f	typeref:typename:cJSON *
+cJSON_GetArraySize	cJSON_d.c	/^CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)$/;"	f	typeref:typename:int
+cJSON_GetErrorPtr	cJSON_d.c	/^CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)$/;"	f	typeref:typename:const char *
+cJSON_GetNumberValue	cJSON_d.c	/^CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)$/;"	f	typeref:typename:double
+cJSON_GetObjectItem	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char * const string)$/;"	f	typeref:typename:cJSON *
+cJSON_GetObjectItemCaseSensitive	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * /;"	f	typeref:typename:cJSON *
+cJSON_GetStringValue	cJSON_d.c	/^CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)$/;"	f	typeref:typename:char *
+cJSON_HasObjectItem	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string)$/;"	f	typeref:typename:cJSON_bool
+cJSON_Hooks	cJSON_d.h	/^typedef struct cJSON_Hooks$/;"	s
+cJSON_Hooks	cJSON_d.h	/^} cJSON_Hooks;$/;"	t	typeref:struct:cJSON_Hooks
+cJSON_InitHooks	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)$/;"	f	typeref:typename:void
+cJSON_InsertItemInArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)$/;"	f	typeref:typename:cJSON_bool
+cJSON_Invalid	cJSON_d.h	/^#define cJSON_Invalid /;"	d
+cJSON_IsArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsBool	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsBool(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsFalse	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsInvalid	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsNull	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsNumber	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsRaw	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsReference	cJSON_d.h	/^#define cJSON_IsReference /;"	d
+cJSON_IsString	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_IsTrue	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item)$/;"	f	typeref:typename:cJSON_bool
+cJSON_Minify	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_Minify(char *json)$/;"	f	typeref:typename:void
+cJSON_NULL	cJSON_d.h	/^#define cJSON_NULL /;"	d
+cJSON_New_Item	cJSON_d.c	/^static cJSON *cJSON_New_Item(const internal_hooks * const hooks)$/;"	f	typeref:typename:cJSON *	file:
+cJSON_Number	cJSON_d.h	/^#define cJSON_Number /;"	d
+cJSON_Object	cJSON_d.h	/^#define cJSON_Object /;"	d
+cJSON_Parse	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)$/;"	f	typeref:typename:cJSON *
+cJSON_ParseWithLength	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_length)$/;"	f	typeref:typename:cJSON *
+cJSON_ParseWithLengthOpts	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length, const c/;"	f	typeref:typename:cJSON *
+cJSON_ParseWithOpts	cJSON_d.c	/^CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSO/;"	f	typeref:typename:cJSON *
+cJSON_Print	cJSON_d.c	/^CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)$/;"	f	typeref:typename:char *
+cJSON_PrintBuffered	cJSON_d.c	/^CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)$/;"	f	typeref:typename:char *
+cJSON_PrintPreallocated	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, co/;"	f	typeref:typename:cJSON_bool
+cJSON_PrintUnformatted	cJSON_d.c	/^CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)$/;"	f	typeref:typename:char *
+cJSON_Raw	cJSON_d.h	/^#define cJSON_Raw /;"	d
+cJSON_ReplaceItemInArray	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)$/;"	f	typeref:typename:cJSON_bool
+cJSON_ReplaceItemInObject	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *new/;"	f	typeref:typename:cJSON_bool
+cJSON_ReplaceItemInObjectCaseSensitive	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object, const char *strin/;"	f	typeref:typename:cJSON_bool
+cJSON_ReplaceItemViaPointer	cJSON_d.c	/^CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, c/;"	f	typeref:typename:cJSON_bool
+cJSON_SetBoolValue	cJSON_d.h	/^#define cJSON_SetBoolValue(/;"	d
+cJSON_SetIntValue	cJSON_d.h	/^#define cJSON_SetIntValue(/;"	d
+cJSON_SetNumberHelper	cJSON_d.c	/^CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)$/;"	f	typeref:typename:double
+cJSON_SetNumberValue	cJSON_d.h	/^#define cJSON_SetNumberValue(/;"	d
+cJSON_SetValuestring	cJSON_d.c	/^CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)$/;"	f	typeref:typename:char *
+cJSON_String	cJSON_d.h	/^#define cJSON_String /;"	d
+cJSON_StringIsConst	cJSON_d.h	/^#define cJSON_StringIsConst /;"	d
+cJSON_True	cJSON_d.h	/^#define cJSON_True /;"	d
+cJSON_Version	cJSON_d.c	/^CJSON_PUBLIC(const char*) cJSON_Version(void)$/;"	f	typeref:typename:const char *
+cJSON__h	cJSON_d.h	/^#define cJSON__h$/;"	d
+cJSON_bool	cJSON_d.h	/^typedef int cJSON_bool;$/;"	t	typeref:typename:int
+cJSON_free	cJSON_d.c	/^CJSON_PUBLIC(void) cJSON_free(void *object)$/;"	f	typeref:typename:void
+cJSON_malloc	cJSON_d.c	/^CJSON_PUBLIC(void *) cJSON_malloc(size_t size)$/;"	f	typeref:typename:void *
+cJSON_strdup	cJSON_d.c	/^static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hoo/;"	f	typeref:typename:unsigned char *	file:
+calc_BoundingBoxLimits	BoundingBox.cu	/^void calc_BoundingBoxLimits(BoundingBox *box, TriangleMesh *mesh, cJSON *json_inlet_type){$/;"	f	typeref:typename:void
+calc_normal_force	cpu_dem.cu	/^inline ContactCache calc_normal_force(ParticleSys<HostMemory> *p,int i,int j,Vec3 n,double delMa/;"	f	typeref:typename:ContactCache
+calc_normal_force_wall	cpu_dem.cu	/^inline ContactCache calc_normal_force_wall(ParticleSys<HostMemory> *p,int i,int j,Vec3 n,double /;"	f	typeref:typename:ContactCache
+calc_tangential_force	cpu_dem.cu	/^inline void calc_tangential_force(ParticleSys<HostMemory> *p,int i,int j,ContactCache c){$/;"	f	typeref:typename:void
+calc_tangential_force_wall	cpu_dem.cu	/^inline void calc_tangential_force_wall(ParticleSys<HostMemory> *p,int i,int j,ContactCache c){$/;"	f	typeref:typename:void
+can_access_at_index	cJSON_d.c	/^#define can_access_at_index(/;"	d	file:
+can_not_open_file	csv.h	/^struct can_not_open_file : base, with_file_name, with_errno {$/;"	s	namespace:io::error
+can_read	cJSON_d.c	/^#define can_read(/;"	d	file:
+cannot_access_at_index	cJSON_d.c	/^#define cannot_access_at_index(/;"	d	file:
+case_insensitive_strcmp	cJSON_d.c	/^static int case_insensitive_strcmp(const unsigned char *string1, const unsigned char *string2)$/;"	f	typeref:typename:int	file:
+cast_away_const	cJSON_d.c	/^static void* cast_away_const(const void* string)$/;"	f	typeref:typename:void *	file:
+cellOffset	BoundingBox.h	/^    int *cellOffset; $/;"	m	struct:BoundingBox	typeref:typename:int *
+cellOffset	BoundingBox.h	/^    int *cellOffset; $/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+check	BoundingBox.cu	/^__global__ void check(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+checkConsistency	BoundingBox.cu	/^__global__ void checkConsistency(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+checkOoB	cpu_dem.cu	/^void checkOoB(ParticleSys<HostMemory> *p, ParticleSys<HostMemory> *tmpP, BoundingBox* box){$/;"	f	typeref:typename:void
+check_g_kernel	device_dem.cu	/^__global__ void check_g_kernel(ParticleSys<DeviceMemory>* ps,DeviceTriangleMesh *mesh){$/;"	f	typeref:typename:void
+child	cJSON_d.h	/^    struct cJSON *child;$/;"	m	struct:cJSON	typeref:struct:cJSON *
+chop_next_column	csv.h	/^void chop_next_column(char *&line, char *&col_begin, char *&col_end) {$/;"	f	namespace:io::detail	typeref:typename:void
+cjson_min	cJSON_d.c	/^#define cjson_min(/;"	d	file:
+clean	makefile	/^clean:$/;"	t
+col_order	csv.h	/^  std::vector<int> col_order;$/;"	m	class:io::CSVReader	typeref:typename:std::vector<int>
+collision_initial_positions	python/getInitialCollision.py	/^def collision_initial_positions(d, theta_deg, L=0.2):$/;"	f
+column_content	csv.h	/^  char column_content[max_column_content_length + 1];$/;"	m	struct:io::error::with_column_content	typeref:typename:char[]
+column_name	csv.h	/^  char column_name[max_column_name_length + 1];$/;"	m	struct:io::error::with_column_name	typeref:typename:char[]
+column_names	csv.h	/^  std::string column_names[column_count];$/;"	m	class:io::CSVReader	typeref:typename:std::string[]
+comment	cases/10000Particles_spiral/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/100SimpleBox/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/100SimpleBox_verlet/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/30000SimpleBox/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/30000SimpleBox_glitch/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	cases/3SimpleBox_naive/demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+comment	demSettings.json	/^        "comment":"this is not used, but kept for debugging"$/;"	s	object:boundingBox
+compare_double	cJSON_d.c	/^static cJSON_bool compare_double(double a, double b)$/;"	f	typeref:typename:cJSON_bool	file:
+compare_int	BoundingBox.cu	/^int compare_int(const void *a, const void *b){$/;"	f	typeref:typename:int
+computeNodeAABB	BVH.cu	/^void computeNodeAABB(int start, int end,TriangleMesh *mesh, BVH *bvh,int k){$/;"	f	typeref:typename:void
+content	cJSON_d.c	/^    const unsigned char *content;$/;"	m	struct:__anonfc6642560208	typeref:typename:const unsigned char *	file:
+copyFromDevice	ParticleSystem.cu	/^void copyFromDevice(ParticleSys<DeviceMemory>* d_ps, ParticleSys<HostMemory>* ps){$/;"	f	typeref:typename:void
+copyToDevice	ParticleSystem.cu	/^void copyToDevice(ParticleSys<HostMemory> *ps, ParticleSys<DeviceMemory> *d_ps){$/;"	f	typeref:typename:void
+copyToDeviceBVH	BVH.cu	/^void copyToDeviceBVH(BVH *bvh,  int numTriangles){$/;"	f	typeref:typename:void
+copyToDeviceBox	BoundingBox.cu	/^void copyToDeviceBox(BoundingBox *box, ParticleSys<HostMemory> *ps){$/;"	f	typeref:typename:void
+count_ascii_stl_triangles	TriangleMesh.cu	/^static int count_ascii_stl_triangles(FILE* fp){$/;"	f	typeref:typename:int	file:
+cpu_dem_naive_triangle	cpu_dem.cu	/^void cpu_dem_naive_triangle(ParticleSys<HostMemory>* ps, BoundingBox* box, TriangleMesh *mesh){$/;"	f	typeref:typename:void
+cpu_dem_nosort_triangle	cpu_dem.cu	/^void cpu_dem_nosort_triangle(ParticleSys<HostMemory>* ps, ParticleSys<HostMemory> *tmpPs, Boundi/;"	f	typeref:typename:void
+cpu_dem_sort_triangles	cpu_dem.cu	/^void cpu_dem_sort_triangles(ParticleSys<HostMemory>* ps, ParticleSys<HostMemory> *tmpPs, Boundin/;"	f	typeref:typename:void
+cpu_dem_verlet_BVH	cpu_dem.cu	/^void cpu_dem_verlet_BVH(ParticleSys<HostMemory>* p, ParticleSys<HostMemory> *tmpP, BoundingBox* /;"	f	typeref:typename:void
+cpu_dem_verlet_triangles	cpu_dem.cu	/^void cpu_dem_verlet_triangles(ParticleSys<HostMemory>* p, ParticleSys<HostMemory> *tmpP, Boundin/;"	f	typeref:typename:void
+cpu_dem_verlet_verlet	cpu_dem.cu	/^void cpu_dem_verlet_verlet(ParticleSys<HostMemory>* p, ParticleSys<HostMemory> *tmpP, BoundingBo/;"	f	typeref:typename:void
+create_reference	cJSON_d.c	/^static cJSON *create_reference(const cJSON *item, const internal_hooks * const hooks)$/;"	f	typeref:typename:cJSON *	file:
+cx	TriangleMesh.h	/^    double* cx; $/;"	m	struct:TriangleMesh	typeref:typename:double *
+cy	TriangleMesh.h	/^    double* cy;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+cz	TriangleMesh.h	/^    double* cz;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d	TriangleMesh.h	/^    double *d;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d	TriangleMesh.h	/^    double *d;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d00	TriangleMesh.h	/^    double* d00;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d00	TriangleMesh.h	/^    double* d00;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d00inv	TriangleMesh.h	/^    double* d00inv;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d00inv	TriangleMesh.h	/^    double* d00inv;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d01	TriangleMesh.h	/^    double* d01;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d01	TriangleMesh.h	/^    double* d01;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d11	TriangleMesh.h	/^    double* d11;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d11	TriangleMesh.h	/^    double* d11;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d11inv	TriangleMesh.h	/^    double* d11inv;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d11inv	TriangleMesh.h	/^    double* d11inv;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d22	TriangleMesh.h	/^    double* d22;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d22	TriangleMesh.h	/^    double* d22;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d22inv	TriangleMesh.h	/^    double* d22inv;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+d22inv	TriangleMesh.h	/^    double* d22inv;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+d_box	BoundingBox.h	/^    DeviceBoundingBox d_box;$/;"	m	struct:BoundingBox	typeref:typename:DeviceBoundingBox
+d_boxPtr	BoundingBox.h	/^    DeviceBoundingBox* d_boxPtr;$/;"	m	struct:BoundingBox	typeref:typename:DeviceBoundingBox *
+d_bvh	BVH.h	/^    DeviceBVH d_bvh;$/;"	m	struct:BVH	typeref:typename:DeviceBVH
+d_bvhPtr	BVH.h	/^    DeviceBVH* d_bvhPtr;$/;"	m	struct:BVH	typeref:typename:DeviceBVH *
+d_calcCellId	BoundingBox.cu	/^__device__ int d_calcCellId(ParticleSys<DeviceMemory>* p,int i, DeviceBoundingBox* box){$/;"	f	typeref:typename:int
+d_calc_normal_force	device_dem.cu	/^ContactCache d_calc_normal_force(ParticleSys<DeviceMemory>* p,int i,int j,Vec3 n,double delMag){$/;"	f	typeref:typename:ContactCache
+d_calc_normal_force_wall	device_dem.cu	/^ContactCache d_calc_normal_force_wall(ParticleSys<DeviceMemory> *p,int i,int j,Vec3 n,double del/;"	f	typeref:typename:ContactCache
+d_calc_tangential_force	device_dem.cu	/^void d_calc_tangential_force(ParticleSys<DeviceMemory> *p,int i,int j,ContactCache c){$/;"	f	typeref:typename:void
+d_calc_tangential_force_wall	device_dem.cu	/^void d_calc_tangential_force_wall(ParticleSys<DeviceMemory> *p,int i,int j,ContactCache c){$/;"	f	typeref:typename:void
+d_dist_triangle	device_dem.cu	/^TriangleContactCache d_dist_triangle(ParticleSys<DeviceMemory>* ps, int i, DeviceTriangleMesh* m/;"	f	typeref:typename:TriangleContactCache
+d_dist_triangle_neighbor	BVH.cu	/^__device__ __forceinline__ TriangleContactCache d_dist_triangle_neighbor(ParticleSys<DeviceMemor/;"	f	typeref:typename:TriangleContactCache
+d_mesh	TriangleMesh.h	/^    DeviceTriangleMesh d_mesh;$/;"	m	struct:TriangleMesh	typeref:typename:DeviceTriangleMesh
+d_meshPtr	TriangleMesh.h	/^    DeviceTriangleMesh *d_meshPtr;$/;"	m	struct:TriangleMesh	typeref:typename:DeviceTriangleMesh *
+d_particle_collision_cell_linked	device_dem.cu	/^void d_particle_collision_cell_linked(ParticleSys<DeviceMemory>* p, int i, DeviceBoundingBox* bo/;"	f	typeref:typename:void
+d_particle_collision_verlet	device_dem.cu	/^__device__ __forceinline__ void d_particle_collision_verlet(ParticleSys<DeviceMemory>* p, int i /;"	f	typeref:typename:void
+d_self	ParticleSystem.h	/^    ParticleSys<DeviceMemory>* d_self;$/;"	m	struct:ParticleSys	typeref:typename:ParticleSys<DeviceMemory> *
+d_sort_neighborlist	BoundingBox.h	/^__device__ __forceinline__ void d_sort_neighborlist(int *neiList, int startInd, int numNei){$/;"	f	typeref:typename:__device__ __forceinline__ void
+d_sphereAABBOverlapNeighbor	BVH.cu	/^__device__ __forceinline__ int d_sphereAABBOverlapNeighbor(ParticleSys<DeviceMemory>* p,int i,De/;"	f	typeref:typename:int
+d_swap_ps	BoundingBox.cu	/^__global__ void d_swap_ps(ParticleSys<DeviceMemory> *p, ParticleSys<DeviceMemory> *tmp){$/;"	f	typeref:typename:void
+d_update_history	device_dem.cu	/^void d_update_history(ParticleSys<DeviceMemory> *p,int i){$/;"	f	typeref:typename:void
+d_update_history_wall	device_dem.cu	/^void d_update_history_wall(ParticleSys<DeviceMemory> *p,int i){$/;"	f	typeref:typename:void
+d_update_pList	BoundingBox.cu	/^void d_update_pList(ParticleSys<DeviceMemory> *p, BoundingBox *box,int gridSize, int blockSize){$/;"	f	typeref:typename:void
+d_update_pList_withSort	BoundingBox.cu	/^void d_update_pList_withSort(ParticleSys<DeviceMemory> *p, ParticleSys<DeviceMemory> *tmpPs, Bou/;"	f	typeref:typename:void
+d_wall_collision_triangles	device_dem.cu	/^void d_wall_collision_triangles(ParticleSys<DeviceMemory>* p,int i,DeviceBoundingBox *box, Devic/;"	f	typeref:typename:void
+d_wall_collision_verlet	device_dem.cu	/^__device__ __forceinline__ void d_wall_collision_verlet(ParticleSys<DeviceMemory>* p,int i, Devi/;"	f	typeref:typename:void
+data_begin	csv.h	/^  int data_begin;$/;"	m	class:io::LineReader	typeref:typename:int
+data_end	csv.h	/^  int data_end;$/;"	m	class:io::LineReader	typeref:typename:int
+deallocate	ParticleSystem.cu	/^void deallocate(ParticleSys<DeviceMemory> *ps){$/;"	f	typeref:typename:void
+deallocate	ParticleSystem.cu	/^void deallocate(ParticleSys<HostMemory> *ps){$/;"	f	typeref:typename:void
+deallocate	ParticleSystem.h	/^        static void deallocate(T* ptr){$/;"	f	struct:DeviceMemory	typeref:typename:void
+deallocate	ParticleSystem.h	/^    static void deallocate(T* ptr){$/;"	f	struct:HostMemory	typeref:typename:void
+denom	TriangleMesh.h	/^    double* denom;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+denom	TriangleMesh.h	/^    double* denom;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+density	cases/10000Particles_spiral/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/100SimpleBox/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/100SimpleBox_verlet/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/30000SimpleBox/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/30000SimpleBox_glitch/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	cases/3SimpleBox_naive/demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+density	demSettings.json	/^            "density":1000.,$/;"	n	object:particleTypes.particle0
+depth	cJSON_d.c	/^    size_t depth; \/* How deeply nested (in arrays\/objects) is the input at the current offset./;"	m	struct:__anonfc6642560208	typeref:typename:size_t	file:
+depth	cJSON_d.c	/^    size_t depth; \/* current nesting depth (for formatted printing) *\/$/;"	m	struct:__anonfc6642560308	typeref:typename:size_t	file:
+desired_byte_count	csv.h	/^  int desired_byte_count;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:int
+desired_byte_count	csv.h	/^  int desired_byte_count;$/;"	m	class:io::detail::SynchronousReader	typeref:typename:int
+detail	csv.h	/^namespace detail {$/;"	n	namespace:io
+deviceMallocCopyTriangleMesh	TriangleMesh.cu	/^void deviceMallocCopyTriangleMesh(TriangleMesh *mesh){$/;"	f	typeref:typename:void
+device_dem_naive	device_dem.cu	/^void device_dem_naive(ParticleSys<DeviceMemory> *p,BoundingBox *box, TriangleMesh *mesh, BVH *bv/;"	f	typeref:typename:void
+device_dem_triangles	device_dem.cu	/^void device_dem_triangles(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, int/;"	f	typeref:typename:void
+device_dem_verlet_triangles	device_dem.cu	/^void device_dem_verlet_triangles(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *me/;"	f	typeref:typename:void
+device_dem_verlet_verlet	device_dem.cu	/^void device_dem_verlet_verlet(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh,/;"	f	typeref:typename:void
+device_dem_verlet_verlet_withSort	device_dem.cu	/^void device_dem_verlet_verlet_withSort(ParticleSys<DeviceMemory> *p,ParticleSys<DeviceMemory> *t/;"	f	typeref:typename:void
+dist	TriangleContactCache.h	/^    double dist;$/;"	m	struct:TriangleContactCache	typeref:typename:double
+dist_triangle	cpu_dem.cu	/^TriangleContactCache dist_triangle(ParticleSys<HostMemory>* ps, int i, TriangleMesh* mesh, int j/;"	f	typeref:typename:TriangleContactCache
+dist_triangle_neighbor	BVH.cu	/^TriangleContactCache dist_triangle_neighbor(ParticleSys<HostMemory>* ps, int i, TriangleMesh* me/;"	f	typeref:typename:TriangleContactCache
+dk_build_cellCount	BoundingBox.cu	/^__global__ void dk_build_cellCount(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box){$/;"	f	typeref:typename:void
+dk_build_pList	BoundingBox.cu	/^__global__ void dk_build_pList(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box){$/;"	f	typeref:typename:void
+dk_checkOoB	device_dem.cu	/^__global__ void dk_checkOoB(ParticleSys<DeviceMemory> *p,DeviceBoundingBox* box){$/;"	f	typeref:typename:void
+dk_morton_key	BoundingBox.cu	/^__global__ void dk_morton_key(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box){$/;"	f	typeref:typename:void
+dk_print	BoundingBox.cu	/^__global__ void dk_print(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+dk_print_N	BoundingBox.cu	/^__global__ void dk_print_N(ParticleSys<DeviceMemory>* p, int N){$/;"	f	typeref:typename:void
+dk_print_tmpMorton	BoundingBox.cu	/^__global__ void dk_print_tmpMorton(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+double_quote_escape	csv.h	/^template <char sep, char quote> struct double_quote_escape {$/;"	s	namespace:io
+dt	ParticleSystem.h	/^    double dt;$/;"	m	struct:ParticleSysShared	typeref:typename:double
+dt	python/compareDrop.py	/^dt = 0.001$/;"	v
+dtFactor	cases/10000Particles_spiral/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/100SimpleBox/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/100SimpleBox_verlet/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/30000SimpleBox/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/30000SimpleBox_glitch/demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+dtFactor	cases/3SimpleBox_naive/demSettings.json	/^        "dtFactor":1000,$/;"	n	object:others
+dtFactor	demSettings.json	/^        "dtFactor":15,$/;"	n	object:others
+duplicated_column_in_header	csv.h	/^struct duplicated_column_in_header : base, with_file_name, with_column_name {$/;"	s	namespace:io::error
+dx	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:BoundingBox	typeref:typename:double
+dx	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+dy	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:BoundingBox	typeref:typename:double
+dy	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+dz	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:BoundingBox	typeref:typename:double
+dz	BoundingBox.h	/^    double dx,dy,dz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+e	python/compareDrop.py	/^e = 0.3          # 反発係数$/;"	v
+e01x	TriangleMesh.h	/^    double* e01x;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e01x	TriangleMesh.h	/^    double* e01x;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e01y	TriangleMesh.h	/^    double* e01y;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e01y	TriangleMesh.h	/^    double* e01y;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e01z	TriangleMesh.h	/^    double* e01z;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e01z	TriangleMesh.h	/^    double* e01z;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e02x	TriangleMesh.h	/^    double* e02x;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e02x	TriangleMesh.h	/^    double* e02x;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e02y	TriangleMesh.h	/^    double* e02y;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e02y	TriangleMesh.h	/^    double* e02y;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e02z	TriangleMesh.h	/^    double* e02z;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e02z	TriangleMesh.h	/^    double* e02z;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e12x	TriangleMesh.h	/^    double* e12x;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e12x	TriangleMesh.h	/^    double* e12x;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e12y	TriangleMesh.h	/^    double* e12y;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e12y	TriangleMesh.h	/^    double* e12y;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+e12z	TriangleMesh.h	/^    double* e12z;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+e12z	TriangleMesh.h	/^    double* e12z;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+edge	TriangleMesh.h	/^    int *edge;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+edge	TriangleMesh.h	/^    int *edge;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+empty_line_comment	csv.h	/^struct empty_line_comment {$/;"	s	namespace:io
+end	BVH.cu	/^    int end;   \/\/ [start,end)$/;"	m	struct:__anona81005cb0108	typeref:typename:int	file:
+endTime	cases/10000Particles_spiral/demSettings.json	/^        "endTime":2.0,$/;"	n	object:others
+endTime	cases/100SimpleBox/demSettings.json	/^        "endTime":20.0,$/;"	n	object:others
+endTime	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "endTime":20.0,$/;"	n	object:others
+endTime	cases/100SimpleBox_verlet/demSettings.json	/^        "endTime":40.0,$/;"	n	object:others
+endTime	cases/30000SimpleBox/demSettings.json	/^        "endTime":20.0,$/;"	n	object:others
+endTime	cases/30000SimpleBox_glitch/demSettings.json	/^        "endTime":2.0,$/;"	n	object:others
+endTime	cases/3SimpleBox_naive/demSettings.json	/^        "endTime":10.0,$/;"	n	object:others
+endTime	demSettings.json	/^        "endTime":2.0,$/;"	n	object:others
+ensure	cJSON_d.c	/^static unsigned char* ensure(printbuffer * const p, size_t needed)$/;"	f	typeref:typename:unsigned char *	file:
+errno_value	csv.h	/^  int errno_value;$/;"	m	struct:io::error::with_errno	typeref:typename:int
+error	cJSON_d.c	/^} error;$/;"	t	typeref:struct:__anonfc6642560108	file:
+error	csv.h	/^namespace error {$/;"	n	namespace:io
+error_message_buffer	csv.h	/^  mutable char error_message_buffer[2048];$/;"	m	struct:io::error::base	typeref:typename:char[2048]
+escaped_string_not_closed	csv.h	/^struct escaped_string_not_closed : base, with_file_name, with_file_line {$/;"	s	namespace:io::error
+eta	ContactCache.h	/^    double eta;$/;"	m	struct:ContactCache	typeref:typename:double
+expandBits	BoundingBox.h	/^__device__ __host__ __forceinline__ uint32_t expandBits(uint32_t v){$/;"	f	typeref:typename:__device__ __host__ __forceinline__ uint32_t
+extra_column_in_header	csv.h	/^struct extra_column_in_header : base, with_file_name, with_column_name {$/;"	s	namespace:io::error
+false	cJSON_d.c	/^#define false /;"	d	file:
+file	cases/10000Particles_spiral/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/100SimpleBox/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/100SimpleBox_verlet/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/30000SimpleBox/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/30000SimpleBox_glitch/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	cases/3SimpleBox_naive/demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file	csv.h	/^  FILE *file;$/;"	m	class:io::detail::OwningStdIOByteSourceBase	typeref:typename:FILE *
+file	demSettings.json	/^        "file":"initParticle.txt"$/;"	s	object:inlet
+file_line	csv.h	/^  int file_line;$/;"	m	struct:io::error::with_file_line	typeref:typename:int
+file_line	csv.h	/^  unsigned file_line;$/;"	m	class:io::LineReader	typeref:typename:unsigned
+file_name	csv.h	/^  char file_name[error::max_file_name_length + 1];$/;"	m	class:io::LineReader	typeref:typename:char[]
+file_name	csv.h	/^  char file_name[max_file_name_length + 1];$/;"	m	struct:io::error::with_file_name	typeref:typename:char[]
+filepaths	cases/10000Particles_spiral/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/100SimpleBox/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/100SimpleBox_verlet/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/30000SimpleBox/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/30000SimpleBox_glitch/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	cases/3SimpleBox_naive/demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+filepaths	demSettings.json	/^        "filepaths": [$/;"	a	object:walls
+find_next_column_end	csv.h	/^  static const char *find_next_column_end(const char *col_begin) {$/;"	f	struct:io::double_quote_escape	typeref:typename:const char *
+find_next_column_end	csv.h	/^  static const char *find_next_column_end(const char *col_begin) {$/;"	f	struct:io::no_quote_escape	typeref:typename:const char *
+finish_read	csv.h	/^  int finish_read() { return byte_source->read(buffer, desired_byte_count); }$/;"	f	class:io::detail::SynchronousReader	typeref:typename:int
+finish_read	csv.h	/^  int finish_read() {$/;"	f	class:io::detail::AsynchronousReader	typeref:typename:int
+floor	python/compareDrop.py	/^floor = -1.0$/;"	v
+fn	ContactCache.h	/^    Vec3 fn;$/;"	m	struct:ContactCache	typeref:typename:Vec3
+format	cJSON_d.c	/^    cJSON_bool format; \/* is this print a formatted print *\/$/;"	m	struct:__anonfc6642560308	typeref:typename:cJSON_bool	file:
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::can_not_open_file	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::duplicated_column_in_header	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::escaped_string_not_closed	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::extra_column_in_header	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::header_missing	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::integer_must_be_positive	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::integer_overflow	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::integer_underflow	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::invalid_single_character	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::line_length_limit_exceeded	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::missing_column_in_header	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::no_digit	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::too_few_columns	typeref:typename:void
+format_error_message	csv.h	/^  void format_error_message() const override {$/;"	f	struct:io::error::too_many_columns	typeref:typename:void
+free_BVH	BVH.cu	/^void free_BVH(BVH *bvh, int isGPUon){$/;"	f	typeref:typename:void
+free_BoundingBox	BoundingBox.cu	/^void free_BoundingBox(BoundingBox *box, int isGPUon){$/;"	f	typeref:typename:void
+free_TriangleMesh	TriangleMesh.cu	/^void free_TriangleMesh(TriangleMesh* mesh, int isGPUon){$/;"	f	typeref:typename:void
+g	python/compareDrop.py	/^g = -9.81$/;"	v
+g	python/compareRoll.py	/^g = 9.81$/;"	v
+get_array_item	cJSON_d.c	/^static cJSON* get_array_item(const cJSON *array, size_t index)$/;"	f	typeref:typename:cJSON *	file:
+get_decimal_point	cJSON_d.c	/^static unsigned char get_decimal_point(void)$/;"	f	typeref:typename:unsigned char	file:
+get_edge_index	TriangleMesh.cu	/^int get_edge_index(int v0, int v1, int* edge,int eIndex){$/;"	f	typeref:typename:int
+get_file_line	csv.h	/^  unsigned get_file_line() const { return file_line; }$/;"	f	class:io::LineReader	typeref:typename:unsigned
+get_file_line	csv.h	/^  unsigned get_file_line() const { return in.get_file_line(); }$/;"	f	class:io::CSVReader	typeref:typename:unsigned
+get_json_double	cJSON_d.c	/^double get_json_double(cJSON *obj, const char *key) {$/;"	f	typeref:typename:double
+get_json_int	cJSON_d.c	/^int get_json_int(cJSON *obj, const char *key) {$/;"	f	typeref:typename:int
+get_json_object	cJSON_d.c	/^cJSON* get_json_object(cJSON *obj, const char *key) {$/;"	f	typeref:typename:cJSON *
+get_json_string	cJSON_d.c	/^char* get_json_string(cJSON *obj, const char *key) {$/;"	f	typeref:typename:char *
+get_object_item	cJSON_d.c	/^static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_b/;"	f	typeref:typename:cJSON *	file:
+get_truncated_file_name	csv.h	/^  const char *get_truncated_file_name() const { return file_name; }$/;"	f	class:io::LineReader	typeref:typename:const char *
+get_truncated_file_name	csv.h	/^  const char *get_truncated_file_name() const {$/;"	f	class:io::CSVReader	typeref:typename:const char *
+global_error	cJSON_d.c	/^static error global_error = { NULL, 0 };$/;"	v	typeref:typename:error	file:
+global_hooks	cJSON_d.c	/^static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };$/;"	v	typeref:typename:internal_hooks	file:
+gmaxx	TriangleMesh.h	/^    double gminx, gmaxx;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gmaxx	TriangleMesh.h	/^    double gminx, gmaxx;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gmaxy	TriangleMesh.h	/^    double gminy, gmaxy;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gmaxy	TriangleMesh.h	/^    double gminy, gmaxy;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gmaxz	TriangleMesh.h	/^    double gminz, gmaxz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gmaxz	TriangleMesh.h	/^    double gminz, gmaxz;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gminx	TriangleMesh.h	/^    double gminx, gmaxx;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gminx	TriangleMesh.h	/^    double gminx, gmaxx;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gminy	TriangleMesh.h	/^    double gminy, gmaxy;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gminy	TriangleMesh.h	/^    double gminy, gmaxy;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gminz	TriangleMesh.h	/^    double gminz, gmaxz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double
+gminz	TriangleMesh.h	/^    double gminz, gmaxz;$/;"	m	struct:TriangleMesh	typeref:typename:double
+gpuOn	cases/10000Particles_spiral/demSettings.json	/^        "gpuOn":1$/;"	n	object:others
+gpuOn	cases/100SimpleBox/demSettings.json	/^        "gpuOn":0$/;"	n	object:others
+gpuOn	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "gpuOn":1$/;"	n	object:others
+gpuOn	cases/100SimpleBox_verlet/demSettings.json	/^        "gpuOn":0$/;"	n	object:others
+gpuOn	cases/30000SimpleBox/demSettings.json	/^        "gpuOn":1$/;"	n	object:others
+gpuOn	cases/30000SimpleBox_glitch/demSettings.json	/^        "gpuOn":1$/;"	n	object:others
+gpuOn	cases/3SimpleBox_naive/demSettings.json	/^        "gpuOn":0$/;"	n	object:others
+gpuOn	demSettings.json	/^        "gpuOn":1$/;"	n	object:others
+gravity	cases/10000Particles_spiral/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/100SimpleBox/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/100SimpleBox_verlet/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/30000SimpleBox/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/30000SimpleBox_glitch/demSettings.json	/^    "gravity":{$/;"	o
+gravity	cases/3SimpleBox_naive/demSettings.json	/^    "gravity":{$/;"	o
+gravity	demSettings.json	/^    "gravity":{$/;"	o
+has_column	csv.h	/^  bool has_column(const std::string &name) const {$/;"	f	class:io::CSVReader	typeref:typename:bool
+hash_func	TriangleMesh.cu	/^static inline unsigned long long hash_func(long long x,long long y,long long z){$/;"	f	typeref:typename:unsigned long long	file:
+header_missing	csv.h	/^struct header_missing : base, with_file_name {$/;"	s	namespace:io::error
+hitAt	TriangleContactCache.h	/^    int hitAt; \/\/-1 = face, else either at face or vertices with its ID$/;"	m	struct:TriangleContactCache	typeref:typename:int
+hooks	cJSON_d.c	/^    internal_hooks hooks;$/;"	m	struct:__anonfc6642560208	typeref:typename:internal_hooks	file:
+hooks	cJSON_d.c	/^    internal_hooks hooks;$/;"	m	struct:__anonfc6642560308	typeref:typename:internal_hooks	file:
+ignore_column	csv.h	/^using ignore_column = unsigned int;$/;"	t	namespace:io	typeref:typename:unsigned int
+ignore_extra_column	csv.h	/^static const ignore_column ignore_extra_column = 1;$/;"	v	namespace:io	typeref:typename:const ignore_column
+ignore_missing_column	csv.h	/^static const ignore_column ignore_missing_column = 2;$/;"	v	namespace:io	typeref:typename:const ignore_column
+ignore_no_column	csv.h	/^static const ignore_column ignore_no_column = 0;$/;"	v	namespace:io	typeref:typename:const ignore_column
+ignore_overflow	csv.h	/^struct ignore_overflow {$/;"	s	namespace:io
+in	csv.h	/^  LineReader in;$/;"	m	class:io::CSVReader	typeref:typename:LineReader
+in	csv.h	/^  std::istream &in;$/;"	m	class:io::detail::NonOwningIStreamByteSource	typeref:typename:std::istream &
+index	TriangleMesh.h	/^    int index;             \/\/ unique vertex index$/;"	m	struct:__anond1da66be0108	typeref:typename:int
+init	csv.h	/^  void init(std::unique_ptr<ByteSourceBase> arg_byte_source) {$/;"	f	class:io::detail::AsynchronousReader	typeref:typename:void
+init	csv.h	/^  void init(std::unique_ptr<ByteSourceBase> arg_byte_source) {$/;"	f	class:io::detail::SynchronousReader	typeref:typename:void
+init	csv.h	/^  void init(std::unique_ptr<ByteSourceBase> byte_source) {$/;"	f	class:io::LineReader	typeref:typename:void
+initializeBVH	BVH.cu	/^void initializeBVH(BVH *bvh, int numTriangles, int isGPUon){$/;"	f	typeref:typename:void
+initializeParticles	ParticleSystem.cu	/^void initializeParticles(ParticleSys<HostMemory>* ps,cJSON *json_inlet, double r,double m,double/;"	f	typeref:typename:void
+initializeTmpParticles	ParticleSystem.cu	/^void initializeTmpParticles(ParticleSys<HostMemory>* ps,cJSON *json_inlet, double r,double m,dou/;"	f	typeref:typename:void
+initialize_BoundingBox	BoundingBox.cu	/^void initialize_BoundingBox(ParticleSys<HostMemory> *p, BoundingBox *box,TriangleMesh *mesh, cJS/;"	f	typeref:typename:void
+inlet	cases/10000Particles_spiral/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/100SimpleBox/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/100SimpleBox_verlet/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/30000SimpleBox/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/30000SimpleBox_glitch/demSettings.json	/^    "inlet":{$/;"	o
+inlet	cases/3SimpleBox_naive/demSettings.json	/^    "inlet":{$/;"	o
+inlet	demSettings.json	/^    "inlet":{$/;"	o
+inputMode	cases/10000Particles_spiral/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/100SimpleBox/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/100SimpleBox_verlet/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/30000SimpleBox/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/30000SimpleBox_glitch/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	cases/3SimpleBox_naive/demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+inputMode	demSettings.json	/^        "inputMode":"shuffle",$/;"	s	object:inlet
+insertSort	BoundingBox.cu	/^void insertSort(int *array,  int start, int end){ $/;"	f	typeref:typename:void
+integer_must_be_positive	csv.h	/^struct integer_must_be_positive : base,$/;"	s	namespace:io::error
+integer_overflow	csv.h	/^struct integer_overflow : base,$/;"	s	namespace:io::error
+integer_underflow	csv.h	/^struct integer_underflow : base,$/;"	s	namespace:io::error
+internal_free	cJSON_d.c	/^#define internal_free /;"	d	file:
+internal_free	cJSON_d.c	/^static void CJSON_CDECL internal_free(void *pointer)$/;"	f	typeref:typename:void CJSON_CDECL	file:
+internal_hooks	cJSON_d.c	/^typedef struct internal_hooks$/;"	s	file:
+internal_hooks	cJSON_d.c	/^} internal_hooks;$/;"	t	typeref:struct:internal_hooks	file:
+internal_malloc	cJSON_d.c	/^#define internal_malloc /;"	d	file:
+internal_malloc	cJSON_d.c	/^static void * CJSON_CDECL internal_malloc(size_t size)$/;"	f	typeref:typename:void * CJSON_CDECL	file:
+internal_realloc	cJSON_d.c	/^#define internal_realloc /;"	d	file:
+internal_realloc	cJSON_d.c	/^static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)$/;"	f	typeref:typename:void * CJSON_CDECL	file:
+invalid_single_character	csv.h	/^struct invalid_single_character : base,$/;"	s	namespace:io::error
+invdx	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:BoundingBox	typeref:typename:double
+invdx	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+invdy	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:BoundingBox	typeref:typename:double
+invdy	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+invdz	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:BoundingBox	typeref:typename:double
+invdz	BoundingBox.h	/^    double invdx,invdy,invdz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+io	csv.h	/^namespace io {$/;"	n
+is_comment	csv.h	/^  static bool is_comment(const char *) { return false; }$/;"	f	struct:io::no_comment	typeref:typename:bool
+is_comment	csv.h	/^  static bool is_comment(const char *line) {$/;"	f	struct:io::empty_line_comment	typeref:typename:bool
+is_comment	csv.h	/^  static bool is_comment(const char *line) {$/;"	f	struct:io::single_and_empty_line_comment	typeref:typename:bool
+is_comment	csv.h	/^  static bool is_comment(const char *line) {$/;"	f	struct:io::single_line_comment	typeref:typename:bool
+is_comment_start_char	csv.h	/^  constexpr static bool is_comment_start_char(char) { return false; }$/;"	f	struct:io::single_line_comment	typeref:typename:bool
+is_comment_start_char	csv.h	/^  is_comment_start_char(char c, char comment_start_char,$/;"	f	struct:io::single_line_comment	typeref:typename:bool
+is_trim_char	csv.h	/^  constexpr static bool is_trim_char(char c, char trim_char,$/;"	f	struct:io::trim_chars	typeref:typename:bool
+is_trim_char	csv.h	/^  constexpr static bool is_trim_char(char) { return false; }$/;"	f	struct:io::trim_chars	typeref:typename:bool
+is_valid	csv.h	/^  bool is_valid() const { return byte_source != nullptr; }$/;"	f	class:io::detail::AsynchronousReader	typeref:typename:bool
+is_valid	csv.h	/^  bool is_valid() const { return byte_source != nullptr; }$/;"	f	class:io::detail::SynchronousReader	typeref:typename:bool
+isinf	cJSON_d.c	/^#define isinf(/;"	d	file:
+isnan	cJSON_d.c	/^#define isnan(/;"	d	file:
+ix	TriangleMesh.h	/^    long long ix, iy, iz;  \/\/ 量子化キー$/;"	m	struct:__anond1da66be0108	typeref:typename:long long
+iy	TriangleMesh.h	/^    long long ix, iy, iz;  \/\/ 量子化キー$/;"	m	struct:__anond1da66be0108	typeref:typename:long long
+iz	TriangleMesh.h	/^    long long ix, iy, iz;  \/\/ 量子化キー$/;"	m	struct:__anond1da66be0108	typeref:typename:long long
+json	cJSON_d.c	/^    const unsigned char *json;$/;"	m	struct:__anonfc6642560108	typeref:typename:const unsigned char *	file:
+k	cases/10000Particles_spiral/demSettings.json	/^            "k":5.0e5,$/;"	n	object:particleTypes.particle0
+k	cases/100SimpleBox/demSettings.json	/^            "k":1.0e6,$/;"	n	object:particleTypes.particle0
+k	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "k":1.0e9,$/;"	n	object:particleTypes.particle0
+k	cases/100SimpleBox_verlet/demSettings.json	/^            "k":1.0e9,$/;"	n	object:particleTypes.particle0
+k	cases/30000SimpleBox/demSettings.json	/^            "k":1.0e6,$/;"	n	object:particleTypes.particle0
+k	cases/30000SimpleBox_glitch/demSettings.json	/^            "k":1.0e6,$/;"	n	object:particleTypes.particle0
+k	cases/3SimpleBox_naive/demSettings.json	/^            "k":1.0e7,$/;"	n	object:particleTypes.particle0
+k	demSettings.json	/^            "k":5.0e5,$/;"	n	object:particleTypes.particle0
+k_collision_triangle	device_dem.cu	/^__global__ void k_collision_triangle(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box,Device/;"	f	typeref:typename:void
+k_collision_verlet_triangle	device_dem.cu	/^__global__ void k_collision_verlet_triangle(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box/;"	f	typeref:typename:void
+k_collision_verlet_verlet	device_dem.cu	/^__global__ void k_collision_verlet_verlet(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box,D/;"	f	typeref:typename:void
+k_integrate	device_dem.cu	/^__global__ void k_integrate(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+k_particle_collision_naive	device_dem.cu	/^void k_particle_collision_naive(ParticleSys<DeviceMemory>* p){$/;"	f	typeref:typename:void
+k_shouldRefreshNeighborList	device_dem.cu	/^__global__ void k_shouldRefreshNeighborList(ParticleSys<DeviceMemory> *p, DeviceBoundingBox* box/;"	f	typeref:typename:void
+k_update_neighborlist	BoundingBox.cu	/^__global__ void k_update_neighborlist(ParticleSys<DeviceMemory> *p,DeviceBoundingBox *box){$/;"	f	typeref:typename:void
+k_update_neighborlist_endsort	BoundingBox.cu	/^__global__ void k_update_neighborlist_endsort(ParticleSys<DeviceMemory> *p,DeviceBoundingBox *bo/;"	f	typeref:typename:void
+k_update_neighborlist_wall	BVH.cu	/^__global__ void k_update_neighborlist_wall(ParticleSys<DeviceMemory> *p, DeviceTriangleMesh *mes/;"	f	typeref:typename:void
+k_wall_collision_triangles_naive	device_dem.cu	/^void k_wall_collision_triangles_naive(ParticleSys<DeviceMemory>* p,DeviceTriangleMesh* mesh){$/;"	f	typeref:typename:void
+kineticEnergy	cpu_dem.cu	/^double kineticEnergy(ParticleSys<HostMemory> *p){$/;"	f	typeref:typename:double
+left	BVH.h	/^    int* left;$/;"	m	struct:BVH	typeref:typename:int *
+left	BVH.h	/^    int* left;$/;"	m	struct:DeviceBVH	typeref:typename:int *
+length	cJSON_d.c	/^    size_t length;$/;"	m	struct:__anonfc6642560208	typeref:typename:size_t	file:
+length	cJSON_d.c	/^    size_t length;$/;"	m	struct:__anonfc6642560308	typeref:typename:size_t	file:
+length_factor	ParticleSystem.h	/^    double length_factor;$/;"	m	struct:ParticleSysShared	typeref:typename:double
+line_length_limit_exceeded	csv.h	/^struct line_length_limit_exceeded : base, with_file_name, with_file_line {$/;"	s	namespace:io::error
+load_ascii_stl_double	TriangleMesh.cu	/^int load_ascii_stl_double(const char* filename, TriangleMesh* mesh){$/;"	f	typeref:typename:int
+load_json_file	settings_loader.cu	/^cJSON* load_json_file(const char* filename){$/;"	f	typeref:typename:cJSON *
+lock	csv.h	/^  std::mutex lock;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::mutex
+main	main.cu	/^int main(){$/;"	f	typeref:typename:int
+mass_factor	ParticleSystem.h	/^    double mass_factor;$/;"	m	struct:ParticleSysShared	typeref:typename:double
+max_column_content_length	csv.h	/^const int max_column_content_length = 63;$/;"	v	namespace:io::error	typeref:typename:const int
+max_column_name_length	csv.h	/^const int max_column_name_length = 63;$/;"	v	namespace:io::error	typeref:typename:const int
+max_file_name_length	csv.h	/^const int max_file_name_length = 1024;$/;"	v	namespace:io::error	typeref:typename:const int
+maxx	BVH.h	/^    double* maxx;$/;"	m	struct:BVH	typeref:typename:double *
+maxx	BVH.h	/^    double* maxx;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+maxx	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+maxx	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+maxx	TriangleMesh.h	/^    double *minx, *maxx;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+maxx	TriangleMesh.h	/^    double *minx, *maxx;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+maxx	cases/10000Particles_spiral/demSettings.json	/^            "maxx": 0.0,$/;"	n	object:inlet.shuffle
+maxx	cases/10000Particles_spiral/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/100SimpleBox/demSettings.json	/^            "maxx": 0.4,$/;"	n	object:inlet.shuffle
+maxx	cases/100SimpleBox/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "maxx": 0.4,$/;"	n	object:inlet.shuffle
+maxx	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/100SimpleBox_verlet/demSettings.json	/^            "maxx": 0.4,$/;"	n	object:inlet.shuffle
+maxx	cases/100SimpleBox_verlet/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/30000SimpleBox/demSettings.json	/^            "maxx": 0.5,$/;"	n	object:inlet.shuffle
+maxx	cases/30000SimpleBox/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/30000SimpleBox_glitch/demSettings.json	/^            "maxx": 0.5,$/;"	n	object:inlet.shuffle
+maxx	cases/30000SimpleBox_glitch/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	cases/3SimpleBox_naive/demSettings.json	/^            "maxx": 0.1,$/;"	n	object:inlet.shuffle
+maxx	cases/3SimpleBox_naive/demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxx	demSettings.json	/^            "maxx": 0.5,$/;"	n	object:inlet.shuffle
+maxx	demSettings.json	/^        "maxx": 0.2,$/;"	n	object:boundingBox
+maxy	BVH.h	/^    double* maxy;$/;"	m	struct:BVH	typeref:typename:double *
+maxy	BVH.h	/^    double* maxy;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+maxy	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+maxy	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+maxy	TriangleMesh.h	/^    double *miny, *maxy;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+maxy	TriangleMesh.h	/^    double *miny, *maxy;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+maxy	cases/10000Particles_spiral/demSettings.json	/^            "maxy":3.8,$/;"	n	object:inlet.shuffle
+maxy	cases/10000Particles_spiral/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/100SimpleBox/demSettings.json	/^            "maxy":4.0,$/;"	n	object:inlet.shuffle
+maxy	cases/100SimpleBox/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "maxy":4.0,$/;"	n	object:inlet.shuffle
+maxy	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/100SimpleBox_verlet/demSettings.json	/^            "maxy":4.0,$/;"	n	object:inlet.shuffle
+maxy	cases/100SimpleBox_verlet/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/30000SimpleBox/demSettings.json	/^            "maxy":2.5,$/;"	n	object:inlet.shuffle
+maxy	cases/30000SimpleBox/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/30000SimpleBox_glitch/demSettings.json	/^            "maxy":2.5,$/;"	n	object:inlet.shuffle
+maxy	cases/30000SimpleBox_glitch/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	cases/3SimpleBox_naive/demSettings.json	/^            "maxy":3.0,$/;"	n	object:inlet.shuffle
+maxy	cases/3SimpleBox_naive/demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxy	demSettings.json	/^            "maxy":2.5,$/;"	n	object:inlet.shuffle
+maxy	demSettings.json	/^        "maxy":0.8,$/;"	n	object:boundingBox
+maxz	BVH.h	/^    double* maxz;$/;"	m	struct:BVH	typeref:typename:double *
+maxz	BVH.h	/^    double* maxz;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+maxz	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+maxz	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+maxz	TriangleMesh.h	/^    double *minz, *maxz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+maxz	TriangleMesh.h	/^    double *minz, *maxz;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+maxz	cases/10000Particles_spiral/demSettings.json	/^            "maxz":0.0$/;"	n	object:inlet.shuffle
+maxz	cases/10000Particles_spiral/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/100SimpleBox/demSettings.json	/^            "maxz":0.4$/;"	n	object:inlet.shuffle
+maxz	cases/100SimpleBox/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "maxz":0.4$/;"	n	object:inlet.shuffle
+maxz	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/100SimpleBox_verlet/demSettings.json	/^            "maxz":0.4$/;"	n	object:inlet.shuffle
+maxz	cases/100SimpleBox_verlet/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/30000SimpleBox/demSettings.json	/^            "maxz":0.5$/;"	n	object:inlet.shuffle
+maxz	cases/30000SimpleBox/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/30000SimpleBox_glitch/demSettings.json	/^            "maxz":0.5$/;"	n	object:inlet.shuffle
+maxz	cases/30000SimpleBox_glitch/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	cases/3SimpleBox_naive/demSettings.json	/^            "maxz":0.1$/;"	n	object:inlet.shuffle
+maxz	cases/3SimpleBox_naive/demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+maxz	demSettings.json	/^            "maxz":0.5$/;"	n	object:inlet.shuffle
+maxz	demSettings.json	/^        "maxz":0.2,$/;"	n	object:boundingBox
+minify_string	cJSON_d.c	/^static void minify_string(char **input, char **output) {$/;"	f	typeref:typename:void	file:
+minx	BVH.h	/^    double* minx;$/;"	m	struct:BVH	typeref:typename:double *
+minx	BVH.h	/^    double* minx;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+minx	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+minx	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+minx	TriangleMesh.h	/^    double *minx, *maxx;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+minx	TriangleMesh.h	/^    double *minx, *maxx;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+minx	cases/10000Particles_spiral/demSettings.json	/^            "minx":-0.55,$/;"	n	object:inlet.shuffle
+minx	cases/10000Particles_spiral/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/100SimpleBox/demSettings.json	/^            "minx":-0.4,$/;"	n	object:inlet.shuffle
+minx	cases/100SimpleBox/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "minx":-0.4,$/;"	n	object:inlet.shuffle
+minx	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/100SimpleBox_verlet/demSettings.json	/^            "minx":-0.4,$/;"	n	object:inlet.shuffle
+minx	cases/100SimpleBox_verlet/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/30000SimpleBox/demSettings.json	/^            "minx":-0.5,$/;"	n	object:inlet.shuffle
+minx	cases/30000SimpleBox/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/30000SimpleBox_glitch/demSettings.json	/^            "minx":-0.5,$/;"	n	object:inlet.shuffle
+minx	cases/30000SimpleBox_glitch/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	cases/3SimpleBox_naive/demSettings.json	/^            "minx":-0.1,$/;"	n	object:inlet.shuffle
+minx	cases/3SimpleBox_naive/demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+minx	demSettings.json	/^            "minx":-0.5,$/;"	n	object:inlet.shuffle
+minx	demSettings.json	/^        "minx": -0.2,$/;"	n	object:boundingBox
+miny	BVH.h	/^    double* miny;$/;"	m	struct:BVH	typeref:typename:double *
+miny	BVH.h	/^    double* miny;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+miny	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+miny	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+miny	TriangleMesh.h	/^    double *miny, *maxy;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+miny	TriangleMesh.h	/^    double *miny, *maxy;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+miny	cases/10000Particles_spiral/demSettings.json	/^            "miny":2.9,$/;"	n	object:inlet.shuffle
+miny	cases/10000Particles_spiral/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/100SimpleBox/demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	cases/100SimpleBox/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/100SimpleBox_verlet/demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	cases/100SimpleBox_verlet/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/30000SimpleBox/demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	cases/30000SimpleBox/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/30000SimpleBox_glitch/demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	cases/30000SimpleBox_glitch/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	cases/3SimpleBox_naive/demSettings.json	/^            "miny":0.9,$/;"	n	object:inlet.shuffle
+miny	cases/3SimpleBox_naive/demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+miny	demSettings.json	/^            "miny":0.5,$/;"	n	object:inlet.shuffle
+miny	demSettings.json	/^        "miny":-0.5,$/;"	n	object:boundingBox
+minz	BVH.h	/^    double* minz;$/;"	m	struct:BVH	typeref:typename:double *
+minz	BVH.h	/^    double* minz;$/;"	m	struct:DeviceBVH	typeref:typename:double *
+minz	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:BoundingBox	typeref:typename:double
+minz	BoundingBox.h	/^    double minx,maxx,miny,maxy,minz,maxz;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+minz	TriangleMesh.h	/^    double *minz, *maxz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+minz	TriangleMesh.h	/^    double *minz, *maxz;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+minz	cases/10000Particles_spiral/demSettings.json	/^            "minz":-0.55,$/;"	n	object:inlet.shuffle
+minz	cases/10000Particles_spiral/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/100SimpleBox/demSettings.json	/^            "minz":-0.4,$/;"	n	object:inlet.shuffle
+minz	cases/100SimpleBox/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "minz":-0.4,$/;"	n	object:inlet.shuffle
+minz	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/100SimpleBox_verlet/demSettings.json	/^            "minz":-0.4,$/;"	n	object:inlet.shuffle
+minz	cases/100SimpleBox_verlet/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/30000SimpleBox/demSettings.json	/^            "minz":-0.5,$/;"	n	object:inlet.shuffle
+minz	cases/30000SimpleBox/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/30000SimpleBox_glitch/demSettings.json	/^            "minz":-0.5,$/;"	n	object:inlet.shuffle
+minz	cases/30000SimpleBox_glitch/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	cases/3SimpleBox_naive/demSettings.json	/^            "minz":-0.1,$/;"	n	object:inlet.shuffle
+minz	cases/3SimpleBox_naive/demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+minz	demSettings.json	/^            "minz":-0.5,$/;"	n	object:inlet.shuffle
+minz	demSettings.json	/^        "minz":-0.2,$/;"	n	object:boundingBox
+missing_column_in_header	csv.h	/^struct missing_column_in_header : base, with_file_name, with_column_name {$/;"	s	namespace:io::error
+morton3D	BoundingBox.h	/^__device__ __host__ __forceinline__  uint32_t morton3D(uint32_t ix, uint32_t iy,uint32_t iz){$/;"	f	typeref:typename:__device__ __host__ __forceinline__ uint32_t
+mortonKey	TriangleMesh.h	/^    uint32_t *mortonKey;$/;"	m	struct:TriangleMesh	typeref:typename:uint32_t *
+mortonKeyGen	TriangleMesh.cu	/^static void mortonKeyGen(TriangleMesh* mesh)$/;"	f	typeref:typename:void	file:
+mu	ParticleSystem.h	/^    double mu;$/;"	m	struct:ParticleSysShared	typeref:typename:double
+mu	cases/10000Particles_spiral/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/100SimpleBox/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/100SimpleBox_verlet/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/30000SimpleBox/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/30000SimpleBox_glitch/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	cases/3SimpleBox_naive/demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	demSettings.json	/^            "mu":0.3$/;"	n	object:particleTypes.particle0
+mu	python/compareRoll.py	/^mu = 0.2$/;"	v
+mu_crit	python/compareRoll.py	/^mu_crit = (2.0\/7.0) * np.tan(theta)$/;"	v
+mx	TriangleMesh.h	/^    double* mx; $/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+mx	TriangleMesh.h	/^    double* mx; $/;"	m	struct:TriangleMesh	typeref:typename:double *
+my	TriangleMesh.h	/^    double* my;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+my	TriangleMesh.h	/^    double* my;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+mz	TriangleMesh.h	/^    double* mz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+mz	TriangleMesh.h	/^    double* mz;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+n	ContactCache.h	/^    Vec3 n;$/;"	m	struct:ContactCache	typeref:typename:Vec3
+n	TriangleContactCache.h	/^    Vec3 n;$/;"	m	struct:TriangleContactCache	typeref:typename:Vec3
+nShift	TriangleMesh.h	/^    int nShift; \/*  shift of id  from vertex to edge  *\/$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int
+nShift	TriangleMesh.h	/^    int nShift; \/*  shift of id  from vertex to edge  *\/$/;"	m	struct:TriangleMesh	typeref:typename:int
+nTri	TriangleMesh.h	/^    int nTri; \/* number of triangles *\/$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int
+nTri	TriangleMesh.h	/^    int nTri; \/* number of triangles *\/$/;"	m	struct:TriangleMesh	typeref:typename:int
+nVert	TriangleMesh.h	/^    int nVert; \/* number of vertices *\/$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int
+nVert	TriangleMesh.h	/^    int nVert; \/* number of vertices *\/$/;"	m	struct:TriangleMesh	typeref:typename:int
+next	cJSON_d.h	/^    struct cJSON *next;$/;"	m	struct:cJSON	typeref:struct:cJSON *
+next_line	csv.h	/^  char *next_line() { return in.next_line(); }$/;"	f	class:io::CSVReader	typeref:typename:char *
+next_line	csv.h	/^  char *next_line() {$/;"	f	class:io::LineReader	typeref:typename:char *
+no_comment	csv.h	/^struct no_comment {$/;"	s	namespace:io
+no_digit	csv.h	/^struct no_digit : base,$/;"	s	namespace:io::error
+no_quote_escape	csv.h	/^template <char sep> struct no_quote_escape {$/;"	s	namespace:io
+noalloc	cJSON_d.c	/^    cJSON_bool noalloc;$/;"	m	struct:__anonfc6642560308	typeref:typename:cJSON_bool	file:
+node	BVH.cu	/^    int node;$/;"	m	struct:__anona81005cb0108	typeref:typename:int	file:
+nodeCount	BVH.h	/^    int nodeCount;$/;"	m	struct:BVH	typeref:typename:int
+nodeCount	BVH.h	/^    int nodeCount;$/;"	m	struct:DeviceBVH	typeref:typename:int
+nondimensionalize	ParticleSystem.cu	/^void nondimensionalize(ParticleSys<HostMemory>* ps, BoundingBox *box, TriangleMesh* mesh){$/;"	f	typeref:typename:void
+np	python/analyze_collision.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	python/compareCollision.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	python/compareDrop.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	python/compareRoll.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	python/getInitialCollision.py	/^import numpy as np$/;"	I	nameref:module:numpy
+numParticle	cases/10000Particles_spiral/demSettings.json	/^        "numParticle":10000,$/;"	n	object:inlet
+numParticle	cases/100SimpleBox/demSettings.json	/^        "numParticle":200,$/;"	n	object:inlet
+numParticle	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "numParticle":200,$/;"	n	object:inlet
+numParticle	cases/100SimpleBox_verlet/demSettings.json	/^        "numParticle":200,$/;"	n	object:inlet
+numParticle	cases/30000SimpleBox/demSettings.json	/^        "numParticle":20000,$/;"	n	object:inlet
+numParticle	cases/30000SimpleBox_glitch/demSettings.json	/^        "numParticle":20000,$/;"	n	object:inlet
+numParticle	cases/3SimpleBox_naive/demSettings.json	/^        "numParticle":2,$/;"	n	object:inlet
+numParticle	demSettings.json	/^        "numParticle":50000,$/;"	n	object:inlet
+numUsedCells	BoundingBox.h	/^    int numUsedCells; \/\/number of cells with particles$/;"	m	struct:BoundingBox	typeref:typename:int
+numUsedCells	BoundingBox.h	/^    int numUsedCells; \/\/number of cells with particles$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+nx	TriangleMesh.h	/^    double* nx;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+nx	TriangleMesh.h	/^    double* nx;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+ny	TriangleMesh.h	/^    double* ny;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+ny	TriangleMesh.h	/^    double* ny;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+nz	TriangleMesh.h	/^    double* nz;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:double *
+nz	TriangleMesh.h	/^    double* nz;$/;"	m	struct:TriangleMesh	typeref:typename:double *
+offset	cJSON_d.c	/^    size_t offset;$/;"	m	struct:__anonfc6642560208	typeref:typename:size_t	file:
+offset	cJSON_d.c	/^    size_t offset;$/;"	m	struct:__anonfc6642560308	typeref:typename:size_t	file:
+on_overflow	csv.h	/^  template <class T> static void on_overflow(T &) {$/;"	f	struct:io::throw_on_overflow	typeref:typename:void
+on_overflow	csv.h	/^  template <class T> static void on_overflow(T &) {}$/;"	f	struct:io::ignore_overflow	typeref:typename:void
+on_overflow	csv.h	/^  template <class T> static void on_overflow(T &x) {$/;"	f	struct:io::set_to_max_on_overflow	typeref:typename:void
+on_underflow	csv.h	/^  template <class T> static void on_underflow(T &) {$/;"	f	struct:io::throw_on_overflow	typeref:typename:void
+on_underflow	csv.h	/^  template <class T> static void on_underflow(T &) {}$/;"	f	struct:io::ignore_overflow	typeref:typename:void
+on_underflow	csv.h	/^  template <class T> static void on_underflow(T &x) {$/;"	f	struct:io::set_to_max_on_overflow	typeref:typename:void
+open_file	csv.h	/^  static std::unique_ptr<ByteSourceBase> open_file(const char *file_name) {$/;"	f	class:io::LineReader	typeref:typename:std::unique_ptr<ByteSourceBase>
+others	cases/10000Particles_spiral/demSettings.json	/^    "others":{$/;"	o
+others	cases/100SimpleBox/demSettings.json	/^    "others":{$/;"	o
+others	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "others":{$/;"	o
+others	cases/100SimpleBox_verlet/demSettings.json	/^    "others":{$/;"	o
+others	cases/30000SimpleBox/demSettings.json	/^    "others":{$/;"	o
+others	cases/30000SimpleBox_glitch/demSettings.json	/^    "others":{$/;"	o
+others	cases/3SimpleBox_naive/demSettings.json	/^    "others":{$/;"	o
+others	demSettings.json	/^    "others":{$/;"	o
+outputTiming	cases/10000Particles_spiral/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/100SimpleBox/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/100SimpleBox_verlet/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/30000SimpleBox/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/30000SimpleBox_glitch/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	cases/3SimpleBox_naive/demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+outputTiming	demSettings.json	/^        "outputTiming":0.01,$/;"	n	object:others
+pList	BoundingBox.h	/^    int *pList;  \/\/list of particle in cell CSR formal$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+pList	BoundingBox.h	/^    int *pList;  \/\/list of particle in cell CSR format$/;"	m	struct:BoundingBox	typeref:typename:int *
+pNum	BoundingBox.h	/^    int *pNum; \/\/number of particle in  cell$/;"	m	struct:BoundingBox	typeref:typename:int *
+pNum	BoundingBox.h	/^    int *pNum; \/\/number of particle in  cell$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+pStart	BoundingBox.h	/^    int *pStart; \/\/starting index of the cell in pList$/;"	m	struct:BoundingBox	typeref:typename:int *
+pStart	BoundingBox.h	/^    int *pStart; \/\/starting index of the cell in pList$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+parse	csv.h	/^template <class overflow_policy, class T> void parse(char *col, T &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, char &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, char *&x) { x = col; }$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, const char *&x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, double &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, float &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, long double &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, signed char &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, signed int &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, signed long &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, signed long long &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, signed short &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, std::string &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, unsigned char &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, unsigned int &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, unsigned long &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, unsigned long long &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse	csv.h	/^template <class overflow_policy> void parse(char *col, unsigned short &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse_array	cJSON_d.c	/^static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+parse_buffer	cJSON_d.c	/^} parse_buffer;$/;"	t	typeref:struct:__anonfc6642560208	file:
+parse_float	csv.h	/^template <class T> void parse_float(const char *col, T &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse_header_line	csv.h	/^void parse_header_line(char *line, std::vector<int> &col_order,$/;"	f	namespace:io::detail	typeref:typename:void
+parse_helper	csv.h	/^  void parse_helper(std::size_t r, T &t, ColType &... cols) {$/;"	f	class:io::CSVReader	typeref:typename:void
+parse_helper	csv.h	/^  void parse_helper(std::size_t) {}$/;"	f	class:io::CSVReader	typeref:typename:void
+parse_hex4	cJSON_d.c	/^static unsigned parse_hex4(const unsigned char * const input)$/;"	f	typeref:typename:unsigned	file:
+parse_line	csv.h	/^void parse_line(char *line, char **sorted_col,$/;"	f	namespace:io::detail	typeref:typename:void
+parse_number	cJSON_d.c	/^static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+parse_object	cJSON_d.c	/^static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+parse_signed_integer	csv.h	/^void parse_signed_integer(const char *col, T &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse_string	cJSON_d.c	/^static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+parse_unsigned_integer	csv.h	/^void parse_unsigned_integer(const char *col, T &x) {$/;"	f	namespace:io::detail	typeref:typename:void
+parse_value	cJSON_d.c	/^static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+particle0	cases/10000Particles_spiral/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/100SimpleBox/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/100SimpleBox_verlet/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/30000SimpleBox/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/30000SimpleBox_glitch/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	cases/3SimpleBox_naive/demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particle0	demSettings.json	/^        "particle0":{$/;"	o	object:particleTypes
+particleTypes	cases/10000Particles_spiral/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/100SimpleBox/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/100SimpleBox_verlet/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/30000SimpleBox/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/30000SimpleBox_glitch/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	cases/3SimpleBox_naive/demSettings.json	/^    "particleTypes":{$/;"	o
+particleTypes	demSettings.json	/^    "particleTypes":{$/;"	o
+particle_collision_cell_linked	cpu_dem.cu	/^void particle_collision_cell_linked(ParticleSys<HostMemory>* p, BoundingBox *box){$/;"	f	typeref:typename:void
+particle_collision_cell_linked_fastUpdate	cpu_dem.cu	/^void particle_collision_cell_linked_fastUpdate(ParticleSys<HostMemory>* p, BoundingBox *box){$/;"	f	typeref:typename:void
+particle_collision_cell_linked_noVec3	cpu_dem.cu	/^void particle_collision_cell_linked_noVec3(ParticleSys<HostMemory>* ps, BoundingBox *box){$/;"	f	typeref:typename:void
+particle_collision_cell_linked_withSort	cpu_dem.cu	/^void particle_collision_cell_linked_withSort(ParticleSys<HostMemory>* p,ParticleSys<HostMemory>*/;"	f	typeref:typename:void
+particle_collision_cell_linked_withSort_fastUpdate	cpu_dem.cu	/^void particle_collision_cell_linked_withSort_fastUpdate(ParticleSys<HostMemory>* p,ParticleSys<H/;"	f	typeref:typename:void
+particle_collision_naive	cpu_dem.cu	/^void particle_collision_naive(ParticleSys<HostMemory>* p){$/;"	f	typeref:typename:void
+particle_collision_verlet	cpu_dem.cu	/^void particle_collision_verlet(ParticleSys<HostMemory>* p, BoundingBox *box){$/;"	f	typeref:typename:void
+plt	python/compareDrop.py	/^import matplotlib.pyplot as plt$/;"	I	nameref:module:matplotlib.pyplot
+plt	python/compareRoll.py	/^import matplotlib.pyplot as plt$/;"	I	nameref:module:matplotlib.pyplot
+position	cJSON_d.c	/^    size_t position;$/;"	m	struct:__anonfc6642560108	typeref:typename:size_t	file:
+prev	cJSON_d.h	/^    struct cJSON *prev;$/;"	m	struct:cJSON	typeref:struct:cJSON *
+print	cJSON_d.c	/^static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * /;"	f	typeref:typename:unsigned char *	file:
+print_array	cJSON_d.c	/^static cJSON_bool print_array(const cJSON * const item, printbuffer * const output_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+print_number	cJSON_d.c	/^static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+print_object	cJSON_d.c	/^static cJSON_bool print_object(const cJSON * const item, printbuffer * const output_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+print_string	cJSON_d.c	/^static cJSON_bool print_string(const cJSON * const item, printbuffer * const p)$/;"	f	typeref:typename:cJSON_bool	file:
+print_string_ptr	cJSON_d.c	/^static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffer * const output/;"	f	typeref:typename:cJSON_bool	file:
+print_value	cJSON_d.c	/^static cJSON_bool print_value(const cJSON * const item, printbuffer * const output_buffer)$/;"	f	typeref:typename:cJSON_bool	file:
+printbuffer	cJSON_d.c	/^} printbuffer;$/;"	t	typeref:struct:__anonfc6642560308	file:
+r	python/compareDrop.py	/^r = 0.01$/;"	v
+r	python/compareRoll.py	/^r = 0.01$/;"	v
+radius	cases/10000Particles_spiral/demSettings.json	/^            "radius":0.005,$/;"	n	object:particleTypes.particle0
+radius	cases/100SimpleBox/demSettings.json	/^            "radius":0.1,$/;"	n	object:particleTypes.particle0
+radius	cases/100SimpleBox_naive_gpu/demSettings.json	/^            "radius":0.1,$/;"	n	object:particleTypes.particle0
+radius	cases/100SimpleBox_verlet/demSettings.json	/^            "radius":0.1,$/;"	n	object:particleTypes.particle0
+radius	cases/30000SimpleBox/demSettings.json	/^            "radius":0.012,$/;"	n	object:particleTypes.particle0
+radius	cases/30000SimpleBox_glitch/demSettings.json	/^            "radius":0.013,$/;"	n	object:particleTypes.particle0
+radius	cases/3SimpleBox_naive/demSettings.json	/^            "radius":0.8,$/;"	n	object:particleTypes.particle0
+radius	demSettings.json	/^            "radius":0.01,$/;"	n	object:particleTypes.particle0
+radixSortUint32	BoundingBox.cu	/^void radixSortUint32($/;"	f	typeref:typename:void
+rangex	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:BoundingBox	typeref:typename:double
+rangex	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+rangey	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:BoundingBox	typeref:typename:double
+rangey	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+rangez	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:BoundingBox	typeref:typename:double
+rangez	BoundingBox.h	/^    double rangex,rangey,rangez;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+read	csv.h	/^  int read(char *buffer, int desired_byte_count) {$/;"	f	class:io::detail::NonOwningStringByteSource	typeref:typename:int
+read	csv.h	/^  int read(char *buffer, int size) { return std::fread(buffer, 1, size, file); }$/;"	f	class:io::detail::OwningStdIOByteSourceBase	typeref:typename:int
+read	csv.h	/^  int read(char *buffer, int size) {$/;"	f	class:io::detail::NonOwningIStreamByteSource	typeref:typename:int
+read_byte_count	csv.h	/^  int read_byte_count;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:int
+read_error	csv.h	/^  std::exception_ptr read_error;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::exception_ptr
+read_finished_condition	csv.h	/^  std::condition_variable read_finished_condition;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::condition_variable
+read_header	csv.h	/^  void read_header(ignore_column ignore_policy, ColNames... cols) {$/;"	f	class:io::CSVReader	typeref:typename:void
+read_requested_condition	csv.h	/^  std::condition_variable read_requested_condition;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::condition_variable
+read_row	csv.h	/^  template <class... ColType> bool read_row(ColType &... cols) {$/;"	f	class:io::CSVReader	typeref:typename:bool
+reader	csv.h	/^  detail::AsynchronousReader reader;$/;"	m	class:io::LineReader	typeref:typename:detail::AsynchronousReader
+reader	csv.h	/^  detail::SynchronousReader reader;$/;"	m	class:io::LineReader	typeref:typename:detail::SynchronousReader
+refreshThresh	BoundingBox.h	/^    double refreshThresh;$/;"	m	struct:BoundingBox	typeref:typename:double
+refreshThresh	BoundingBox.h	/^    double refreshThresh;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+refreshThreshSq	BoundingBox.h	/^    double refreshThreshSq;$/;"	m	struct:BoundingBox	typeref:typename:double
+refreshThreshSq	BoundingBox.h	/^    double refreshThreshSq;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+refreshVerletFlag	ParticleSystem.h	/^    int* refreshVerletFlag;$/;"	m	struct:ParticleSys	typeref:typename:int *
+remaining_byte_count	csv.h	/^  long long remaining_byte_count;$/;"	m	class:io::detail::NonOwningStringByteSource	typeref:typename:long long
+replace_item_in_object	cJSON_d.c	/^static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, /;"	f	typeref:typename:cJSON_bool	file:
+result	python/compareDrop.py	/^result = np.loadtxt("..\/results\/pid0.txt",skiprows=1)$/;"	v
+result	python/compareRoll.py	/^result = np.loadtxt("..\/results\/pid0.txt",skiprows=1)$/;"	v
+rho	python/compareRoll.py	/^rho = 1000$/;"	v
+right	BVH.h	/^    int* right;$/;"	m	struct:BVH	typeref:typename:int *
+right	BVH.h	/^    int* right;$/;"	m	struct:DeviceBVH	typeref:typename:int *
+row	csv.h	/^  char *row[column_count];$/;"	m	class:io::CSVReader	typeref:typename:char * []
+scanTmpBytes	BoundingBox.h	/^    size_t scanTmpBytes;$/;"	m	struct:DeviceBoundingBox	typeref:typename:size_t
+seed	cases/10000Particles_spiral/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/100SimpleBox/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/100SimpleBox_verlet/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/30000SimpleBox/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/30000SimpleBox_glitch/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	cases/3SimpleBox_naive/demSettings.json	/^        "seed":1,$/;"	n	object:others
+seed	demSettings.json	/^        "seed":1,$/;"	n	object:others
+set_column_content	csv.h	/^  void set_column_content(const char *column_content) {$/;"	f	struct:io::error::with_column_content	typeref:typename:void
+set_column_name	csv.h	/^  void set_column_name(const char *column_name) {$/;"	f	struct:io::error::with_column_name	typeref:typename:void
+set_column_names	csv.h	/^  void set_column_names() {}$/;"	f	class:io::CSVReader	typeref:typename:void
+set_column_names	csv.h	/^  void set_column_names(std::string s, ColNames... cols) {$/;"	f	class:io::CSVReader	typeref:typename:void
+set_errno	csv.h	/^  void set_errno(int errno_value) { this->errno_value = errno_value; }$/;"	f	struct:io::error::with_errno	typeref:typename:void
+set_file_line	csv.h	/^  void set_file_line(int file_line) { this->file_line = file_line; }$/;"	f	struct:io::error::with_file_line	typeref:typename:void
+set_file_line	csv.h	/^  void set_file_line(unsigned file_line) { in.set_file_line(file_line); }$/;"	f	class:io::CSVReader	typeref:typename:void
+set_file_line	csv.h	/^  void set_file_line(unsigned file_line) { this->file_line = file_line; }$/;"	f	class:io::LineReader	typeref:typename:void
+set_file_name	csv.h	/^  void set_file_name(const char *file_name) { in.set_file_name(file_name); }$/;"	f	class:io::CSVReader	typeref:typename:void
+set_file_name	csv.h	/^  void set_file_name(const char *file_name) {$/;"	f	class:io::LineReader	typeref:typename:void
+set_file_name	csv.h	/^  void set_file_name(const char *file_name) {$/;"	f	struct:io::error::with_file_name	typeref:typename:void
+set_file_name	csv.h	/^  void set_file_name(const std::string &file_name) {$/;"	f	class:io::CSVReader	typeref:typename:void
+set_file_name	csv.h	/^  void set_file_name(const std::string &file_name) {$/;"	f	class:io::LineReader	typeref:typename:void
+set_header	csv.h	/^  template <class... ColNames> void set_header(ColNames... cols) {$/;"	f	class:io::CSVReader	typeref:typename:void
+set_to_max_on_overflow	csv.h	/^struct set_to_max_on_overflow {$/;"	s	namespace:io
+shouldRefreshNeighborList	cpu_dem.cu	/^int shouldRefreshNeighborList(ParticleSys<HostMemory> *p, BoundingBox* box){$/;"	f	typeref:typename:int
+shuffle	cases/10000Particles_spiral/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/100SimpleBox/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/100SimpleBox_verlet/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/30000SimpleBox/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/30000SimpleBox_glitch/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	cases/3SimpleBox_naive/demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+shuffle	demSettings.json	/^        "shuffle":{$/;"	o	object:inlet
+single_and_empty_line_comment	csv.h	/^struct single_and_empty_line_comment {$/;"	s	namespace:io
+single_line_comment	csv.h	/^template <char... comment_start_char_list> struct single_line_comment {$/;"	s	namespace:io
+size	TriangleMesh.h	/^    size_t size;$/;"	m	struct:__anond1da66be0208	typeref:typename:size_t
+sizex	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:BoundingBox	typeref:typename:int
+sizex	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+sizey	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:BoundingBox	typeref:typename:int
+sizey	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+sizez	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:BoundingBox	typeref:typename:int
+sizez	BoundingBox.h	/^    int sizex,sizey,sizez,N;$/;"	m	struct:DeviceBoundingBox	typeref:typename:int
+skinR	BoundingBox.h	/^    double skinR;$/;"	m	struct:BoundingBox	typeref:typename:double
+skinR	BoundingBox.h	/^    double skinR;$/;"	m	struct:DeviceBoundingBox	typeref:typename:double
+skip_multiline_comment	cJSON_d.c	/^static void skip_multiline_comment(char **input)$/;"	f	typeref:typename:void	file:
+skip_oneline_comment	cJSON_d.c	/^static void skip_oneline_comment(char **input)$/;"	f	typeref:typename:void	file:
+skip_utf8_bom	cJSON_d.c	/^static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)$/;"	f	typeref:typename:parse_buffer *	file:
+solver_output_init	solver_output.cu	/^int solver_output_init(const char* dir)$/;"	f	typeref:typename:int
+sort3	TriangleMesh.cu	/^void sort3(int *x, int *y, int *z){$/;"	f	typeref:typename:void
+sortedIndex	TriangleMesh.h	/^    int *sortedIndex;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+sphereAABBOverlap	cpu_dem.cu	/^static inline int sphereAABBOverlap(ParticleSys<HostMemory>* p,int i,BVH *bvh, int j){$/;"	f	typeref:typename:int	file:
+sphereAABBOverlapNeighbor	BVH.cu	/^static inline int sphereAABBOverlapNeighbor(ParticleSys<HostMemory>* p,int i,BVH *bvh, int j, do/;"	f	typeref:typename:int	file:
+start	BVH.cu	/^    int start;$/;"	m	struct:__anona81005cb0108	typeref:typename:int	file:
+startTime	cases/10000Particles_spiral/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/100SimpleBox/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/100SimpleBox_verlet/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/30000SimpleBox/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/30000SimpleBox_glitch/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	cases/3SimpleBox_naive/demSettings.json	/^        "startTime":0,$/;"	n	object:others
+startTime	demSettings.json	/^        "startTime":0,$/;"	n	object:others
+start_read	csv.h	/^  void start_read(char *arg_buffer, int arg_desired_byte_count) {$/;"	f	class:io::detail::AsynchronousReader	typeref:typename:void
+start_read	csv.h	/^  void start_read(char *arg_buffer, int arg_desired_byte_count) {$/;"	f	class:io::detail::SynchronousReader	typeref:typename:void
+static_strlen	cJSON_d.c	/^#define static_strlen(/;"	d	file:
+steps	ParticleSystem.h	/^    int steps;$/;"	m	struct:ParticleSysShared	typeref:typename:int
+str	csv.h	/^  const char *str;$/;"	m	class:io::detail::NonOwningStringByteSource	typeref:typename:const char *
+string	cJSON_d.h	/^    char *string;$/;"	m	struct:cJSON	typeref:typename:char *
+suffix_object	cJSON_d.c	/^static void suffix_object(cJSON *prev, cJSON *item)$/;"	f	typeref:typename:void	file:
+swapBytes	output.cu	/^void swapBytes(void* data, size_t size)$/;"	f	typeref:typename:void
+swap_device_ps_member_pointer	BoundingBox.cu	/^void swap_device_ps_member_pointer(ParticleSys<DeviceMemory>* p, ParticleSys<DeviceMemory>* tmp)/;"	f	typeref:typename:void
+swap_device_ps_pointer	BoundingBox.cu	/^void swap_device_ps_pointer(ParticleSys<DeviceMemory>** p, ParticleSys<DeviceMemory>** tmpP){$/;"	f	typeref:typename:void
+swap_ps	BoundingBox.cu	/^void swap_ps(ParticleSys<HostMemory> *p, ParticleSys<HostMemory> *tmp){$/;"	f	typeref:typename:void
+t	python/compareDrop.py	/^t = 0.0$/;"	v
+t	python/compareRoll.py	/^t = np.linspace(0,2,1000)$/;"	v
+tList	BoundingBox.h	/^    int *tList;  \/\/list of triangles in a cell$/;"	m	struct:BoundingBox	typeref:typename:int *
+tList	BoundingBox.h	/^    int *tList;  \/\/list of triangles in a cell$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+tNum	BoundingBox.h	/^    int *tNum; \/\/number of particle in  cell$/;"	m	struct:BoundingBox	typeref:typename:int *
+tNum	BoundingBox.h	/^    int *tNum; \/\/number of particle in  cell$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+t_list	python/compareDrop.py	/^t_list = []$/;"	v
+table	TriangleMesh.h	/^    HashEntry* table;$/;"	m	struct:__anond1da66be0208	typeref:typename:HashEntry *
+termination_requested	csv.h	/^  bool termination_requested;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:bool
+theta	python/compareRoll.py	/^theta = np.radians(60)$/;"	v
+throw_on_overflow	csv.h	/^struct throw_on_overflow {$/;"	s	namespace:io
+time_factor	ParticleSystem.h	/^    double time_factor;$/;"	m	struct:ParticleSysShared	typeref:typename:double
+tmax	python/compareDrop.py	/^tmax = 2.0$/;"	v
+tmpExSum	BoundingBox.h	/^    void *tmpExSum; \/* used for exclusive sum*\/$/;"	m	struct:DeviceBoundingBox	typeref:typename:void *
+tmp_bytes	ParticleSystem.h	/^    size_t tmp_bytes;$/;"	m	struct:ParticleSys	typeref:typename:size_t
+tmp_storage	ParticleSystem.h	/^    void* tmp_storage;$/;"	m	struct:ParticleSys	typeref:typename:void *
+too_few_columns	csv.h	/^struct too_few_columns : base, with_file_name, with_file_line {$/;"	s	namespace:io::error
+too_many_columns	csv.h	/^struct too_many_columns : base, with_file_name, with_file_line {$/;"	s	namespace:io::error
+tri	BVH.h	/^    int* tri;      \/\/ leafなら三角形index, 内部ノードなら-1$/;"	m	struct:BVH	typeref:typename:int *
+tri	BVH.h	/^    int* tri;      \/\/ leafなら三角形index, 内部ノードなら-1$/;"	m	struct:DeviceBVH	typeref:typename:int *
+tri_e0	TriangleMesh.h	/^    int* tri_e0;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_e0	TriangleMesh.h	/^    int* tri_e0;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+tri_e1	TriangleMesh.h	/^    int* tri_e1;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_e1	TriangleMesh.h	/^    int* tri_e1;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+tri_e2	TriangleMesh.h	/^    int* tri_e2;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_e2	TriangleMesh.h	/^    int* tri_e2;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+tri_i0	TriangleMesh.h	/^    int* tri_i0;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_i0	TriangleMesh.h	/^    int* tri_i0;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+tri_i1	TriangleMesh.h	/^    int* tri_i1;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_i1	TriangleMesh.h	/^    int* tri_i1;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+tri_i2	TriangleMesh.h	/^    int* tri_i2;$/;"	m	struct:DeviceTriangleMesh	typeref:typename:int *
+tri_i2	TriangleMesh.h	/^    int* tri_i2;$/;"	m	struct:TriangleMesh	typeref:typename:int *
+trim	csv.h	/^  static void trim(char *&str_begin, char *&str_end) {$/;"	f	struct:io::trim_chars	typeref:typename:void
+trim_chars	csv.h	/^template <char... trim_char_list> struct trim_chars {$/;"	s	namespace:io
+true	cJSON_d.c	/^#define true /;"	d	file:
+type	cJSON_d.h	/^    int type;$/;"	m	struct:cJSON	typeref:typename:int
+unescape	csv.h	/^  static void unescape(char *&, char *&) {}$/;"	f	struct:io::no_quote_escape	typeref:typename:void
+unescape	csv.h	/^  static void unescape(char *&col_begin, char *&col_end) {$/;"	f	struct:io::double_quote_escape	typeref:typename:void
+updateAcceleration	device_dem.cu	/^void updateAcceleration(ParticleSys<DeviceMemory>* p, int i){$/;"	f	typeref:typename:void
+updatePosition	device_dem.cu	/^void updatePosition(ParticleSys<DeviceMemory>* p,int i){$/;"	f	typeref:typename:void
+updateVelocity	device_dem.cu	/^void updateVelocity(ParticleSys<DeviceMemory>* p,int i){$/;"	f	typeref:typename:void
+update_history	cpu_dem.cu	/^inline void update_history(ParticleSys<HostMemory> *p,int i){$/;"	f	typeref:typename:void
+update_history_wall	cpu_dem.cu	/^inline void update_history_wall(ParticleSys<HostMemory> *p,int i){$/;"	f	typeref:typename:void
+update_neighborlist	BoundingBox.cu	/^void update_neighborlist(ParticleSys<HostMemory> *p,ParticleSys<HostMemory> *tmpPs, BoundingBox /;"	f	typeref:typename:void
+update_neighborlist_brute	BoundingBox.cu	/^void update_neighborlist_brute(ParticleSys<HostMemory> *p,ParticleSys<HostMemory> *tmpPs, Boundi/;"	f	typeref:typename:void
+update_neighborlist_wall	BVH.cu	/^void update_neighborlist_wall(ParticleSys<HostMemory> *p,TriangleMesh *mesh, BVH *bvh,double ski/;"	f	typeref:typename:void
+update_neighborlist_wall_nobvh	BVH.cu	/^void update_neighborlist_wall_nobvh(ParticleSys<HostMemory> *p,TriangleMesh *mesh,BoundingBox *b/;"	f	typeref:typename:void
+update_offset	cJSON_d.c	/^static void update_offset(printbuffer * const buffer)$/;"	f	typeref:typename:void	file:
+update_pList	BoundingBox.cu	/^void update_pList(ParticleSys<HostMemory> *p, BoundingBox *box){$/;"	f	typeref:typename:void
+update_pList_fast	BoundingBox.cu	/^void update_pList_fast(ParticleSys<HostMemory> *p, BoundingBox *box){$/;"	f	typeref:typename:void
+update_pList_withSort	BoundingBox.cu	/^void update_pList_withSort(ParticleSys<HostMemory> *p, ParticleSys<HostMemory> *tmpPs,BoundingBo/;"	f	typeref:typename:void
+update_pList_withSort_fast	BoundingBox.cu	/^void update_pList_withSort_fast(ParticleSys<HostMemory> *p, ParticleSys<HostMemory> *tmpPs,Bound/;"	f	typeref:typename:void
+update_tList	BoundingBox.cu	/^void update_tList(BoundingBox *box, TriangleMesh *mesh){$/;"	f	typeref:typename:void
+used	TriangleMesh.h	/^    int used;              \/\/ 0=empty, 1=occupied$/;"	m	struct:__anond1da66be0108	typeref:typename:int
+usedCells	BoundingBox.h	/^    int *usedCells; \/\/id of cells with particles$/;"	m	struct:BoundingBox	typeref:typename:int *
+usedCells	BoundingBox.h	/^    int *usedCells; \/\/id of cells with particles$/;"	m	struct:DeviceBoundingBox	typeref:typename:int *
+utf16_literal_to_utf8	cJSON_d.c	/^static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsi/;"	f	typeref:typename:unsigned char	file:
+v	python/compareDrop.py	/^        v = -e * v$/;"	v
+v	python/compareDrop.py	/^v = 0.0$/;"	v
+v	python/compareRoll.py	/^v = a * t$/;"	v
+vadd	Vec3.h	/^inline Vec3 vadd(Vec3 a,Vec3 b){$/;"	f	typeref:typename:__host__ __device__ Vec3
+valuedouble	cJSON_d.h	/^    double valuedouble;$/;"	m	struct:cJSON	typeref:typename:double
+valueint	cJSON_d.h	/^    int valueint;$/;"	m	struct:cJSON	typeref:typename:int
+valuestring	cJSON_d.h	/^    char *valuestring;$/;"	m	struct:cJSON	typeref:typename:char *
+vcross	Vec3.h	/^inline Vec3 vcross(Vec3 a,Vec3 b){$/;"	f	typeref:typename:__host__ __device__ Vec3
+vdot	Vec3.h	/^inline double vdot(Vec3 a,Vec3 b){$/;"	f	typeref:typename:__host__ __device__ double
+vertex_hash_get_or_insert	TriangleMesh.cu	/^int vertex_hash_get_or_insert(VertexHash* h,$/;"	f	typeref:typename:int
+vertex_hash_init	TriangleMesh.cu	/^void vertex_hash_init(VertexHash* h, size_t size){$/;"	f	typeref:typename:void
+vn_rel	ContactCache.h	/^    Vec3 vn_rel;$/;"	m	struct:ContactCache	typeref:typename:Vec3
+vnormalize	Vec3.h	/^inline Vec3 vnormalize(Vec3 a){$/;"	f	typeref:typename:__host__ __device__ Vec3
+vscalar	Vec3.h	/^inline Vec3 vscalar(double a,Vec3 b){$/;"	f	typeref:typename:__host__ __device__ Vec3
+vsub	Vec3.h	/^inline Vec3 vsub(Vec3 a,Vec3 b){$/;"	f	typeref:typename:__host__ __device__ Vec3
+vt	ContactCache.h	/^    Vec3 vt;$/;"	m	struct:ContactCache	typeref:typename:Vec3
+vx	python/compareRoll.py	/^vx = v * np.cos(theta)$/;"	v
+vy	python/compareRoll.py	/^vy = -v * np.sin(theta)$/;"	v
+wall_collision_BVH	cpu_dem.cu	/^void wall_collision_BVH(ParticleSys<HostMemory>* p,TriangleMesh* mesh,BVH* bvh){$/;"	f	typeref:typename:void
+wall_collision_triangles	cpu_dem.cu	/^void wall_collision_triangles(ParticleSys<HostMemory>* p,BoundingBox *box, TriangleMesh* mesh){$/;"	f	typeref:typename:void
+wall_collision_triangles_naive	cpu_dem.cu	/^void wall_collision_triangles_naive(ParticleSys<HostMemory>* p,TriangleMesh* mesh){$/;"	f	typeref:typename:void
+wall_collision_verlet	cpu_dem.cu	/^void wall_collision_verlet(ParticleSys<HostMemory>* p,TriangleMesh* mesh){$/;"	f	typeref:typename:void
+walls	cases/10000Particles_spiral/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/100SimpleBox/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/100SimpleBox_naive_gpu/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/100SimpleBox_verlet/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/30000SimpleBox/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/30000SimpleBox_glitch/demSettings.json	/^    "walls":{$/;"	o
+walls	cases/3SimpleBox_naive/demSettings.json	/^    "walls":{$/;"	o
+walls	demSettings.json	/^    "walls":{$/;"	o
+walton_oblique_collision	python/compareCollision.py	/^def walton_oblique_collision(theta_deg,d,mu,m,e):$/;"	f
+what	csv.h	/^  const char *what() const noexcept override {$/;"	f	struct:io::error::base	typeref:typename:const char *
+with_column_content	csv.h	/^  with_column_content() {$/;"	f	struct:io::error::with_column_content
+with_column_content	csv.h	/^struct with_column_content {$/;"	s	namespace:io::error
+with_column_name	csv.h	/^  with_column_name() {$/;"	f	struct:io::error::with_column_name
+with_column_name	csv.h	/^struct with_column_name {$/;"	s	namespace:io::error
+with_errno	csv.h	/^  with_errno() { errno_value = 0; }$/;"	f	struct:io::error::with_errno
+with_errno	csv.h	/^struct with_errno {$/;"	s	namespace:io::error
+with_file_line	csv.h	/^  with_file_line() { file_line = -1; }$/;"	f	struct:io::error::with_file_line
+with_file_line	csv.h	/^struct with_file_line {$/;"	s	namespace:io::error
+with_file_name	csv.h	/^  with_file_name() { std::memset(file_name, 0, sizeof(file_name)); }$/;"	f	struct:io::error::with_file_name
+with_file_name	csv.h	/^struct with_file_name {$/;"	s	namespace:io::error
+worker	csv.h	/^  std::thread worker;$/;"	m	class:io::detail::AsynchronousReader	typeref:typename:std::thread
+writeParticles	output.cu	/^void writeParticles(ParticleSystem* ps, int step)$/;"	f	typeref:typename:void
+writeParticlesDimensionalizeVTK	output.cu	/^void writeParticlesDimensionalizeVTK(ParticleSystem* ps, int step)$/;"	f	typeref:typename:void
+writeParticlesVTK	output.cu	/^void writeParticlesVTK(ParticleSystem* ps, int step)$/;"	f	typeref:typename:void
+writeParticlesVTKBinary	output.cu	/^void writeParticlesVTKBinary(ParticleSystem* ps, int step)$/;"	f	typeref:typename:void
+write_frame_bin	solver_output.cu	/^void write_frame_bin($/;"	f	typeref:typename:void
+write_header_text	solver_output.cu	/^void write_header_text(const char* dir,int step,ParticleSys<HostMemory>* p,int pid){$/;"	f	typeref:typename:void
+write_initialPos_csv	solver_output.cu	/^void write_initialPos_csv(const char* dir,ParticleSys<HostMemory>* p){$/;"	f	typeref:typename:void
+write_single_text	solver_output.cu	/^void write_single_text(const char* dir,int step,ParticleSys<HostMemory>* p,int pid){$/;"	f	typeref:typename:void
+x	Vec3.h	/^    double x;$/;"	m	struct:Vec3	typeref:typename:double
+x	cases/10000Particles_spiral/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/100SimpleBox/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/100SimpleBox_verlet/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/30000SimpleBox/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/30000SimpleBox_glitch/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	cases/3SimpleBox_naive/demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+x	demSettings.json	/^        "x":0.,$/;"	n	object:gravity
+y	Vec3.h	/^    double y;$/;"	m	struct:Vec3	typeref:typename:double
+y	cases/10000Particles_spiral/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/100SimpleBox/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/100SimpleBox_verlet/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/30000SimpleBox/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/30000SimpleBox_glitch/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	cases/3SimpleBox_naive/demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	demSettings.json	/^        "y":-9.81,$/;"	n	object:gravity
+y	python/compareDrop.py	/^        y = floor + r$/;"	v
+y	python/compareDrop.py	/^y = 0.5$/;"	v
+y_list	python/compareDrop.py	/^y_list = []$/;"	v
+z	Vec3.h	/^    double z;$/;"	m	struct:Vec3	typeref:typename:double
+z	cases/10000Particles_spiral/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/100SimpleBox/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/100SimpleBox_naive_gpu/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/100SimpleBox_verlet/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/30000SimpleBox/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/30000SimpleBox_glitch/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	cases/3SimpleBox_naive/demSettings.json	/^        "z":0.$/;"	n	object:gravity
+z	demSettings.json	/^        "z":0.$/;"	n	object:gravity
+~AsynchronousReader	csv.h	/^  ~AsynchronousReader() {$/;"	f	class:io::detail::AsynchronousReader
+~ByteSourceBase	csv.h	/^  virtual ~ByteSourceBase() {}$/;"	f	class:io::ByteSourceBase
+~NonOwningIStreamByteSource	csv.h	/^  ~NonOwningIStreamByteSource() {}$/;"	f	class:io::detail::NonOwningIStreamByteSource
+~NonOwningStringByteSource	csv.h	/^  ~NonOwningStringByteSource() {}$/;"	f	class:io::detail::NonOwningStringByteSource
+~OwningStdIOByteSourceBase	csv.h	/^  ~OwningStdIOByteSourceBase() { std::fclose(file); }$/;"	f	class:io::detail::OwningStdIOByteSourceBase

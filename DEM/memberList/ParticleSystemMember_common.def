@@ -1,0 +1,66 @@
+MEMBER(double, x, N*DIM,SAVE_ON)
+MEMBER(double, v, N*DIM,SAVE_ON)
+MEMBER(double, r, N,SAVE_ON)
+MEMBER(double, rsq, N,SAVE_OFF)
+MEMBER(double, invr, N,SAVE_OFF)
+MEMBER(double, a, N*DIM,SAVE_OFF)
+MEMBER(double, f, N*DIM,SAVE_OFF)
+MEMBER(double, k, N,SAVE_OFF)
+MEMBER(double, m, N,SAVE_ON)
+MEMBER(double, sqrtm, N,SAVE_OFF)
+MEMBER(double, invm, N,SAVE_OFF)
+
+MEMBER(double, angv, N*DIM,SAVE_ON) /* angular velocity */
+MEMBER(double, anga, N*DIM,SAVE_OFF) /* angular accelartion */
+MEMBER(double, moi, N,SAVE_OFF) /* moment of intertia */
+MEMBER(double, invmoi, N,SAVE_OFF)
+MEMBER(double, mom, N*DIM,SAVE_OFF) /* torque */
+
+MEMBER(double, etaconst, N,SAVE_OFF)
+MEMBER(double, g, DIM,SAVE_OFF)
+
+MEMBER(int, isActive, N,SAVE_ON) /* flag if particle is OoB */ 
+
+/* ======== tangential force related =========*/
+/* history of delta tangent */
+MEMBER(double, deltHisx, N*MAX_NEI,SAVE_ON) 
+MEMBER(double, deltHisy, N*MAX_NEI,SAVE_ON)
+MEMBER(double, deltHisz, N*MAX_NEI,SAVE_ON)
+
+MEMBER(double, deltHisxWall, N*MAX_NEI,SAVE_ON)
+MEMBER(double, deltHisyWall, N*MAX_NEI,SAVE_ON)
+MEMBER(double, deltHiszWall, N*MAX_NEI,SAVE_ON)
+
+MEMBER(int, indHis, N*MAX_NEI,SAVE_ON) /* Index of collided particles */ 
+MEMBER(int, indHisWall, N*MAX_NEI,SAVE_ON) /* Index of collided particles */ 
+MEMBER(int, indHisWallNow, N*MAX_NEI,SAVE_OFF) /* Index of collided walls in the current step*/ 
+
+MEMBER(int, indHisVorENow, N*MAX_NEI,SAVE_OFF) /* number of contact with edge or vertex*/
+
+MEMBER(int, isContact, N*MAX_NEI,SAVE_OFF) /* flag if a particle has contacted with the neighbor in history*/ 
+MEMBER(int, isContactWall, N*MAX_NEI,SAVE_OFF)
+
+             
+MEMBER(int, numCont, N,SAVE_ON) /* number of contact */
+MEMBER(int, numContWall, N,SAVE_ON) /* number of contact with walls */
+
+MEMBER(int, cellId, N,SAVE_OFF)
+MEMBER(int, cellx, N*DIM,SAVE_OFF) //coordinate index in structured cell
+
+
+MEMBER(int, pId, N,SAVE_ON)
+MEMBER(uint32_t, mortonKey, N,SAVE_OFF)
+MEMBER(int, mortonOrder, N,SAVE_OFF)
+
+MEMBER(uint32_t, tmpMortonKey, N,SAVE_OFF)
+MEMBER(int, tmpMortonOrder, N,SAVE_OFF)
+
+
+/* ========== verlet list related ========= */
+MEMBER(double, refx, N,SAVE_OFF)
+MEMBER(double, refy, N,SAVE_OFF)
+MEMBER(double, refz, N,SAVE_OFF) 
+MEMBER(int, neiList, N*MAX_NEI,SAVE_OFF) /* neighbor list */
+MEMBER(int, numNei, N,SAVE_OFF) /* neighbor list */
+MEMBER(int, neiListWall, N*MAX_NEI,SAVE_OFF) /* neighbor list */
+MEMBER(int, numNeiWall, N,SAVE_OFF) /* neighbor list */
