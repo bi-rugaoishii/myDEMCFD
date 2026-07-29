@@ -1,0 +1,4 @@
+MEMBER(double,vx_,num_boundary_id_,1,1,SAVE_OFF)
+MEMBER(double,vy_,num_boundary_id_,1,1,SAVE_OFF)
+MEMBER(double,vz_,num_boundary_id_,1,1,SAVE_OFF)
+MEMBER(unsigned char,bcType_,num_boundary_id_,1,1,SAVE_OFF)

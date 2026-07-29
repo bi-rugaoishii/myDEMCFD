@@ -1,0 +1,7 @@
+*.o
+*.log
+*.bu
+tags
+myCFD
+results
+*results

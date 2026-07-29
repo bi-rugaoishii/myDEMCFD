@@ -1,0 +1,128 @@
+/* the inputs are MEMBER(type, name,sizex,sizey,sizez,SAVEFLAG) */
+
+/* single scalars */
+
+MEMBER(double,sigma_,1,1,1,SAVE_OFF)
+
+/* immersed boundary parameters*/
+MEMBER(double, ibm_solid_fraction_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, ibm_fluid_fraction_inv_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+
+
+/* cell center parameters*/
+
+MEMBER(double, rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, rho_old_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON) //+2 for ghost cell
+MEMBER(double, inv_rho_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, correct_coeff_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_new_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, alpha_with_solidfrac_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+
+MEMBER(double, nx_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, ny_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, nz_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, kappa_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+
+MEMBER(unsigned char, celltype_, (Nx+2),(Ny+2),(Nz+2),SAVE_ON)
+    
+MEMBER(double, mu_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, residue_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, rhs_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, p_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, p_delta_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, p_tmp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, x_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, y_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, z_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, cfl_, (Nx),(Ny),(Nz),SAVE_OFF)
+MEMBER(double, cfl_visc_, (Nx),(Ny),(Nz),SAVE_OFF)
+
+/* == for Poisson == */
+MEMBER(double, Axp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Axm_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Ayp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Aym_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Azp_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Azm_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, invAdiag_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, Adiag_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+
+/* == for PCG == */
+MEMBER(double, pcg_r_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_z_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_dir_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_tmp_, (Nx),(Ny),(Nz),SAVE_OFF)
+MEMBER(double, pcg_Ap_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, pcg_invDiag_, (Nx+2),(Ny+2),(Nz+2),SAVE_OFF)
+
+
+/* === faces === */
+/* === type flag === */
+MEMBER(unsigned char, f_xtype_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, f_ytype_, (Nx+2),(Ny+3),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, f_ztype_, (Nx+2),(Ny+2),(Nz+3),SAVE_ON)
+
+/* === index for internal neighboring face ===*/
+MEMBER(int, f_xinternal_id_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(int, f_yinternal_id_, (Nx+2),(Ny+3),(Nz+2),SAVE_ON)
+MEMBER(int, f_zinternal_id_, (Nx+2),(Ny+2),(Nz+3),SAVE_ON)
+
+/* === boundaryConditionId=== */
+MEMBER(unsigned char, f_xbcid_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, f_ybcid_, (Nx+2),(Ny+3),(Nz+2),SAVE_ON)
+MEMBER(unsigned char, f_zbcid_, (Nx+2),(Ny+2),(Nz+3),SAVE_ON)
+
+/* alpha flux */
+MEMBER(double, f_Fx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_Fy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_Fz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+MEMBER(double, f_Fx_accum_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_Fy_accum_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_Fz_accum_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* mass flux */
+MEMBER(double, f_mfx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_mfy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_mfz_, (Nx+2),(Ny+3),(Nz+3),SAVE_OFF)
+
+/* mu*/
+MEMBER(double, f_mux_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_muy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_muz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/*  rho */
+MEMBER(double, f_rhox_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_rhoy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_rhoz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+
+/* inverse rho */
+MEMBER(double, f_bx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_by_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_bz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* surface tension */
+MEMBER(double, f_sx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_sy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_sz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* velocity */
+MEMBER(double, f_vx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
+MEMBER(double, f_vy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_vz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+MEMBER(double, f_vx_star_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, f_vy_star_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_vz_star_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* face solid fraction */
+MEMBER(double, f_ibm_solid_fraction_x_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_solid_fraction_y_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_solid_fraction_z_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+/* face area solid fraction */
+MEMBER(double, f_ibm_area_solid_fraction_x_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_area_solid_fraction_y_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_ibm_area_solid_fraction_z_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
