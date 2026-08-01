@@ -254,3 +254,93 @@ __global__ void k_update_vz_outlet(SMACSolver solv, G_StaggeredGrid* grid){
     }
 }
 
+__global__ void k_update_vx_ghost(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+
+    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<double,3>  vx = grid->f_vx_;
+
+
+    if(iy == 0){
+
+        int bid = grid->f_xbcid_(ix,iy+1,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_INFLOW){
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy+1,iz); 
+            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy+2,iz);
+        }else if(bcType == BC_NOSLIP){
+            vx(ix,iy,iz)= -vx(ix,iy+2,iz);
+        }else if(bcType == BC_OUTLET){
+            vx(ix,iy,iz) = 2.0*vx(ix,iy+1,iz)-vx(ix,iy+2,iz);
+        }else if(bcType == BC_SLIP){
+            vx(ix,iy,iz) = vx(ix,iy+2,iz);
+        }
+
+    }
+
+    if(iy == Ny+1){
+
+        int bid = grid->f_xbcid_(ix,iy-1,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_INFLOW){
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy-1,iz); 
+            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy-2,iz);
+        }else if(bcType == BC_NOSLIP){
+            vx(ix,iy,iz)= -vx(ix,iy-2,iz);
+        }else if(bcType == BC_OUTLET){
+            vx(ix,iy,iz) = 2.0*vx(ix,iy-1,iz)-vx(ix,iy-2,iz);
+        }else if(bcType == BC_SLIP){
+            vx(ix,iy,iz) = vx(ix,iy-2,iz);
+        }
+
+
+    }
+
+    if(iz == 0){
+
+
+        int bid = grid->f_xbcid_(ix,iy,iz+1);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_INFLOW){
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz+1); 
+            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy,iz+2);
+        }else if(bcType == BC_NOSLIP){
+            vx(ix,iy,iz)= -vx(ix,iy,iz+2);
+        }else if(bcType == BC_OUTLET){
+            vx(ix,iy,iz) = 2.0*vx(ix,iy,iz+1)-vx(ix,iy,iz+2);
+        }else if(bcType == BC_SLIP){
+            vx(ix,iy,iz) = vx(ix,iy,iz+2);
+        }
+
+    }
+
+    if(iz == Nz+1){
+
+        int bid = grid->f_xbcid_(ix,iy,iz-1);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+
+        if(bcType == BC_INFLOW){
+            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz-1); 
+            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy,iz-2);
+        }else if(bcType == BC_NOSLIP){
+            vx(ix,iy,iz)= -vx(ix,iy,iz-2);
+        }else if(bcType == BC_OUTLET){
+            vx(ix,iy,iz) = 2.0*vx(ix,iy,iz-1)-vx(ix,iy,iz-2);
+        }else if(bcType == BC_SLIP){
+            vx(ix,iy,iz) = vx(ix,iy,iz-2);
+        }
+
+    }
+}
+

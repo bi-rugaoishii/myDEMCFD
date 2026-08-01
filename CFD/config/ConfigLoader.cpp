@@ -490,6 +490,9 @@ PressureSolverConfig parse_pressure_solver(
             "gmg_levels",
             "pressure_solver");
 
+    result.tol = read_number(value, "tol","pressure_solver");
+    printf("tol = %f\n",result.tol);
+
     return result;
 }
 

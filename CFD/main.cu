@@ -45,6 +45,7 @@ int main(int argc, char** argv){
 
     try {
         config = load_simulation_config(config_filename);
+        printf("hello\n");
     }catch (const std::exception& error) {
         fprintf(stderr,"Failed to load configuration:\n%s\n", error.what());
         return EXIT_FAILURE;
@@ -223,6 +224,7 @@ int main(int argc, char** argv){
     gmgSolver.copyData(g_solv);
     pcgSolver.set_gmg(gmgSolver);
 
+
     /* choose solver according to the boundary condition*/
     if(isPureNeumann){
         pcgSolver.set_solver(PURENEUMANN_GMG_PCG);
@@ -247,6 +249,15 @@ int main(int argc, char** argv){
     if (use_gpu){
         while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
 
+            if (cur_step == 0){
+
+                /* initial step requires high tolerance*/
+
+                g_solv.pressure_solver_->tol_ = 1e-11;
+            }else{
+
+                g_solv.pressure_solver_->tol_ = config.pressure_solver.tol;
+            }
             /* == setup time == */
             double cfl=g_solv.calc_cfl();
             cfdtime.updateTime(cfl);
@@ -280,6 +291,7 @@ int main(int argc, char** argv){
             g_solv.compute_mass_flux_from_alpha_flux(solv);
 
             g_solv.update_boundary_faces();
+
 
             g_solv.calc_surface_tension();
 

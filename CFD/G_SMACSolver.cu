@@ -641,6 +641,39 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_y(SMACSolver solv,G_Stag
 
     }
 
+    /* debug*/
+    /*
+    int jp = iy;
+    int jm = iy - 1;
+
+    double rho_m = grid->rho_(ix, jm, iz);
+    double rho_p = grid->rho_(ix, jp, iz);
+    double beta_f = grid->f_by_( ix, iy, iz);
+
+    double gravity_y = -9.81;
+    double dpdy =
+        (p(ix, jp, iz) - p(ix, jm, iz)) * inv_dy;
+
+    double pressure_acc = -beta_f * dpdy;
+    double total_acc = pressure_acc -9.81;
+
+    if(total_acc > 1e-6){
+
+        printf(
+                "iy=%d rho_m=%.15e rho_p=%.15e "
+                "beta=%.15e pm=%.15e pp=%.15e "
+                "pacc=%.15e gy=%.15e total=%.15e\n",
+                iy,
+                rho_m,
+                rho_p,
+                beta_f,
+                p(ix, jm, iz),
+                p(ix, jp, iz),
+                pressure_acc,
+                gravity_y,
+                total_acc);
+    }
+    */
 }
 
 
@@ -1055,6 +1088,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
         }
     }
 
+    /* debug */
     if (ix < Nx+1 && iy < Ny+1 && iz < Nz+1){
         if(ct(ix,iy,iz) == C_INTERIOR){
             p_new(ix,iy,iz) += p(ix,iy,iz);
@@ -1068,6 +1102,8 @@ void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     k_update_vx_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_update_vy_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_update_vz_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
+    k_update_vx_ghost<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 
     cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
 }

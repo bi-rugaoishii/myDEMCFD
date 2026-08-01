@@ -56,7 +56,7 @@ __device__ __forceinline__ double d_get_vy_yface(G_StaggeredGrid* grid,int ix,in
 
             return 0.;
 
-        }else if(bcType == BC_OUTLET){
+        }else if(bcType == BC_OUTLET || bcType == BC_SLIP){
 
             return grid->f_vy_(ix,iy,iz);
 
@@ -87,7 +87,7 @@ __device__ __forceinline__ double d_get_vz_zface(G_StaggeredGrid* grid,int ix,in
 
         }else if(bcType == BC_NOSLIP){
             return 0.;
-        }else if(bcType == BC_OUTLET){
+        }else if(bcType == BC_OUTLET || bcType == BC_SLIP){
             return grid->f_vz_(ix,iy,iz);
         }
     }
@@ -496,3 +496,5 @@ __global__ void k_update_vz_boundary(G_StaggeredGrid* grid);
 __global__ void k_update_vx_outlet(SMACSolver solv,G_StaggeredGrid* grid);
 __global__ void k_update_vy_outlet(SMACSolver solv,G_StaggeredGrid* grid);
 __global__ void k_update_vz_outlet(SMACSolver solv,G_StaggeredGrid* grid);
+
+__global__ void k_update_vx_ghost(G_StaggeredGrid* grid);

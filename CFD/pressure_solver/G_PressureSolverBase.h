@@ -27,13 +27,16 @@ struct G_PressureSolverBase{
     void subtract_cell_mean(G_StaggeredGrid& grid,MyArray<double,3> p);
     void copyData(G_SMACSolver& solv);
 
-    /* == for cub == */
     dim3 block_dim_;
     dim3 grid_dim_;
     double *d_pcg_scalars_;
+
+    /* == for cub == */
     void* cub_temp_storage_;
     size_t cub_temp_storage_bytes_;
+
     double* d_r2_;
     double* d_dot_;
+    double tol_;
 
 };

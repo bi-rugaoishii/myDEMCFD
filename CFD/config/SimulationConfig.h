@@ -79,6 +79,7 @@ struct TimeConfig
 struct PressureSolverConfig
 {
     int gmg_levels = 4;
+    double tol = 1e-8;
 };
 
 struct BoundaryConditionConfig
