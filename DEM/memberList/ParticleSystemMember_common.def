@@ -64,3 +64,30 @@ MEMBER(int, neiList, N*MAX_NEI,SAVE_OFF) /* neighbor list */
 MEMBER(int, numNei, N,SAVE_OFF) /* neighbor list */
 MEMBER(int, neiListWall, N*MAX_NEI,SAVE_OFF) /* neighbor list */
 MEMBER(int, numNeiWall, N,SAVE_OFF) /* neighbor list */
+
+/* === for CFD coupling == */
+MEMBER(double, fluid_fx_, N, SAVE_OFF)
+MEMBER(double, fluid_fy_, N, SAVE_OFF)
+MEMBER(double, fluid_fz_, N, SAVE_OFF)
+
+MEMBER(double, impulse_x_, N*8, SAVE_OFF)
+MEMBER(double, impulse_y_, N*8, SAVE_OFF)
+MEMBER(double, impulse_z_, N*8, SAVE_OFF)
+
+MEMBER(int, vx_x0_, N, SAVE_OFF)
+MEMBER(int, vx_y0_, N, SAVE_OFF)
+MEMBER(int, vx_z0_, N, SAVE_OFF)
+
+
+MEMBER(int, vy_x0_, N, SAVE_OFF)
+MEMBER(int, vy_y0_, N, SAVE_OFF)
+MEMBER(int, vy_z0_, N, SAVE_OFF)
+
+MEMBER(int, vz_x0_, N, SAVE_OFF)
+MEMBER(int, vz_y0_, N, SAVE_OFF)
+MEMBER(int, vz_z0_, N, SAVE_OFF)
+
+MEMBER(int, cell_stencil_x_, N, SAVE_OFF)
+MEMBER(int, cell_stencil_y_, N, SAVE_OFF)
+MEMBER(int, cell_stencil_z_, N, SAVE_OFF)
+
