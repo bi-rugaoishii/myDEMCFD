@@ -7,7 +7,11 @@
 #include <cstring>
 
 
-void SMACSolver::set_calc_properties( double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
+void SMACSolver::set_calc_properties(double origin_x, double origin_y, double origin_z, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
+
+    grid_.origin_x_ = origin_x;
+    grid_.origin_y_ = origin_y;
+    grid_.origin_z_ = origin_z;
     grid_.sizex_=sizex;
     grid_.sizey_=sizey;
     grid_.sizez_=sizez;

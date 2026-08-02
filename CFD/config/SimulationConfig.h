@@ -32,6 +32,10 @@ struct GridConfig
     double size_y = 1.0;
     double size_z = 1.0;
 
+    double origin_x_ = 0.0;
+    double origin_y_ = 0.0;
+    double origin_z_ = 0.0;
+
     double dx() const
     {
         return size_x / static_cast<double>(Nx);

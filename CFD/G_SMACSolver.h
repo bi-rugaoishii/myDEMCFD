@@ -22,7 +22,7 @@ struct G_SMACSolver{
     dim3 block_dim_;
     dim3 grid_dim_; //grid size for cuda
 
-    void set_calc_properties(double sizex, double sizey, double sizez, int Nx, int Ny, int Nz);
+    void set_calc_properties(double originx, double originy, double originz, double sizex, double sizey, double sizez, int Nx, int Ny, int Nz);
 
     /* == surface tension related == */
     void calc_surface_tension();

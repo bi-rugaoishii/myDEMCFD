@@ -372,6 +372,16 @@ GridConfig parse_grid(
     result.size_y = size.y;
     result.size_z = size.z;
 
+    const ConfigVec3 origin =
+        read_vec3(
+            value,
+            "origin",
+            "grid");
+
+    result.origin_x_ = origin.x;
+    result.origin_y_ = origin.y;
+    result.origin_y_ = origin.z;
+
     return result;
 }
 

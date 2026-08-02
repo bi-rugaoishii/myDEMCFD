@@ -74,6 +74,15 @@ int main(int argc, char** argv){
     const int Ny = config.grid.Ny;
     const int Nz = config.grid.Nz;
 
+    const double originx =
+        config.grid.origin_x_;
+
+    const double originy =
+        config.grid.origin_y_;
+
+    const double originz =
+        config.grid.origin_z_;
+
     const double sizex =
         config.grid.size_x;
 
@@ -113,7 +122,7 @@ int main(int argc, char** argv){
     SMACSolver solv;
 
     /* == set properties ==*/
-    solv.set_calc_properties(sizex, sizey, sizez, Nx, Ny, Nz);
+    solv.set_calc_properties(originx, originy, originz, sizex, sizey, sizez, Nx, Ny, Nz);
 
     solv.set_gravity(config.fluid.gravity.x,config.fluid.gravity.y,config.fluid.gravity.z);
     solv.set_rhos(rho_g,rho_w);
@@ -173,7 +182,7 @@ int main(int argc, char** argv){
 
     /* == gpu initialization == */
     G_SMACSolver g_solv;
-    g_solv.set_calc_properties(sizex, sizey,sizez, Nx, Ny, Nz);
+    g_solv.set_calc_properties(originx, originy, originz, sizex, sizey,sizez, Nx, Ny, Nz);
 
     if(use_gpu){
 

@@ -1,1 +1,4 @@
 *.o
+myDEM3d
+myDEMCFD
+tags

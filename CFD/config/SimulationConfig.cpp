@@ -34,6 +34,7 @@ void require_positive(
 
     if (value <= 0.0) {
         config_error(name + " must be greater than zero");
+        printf("its value is %f\n",value);
     }
 }
 

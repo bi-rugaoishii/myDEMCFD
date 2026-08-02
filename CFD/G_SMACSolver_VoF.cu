@@ -444,32 +444,6 @@ void G_SMACSolver::calc_surface_tension(){
     k_calc_surface_tension_face<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 }
 
-/* =============================
-   ======== set properties =====
-   ============================*/
-
-void G_SMACSolver::set_calc_properties(double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
-    grid_.sizex_=sizex;
-    grid_.sizey_=sizey;
-    grid_.sizez_=sizez;
-    grid_.Nx_=Nx;
-    grid_.Ny_=Ny;
-    grid_.Nz_=Nz;
-
-    grid_.dx_ = sizex/(double)Nx;
-    grid_.dy_ = sizey/(double)Ny;
-    grid_.dz_ = sizez/(double)Nz;
-    grid_.inv_dx_ = 1./grid_.dx_;
-    grid_.inv_dy_ = 1./grid_.dy_;
-    grid_.inv_dz_ = 1./grid_.dz_;
-    grid_.inv_2dx_ = 1./(2.*grid_.dx_);
-    grid_.inv_2dy_ = 1./(2.*grid_.dy_);
-    grid_.inv_2dz_ = 1./(2.*grid_.dz_);
-    grid_.inv_dx2_ = 1./(grid_.dx_*grid_.dx_);
-    grid_.inv_dy2_ = 1./(grid_.dy_*grid_.dy_);
-    grid_.inv_dz2_ = 1./(grid_.dz_*grid_.dz_);
-
-}
 
 /* ========================= */
 /* ===== alpha related ===== */

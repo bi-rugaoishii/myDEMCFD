@@ -11,6 +11,7 @@ struct G_StaggeredGrid{
     double inv_dx2_, inv_dy2_, inv_dz2_;
     int Nx_,Ny_,Nz_;
     double sizex_, sizey_,sizez_;
+    double origin_x_, origin_y_, origin_z_;
 
     G_StaggeredGrid *d_ptr_;
 

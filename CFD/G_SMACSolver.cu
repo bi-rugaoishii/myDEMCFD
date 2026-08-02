@@ -12,6 +12,39 @@
 #include <cub/cub.cuh>
 
 
+/* =============================
+   ======== set properties =====
+   ============================*/
+
+void G_SMACSolver::set_calc_properties(double origin_x, double origin_y, double origin_z, double sizex, double sizey,double sizez, int Nx, int Ny, int Nz){
+
+    grid_.origin_x_ = origin_x;
+    grid_.origin_y_ = origin_y;
+    grid_.origin_z_ = origin_z;
+
+    grid_.sizex_=sizex;
+    grid_.sizey_=sizey;
+    grid_.sizez_=sizez;
+
+    grid_.Nx_=Nx;
+    grid_.Ny_=Ny;
+    grid_.Nz_=Nz;
+
+    grid_.dx_ = sizex/(double)Nx;
+    grid_.dy_ = sizey/(double)Ny;
+    grid_.dz_ = sizez/(double)Nz;
+    grid_.inv_dx_ = 1./grid_.dx_;
+    grid_.inv_dy_ = 1./grid_.dy_;
+    grid_.inv_dz_ = 1./grid_.dz_;
+    grid_.inv_2dx_ = 1./(2.*grid_.dx_);
+    grid_.inv_2dy_ = 1./(2.*grid_.dy_);
+    grid_.inv_2dz_ = 1./(2.*grid_.dz_);
+    grid_.inv_dx2_ = 1./(grid_.dx_*grid_.dx_);
+    grid_.inv_dy2_ = 1./(grid_.dy_*grid_.dy_);
+    grid_.inv_dz2_ = 1./(grid_.dz_*grid_.dz_);
+
+}
+
 /* === vstar calculation === */
 __device__ __forceinline__ double d_vanleer(double deltap, double deltam){
     double deltaprod = deltap*deltam;

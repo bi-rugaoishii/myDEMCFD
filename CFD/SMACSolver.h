@@ -14,7 +14,7 @@ struct SMACSolver{
 
     /* == functions == */
 
-    void set_calc_properties(double sizex, double sizey,double sizez, int Nx, int Ny, int Nz);
+    void set_calc_properties(double originx, double originy, double originz, double sizex, double sizey, double sizez, int Nx, int Ny, int Nz);
 
     void set_face_type();
 

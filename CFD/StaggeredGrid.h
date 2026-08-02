@@ -11,6 +11,7 @@ struct StaggeredGrid{
     double inv_dx2_, inv_dy2_,inv_dz2_;
     int Nx_,Ny_,Nz_;
     double sizex_, sizey_,sizez_;
+    double origin_x_, origin_y_, origin_z_; //origin excludes ghost cell
 
     /* boundary condition */
     BoundaryCondition bc_;
@@ -132,9 +133,9 @@ inline void StaggeredGrid::get_cell_coord(){
         for(int iy=0; iy<Ny+2; iy++){
             for(int ix=0; ix<Nx+2; ix++){
 
-                x(ix,iy,iz)=dx*(double)(ix)-0.5*dx;
-                y(ix,iy,iz)=dy*(double)(iy)-0.5*dy;
-                z(ix,iy,iz)=dz*(double)(iz)-0.5*dz;
+                x(ix,iy,iz)=dx*(double)(ix)-0.5*dx+origin_x_;
+                y(ix,iy,iz)=dy*(double)(iy)-0.5*dy+origin_y_;
+                z(ix,iy,iz)=dz*(double)(iz)-0.5*dz+origin_z_;
             }
         }
     }

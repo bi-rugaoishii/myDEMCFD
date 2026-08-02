@@ -1,9 +1,10 @@
 CC = nvcc
 CC_C = g++
 ARCH = sm_70 
-CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  
 INCLUDE = -Ithird_party
 GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false 
+
+CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  
 #CFLAGS = -O0 -g -G
 #CFLAGS = -O3  -pg
 #CFLAGS = -O0  -g 
