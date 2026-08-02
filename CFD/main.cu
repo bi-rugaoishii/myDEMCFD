@@ -45,7 +45,6 @@ int main(int argc, char** argv){
 
     try {
         config = load_simulation_config(config_filename);
-        printf("hello\n");
     }catch (const std::exception& error) {
         fprintf(stderr,"Failed to load configuration:\n%s\n", error.what());
         return EXIT_FAILURE;
