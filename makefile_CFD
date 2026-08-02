@@ -3,6 +3,7 @@ CC_C = g++
 ARCH = sm_70 
 CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  
 GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false 
+DEPFLAGS = -MMD -MP
 INCLUDE = -I${CFDPATH}/third_party
 #CFLAGS = -O0 -g -G
 #CFLAGS = -O3  -pg
@@ -25,6 +26,8 @@ OBJS =  ${CFDPATH}/main.o ${CFDPATH}/SMACSolver.o ${CFDPATH}/CFDTime.o ${CFDPATH
 		${CFDPATH}/config/SimulationConfig.o
 		   
 
+DEPS = $(OBJS:.o=.d)
+
 PROGRAM = myCFD
 
 all: $(PROGRAM)
@@ -33,11 +36,12 @@ $(PROGRAM): $(OBJS)
 	$(CC) $(CFLAGS) $(GPUFLAGS) $(OBJS) $(LIBS)  -o $(PROGRAM)
 
 %.o : %.cu
-	$(CC) $(CFLAGS) $(GPUFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(GPUFLAGS) $(INCLUDE) $(DEPFLAGS) -MF $(@:.o=.d) -MT $@ -c $< -o $@
 
 %.o : %.cpp
-	$(CC_C) $(CONLYFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC_C) $(CONLYFLAGS) $(INCLUDE) $(DEPFLAGS) -MF $(@:.o=.d) -MT $@ -c $< -o $@
 
 clean:
-	rm -f $(PROGRAM)  $(OBJS)
+	rm -f $(PROGRAM) $(OBJS) $(DEPS)
 
+-include $(DEPS)

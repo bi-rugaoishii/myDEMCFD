@@ -1,4 +1,6 @@
 *.o
 myDEM3d
 myDEMCFD
+myCFD
+
 tags

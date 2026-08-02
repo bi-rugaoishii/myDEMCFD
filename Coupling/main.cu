@@ -46,6 +46,9 @@
 #define OUTPUT 1
 #define NONDIM 0
 
+// DEMCFD includes//
+#include "G_DEMCFDCoupling.h"
+
 int main(int argc, char** argv){ 
     setvbuf(stdout,NULL,_IOLBF,0);
     setvbuf(stderr,NULL,_IONBF,0);
@@ -307,6 +310,16 @@ int main(int argc, char** argv){
     const int Ny = config.grid.Ny;
     const int Nz = config.grid.Nz;
 
+
+    const double originx =
+        config.grid.origin_x_;
+
+    const double originy =
+        config.grid.origin_y_;
+
+    const double originz =
+        config.grid.origin_z_;
+
     const double sizex =
         config.grid.size_x;
 
@@ -346,7 +359,7 @@ int main(int argc, char** argv){
     SMACSolver solv;
 
     /* == set properties ==*/
-    solv.set_calc_properties(sizex, sizey, sizez, Nx, Ny, Nz);
+    solv.set_calc_properties(originx, originy, originz, sizex, sizey, sizez, Nx, Ny, Nz);
 
     solv.set_gravity(config.fluid.gravity.x,config.fluid.gravity.y,config.fluid.gravity.z);
     solv.set_rhos(rho_g,rho_w);
@@ -403,7 +416,7 @@ int main(int argc, char** argv){
 
     /* == gpu initialization == */
     G_SMACSolver g_solv;
-    g_solv.set_calc_properties(sizex, sizey,sizez, Nx, Ny, Nz);
+    g_solv.set_calc_properties(originx, originy, originz, sizex, sizey, sizez, Nx, Ny, Nz);
 
     if(use_gpu){
 
@@ -475,6 +488,12 @@ int main(int argc, char** argv){
     /* == CFD initialization done ==*/
     /* == CFD initialization done ==*/
 
+    /* ==== DEMCFD coupling ==== */
+
+    G_DEMCFDCoupling demcfd;
+
+    /* ==== DEMCFD Coupling initialization done === */
+
     /* ====== main dem routine ===== */
 
     printf("starting \n");
@@ -483,6 +502,9 @@ int main(int argc, char** argv){
     if(isGPUon ==1){
         for (int step = 1; step <= steps; step++){
             #if USE_GPU
+
+            demcfd.get_index_of_Cell(g_solv.grid_, d_ps, gridSize, blockSize);
+
             /* GPU */
             if(isBruteOn==1){
                 device_dem_naive(&d_ps,&box,&mesh,&bvh,gridSize, blockSize);
