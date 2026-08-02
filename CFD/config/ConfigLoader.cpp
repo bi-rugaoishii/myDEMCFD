@@ -380,7 +380,7 @@ GridConfig parse_grid(
 
     result.origin_x_ = origin.x;
     result.origin_y_ = origin.y;
-    result.origin_y_ = origin.z;
+    result.origin_z_ = origin.z;
 
     return result;
 }
