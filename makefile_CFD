@@ -1,0 +1,43 @@
+CC = nvcc
+CC_C = g++
+ARCH = sm_70 
+CFLAGS = -O3 -Xcompiler "-Wconversion  -Werror  -fopenmp"  
+GPUFLAGS = -DUSE_GPU=1 -arch=$(ARCH) -fmad=false 
+INCLUDE = -I${CFDPATH}/third_party
+#CFLAGS = -O0 -g -G
+#CFLAGS = -O3  -pg
+#CFLAGS = -O0  -g 
+#CFLAGS = -Xcompiler "-fsanitize=address -fno-omit-frame-pointer -fopenmp" -O0  -g  
+CFDPATH = CFD
+CONLYFLAGS = -O3  
+LIBS = -lm 
+OBJS =  ${CFDPATH}/main.o ${CFDPATH}/SMACSolver.o ${CFDPATH}/CFDTime.o ${CFDPATH}/G_SMACSolver.o\
+		${CFDPATH}/FileInOut.o \
+		${CFDPATH}/SimulationSetup.o\
+		${CFDPATH}/G_SMACSolver_VoF.o \
+		${CFDPATH}/G_SMACSolver_IBM.o \
+		${CFDPATH}/G_BoundaryFunctions.o \
+		${CFDPATH}/pressure_solver/G_PressureSolverBase.o\
+		${CFDPATH}/pressure_solver/G_PCGSolver.o\
+		${CFDPATH}/pressure_solver/G_GMGSolver.o\
+		${CFDPATH}/pressure_solver/G_Levels.o\
+		${CFDPATH}/config/ConfigLoader.o\
+		${CFDPATH}/config/SimulationConfig.o
+		   
+
+PROGRAM = myCFD
+
+all: $(PROGRAM)
+
+$(PROGRAM): $(OBJS)
+	$(CC) $(CFLAGS) $(GPUFLAGS) $(OBJS) $(LIBS)  -o $(PROGRAM)
+
+%.o : %.cu
+	$(CC) $(CFLAGS) $(GPUFLAGS) -c $< -o $@
+
+%.o : %.cpp
+	$(CC_C) $(CONLYFLAGS) $(INCLUDE) -c $< -o $@
+
+clean:
+	rm -f $(PROGRAM)  $(OBJS)
+
