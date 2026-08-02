@@ -189,7 +189,7 @@ void FileInOut::output_vti_binary_cellData(const StaggeredGrid& grid, int step){
         "  <ImageData WholeExtent=\"0 %d 0 %d 0 %d\" "
         "Origin=\"%.15e %.15e %.15e\" "
         "Spacing=\"%.15e %.15e %.15e\">\n",
-        Nx, Ny, Nz, 0.0, 0.0, 0.0, dx, dy, dz);
+        Nx, Ny, Nz, grid.origin_x_, grid.origin_y_, grid.origin_z_, dx, dy, dz);
 
     fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx, Ny, Nz);
     fprintf(fp, "      <PointData></PointData>\n");
@@ -308,7 +308,7 @@ void FileInOut::output_vti_binary(const StaggeredGrid& grid, int step){
         "Origin=\"%.15e %.15e %.15e\" "
         "Spacing=\"%.15e %.15e %.15e\">\n",
         Nx - 1, Ny - 1, Nz - 1,
-        0.5 * dx, 0.5 * dy, 0.5 * dz,
+        0.5 * dx + grid.origin_x_ , 0.5 * dy + grid.origin_y_ , 0.5 * dz + grid.origin_z_ ,
         dx, dy, dz);
 
     fprintf(fp, "    <Piece Extent=\"0 %d 0 %d 0 %d\">\n", Nx - 1, Ny - 1, Nz - 1);
