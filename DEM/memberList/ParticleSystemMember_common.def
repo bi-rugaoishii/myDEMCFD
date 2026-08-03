@@ -66,28 +66,31 @@ MEMBER(int, neiListWall, N*MAX_NEI,SAVE_OFF) /* neighbor list */
 MEMBER(int, numNeiWall, N,SAVE_OFF) /* neighbor list */
 
 /* === for CFD coupling == */
-MEMBER(double, fluid_fx_, N, SAVE_OFF)
-MEMBER(double, fluid_fy_, N, SAVE_OFF)
-MEMBER(double, fluid_fz_, N, SAVE_OFF)
+MEMBER(double, cfd_vx_, N, SAVE_OFF)
+MEMBER(double, cfd_vy_, N, SAVE_OFF)
+MEMBER(double, cfd_vz_, N, SAVE_OFF)
 
-MEMBER(double, impulse_x_, N*8, SAVE_OFF)
-MEMBER(double, impulse_y_, N*8, SAVE_OFF)
-MEMBER(double, impulse_z_, N*8, SAVE_OFF)
+MEMBER(double, cfd_rho_, N, SAVE_OFF)
+MEMBER(double, cfd_mu_, N, SAVE_OFF)
 
-MEMBER(bool, is_in_CFD, N, SAVE_ON)
+MEMBER(double, cfd_impulse_x_, N*8, SAVE_OFF)
+MEMBER(double, cfd_impulse_y_, N*8, SAVE_OFF)
+MEMBER(double, cfd_impulse_z_, N*8, SAVE_OFF)
 
-MEMBER(int, vx_x0_, N, SAVE_OFF)
-MEMBER(int, vx_y0_, N, SAVE_OFF)
-MEMBER(int, vx_z0_, N, SAVE_OFF)
+MEMBER(bool, cfd_is_in_CFD_, N, SAVE_ON)
+
+MEMBER(int, cfd_vx_x0_, N, SAVE_OFF)
+MEMBER(int, cfd_vx_y0_, N, SAVE_OFF)
+MEMBER(int, cfd_vx_z0_, N, SAVE_OFF)
 
 
-MEMBER(int, vy_x0_, N, SAVE_OFF)
-MEMBER(int, vy_y0_, N, SAVE_OFF)
-MEMBER(int, vy_z0_, N, SAVE_OFF)
+MEMBER(int, cfd_vy_x0_, N, SAVE_OFF)
+MEMBER(int, cfd_vy_y0_, N, SAVE_OFF)
+MEMBER(int, cfd_vy_z0_, N, SAVE_OFF)
 
-MEMBER(int, vz_x0_, N, SAVE_OFF)
-MEMBER(int, vz_y0_, N, SAVE_OFF)
-MEMBER(int, vz_z0_, N, SAVE_OFF)
+MEMBER(int, cfd_vz_x0_, N, SAVE_OFF)
+MEMBER(int, cfd_vz_y0_, N, SAVE_OFF)
+MEMBER(int, cfd_vz_z0_, N, SAVE_OFF)
 
 MEMBER(int, cfd_cellid_x_, N, SAVE_OFF)
 MEMBER(int, cfd_cellid_y_, N, SAVE_OFF)

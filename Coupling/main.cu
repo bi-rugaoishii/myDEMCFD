@@ -503,7 +503,7 @@ int main(int argc, char** argv){
         for (int step = 1; step <= steps; step++){
             #if USE_GPU
 
-            demcfd.get_index_of_Cell(g_solv.grid_, d_ps, gridSize, blockSize);
+            demcfd.interpolate_fluid_to_particle(g_solv.grid_, d_ps, gridSize, blockSize);
 
             /* GPU */
             if(isBruteOn==1){
