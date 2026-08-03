@@ -498,3 +498,9 @@ __global__ void k_update_vy_outlet(SMACSolver solv,G_StaggeredGrid* grid);
 __global__ void k_update_vz_outlet(SMACSolver solv,G_StaggeredGrid* grid);
 
 __global__ void k_update_vx_ghost(G_StaggeredGrid* grid);
+__global__ void k_update_vy_ghost(G_StaggeredGrid* grid);
+__global__ void k_update_vz_ghost(G_StaggeredGrid* grid);
+
+__global__ void k_update_vx_ghost_corner(G_StaggeredGrid* grid);
+__global__ void k_update_vy_ghost_corner(G_StaggeredGrid* grid);
+__global__ void k_update_vz_ghost_corner(G_StaggeredGrid* grid);

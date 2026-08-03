@@ -1241,6 +1241,135 @@ void G_SMACSolver::transport_alpha(){
 
 }
 
+static __global__ void k_update_cell_boundary_properties_by_alpha(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3> rho = grid->rho_;
+    MyArray<double,3> mu = grid->mu_;
+
+    if (ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+
+    if(ix == 0){
+
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix+1,iy,iz);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix+1,iy,iz);
+    }
+
+    if(ix == Nx+1){
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix-1,iy,iz);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix-1,iy,iz);
+    }
+
+    if(iy == 0){
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix,iy+1,iz);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix,iy+1,iz);
+    }
+
+    if(iy == Ny+1){
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix,iy-1,iz);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix,iy-1,iz);
+    }
+
+    if(iz == 0){
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix,iy,iz+1);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix,iy,iz+1);
+    }
+
+    if(iz == Nz+1){
+        /* == update rho == */
+        rho(ix,iy,iz)= rho(ix,iy,iz-1);
+
+
+        /* == update mu == */
+        mu(ix,iy,iz) = mu(ix,iy,iz-1);
+    }
+
+    MyArray<unsigned char,3>& celltype = grid->celltype_;
+
+    if(celltype(ix,iy,iz) == C_SOLID){
+
+        if(celltype(ix-1,iy,iz) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix-1,iy,iz);
+            mu(ix,iy,iz) = mu(ix-1,iy,iz);
+        }else if(celltype(ix+1,iy,iz) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix+1,iy,iz);
+            mu(ix,iy,iz) = mu(ix+1,iy,iz);
+        }else if(celltype(ix,iy-1,iz) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix,iy-1,iz);
+            mu(ix,iy,iz) = mu(ix,iy-1,iz);
+        }else if(celltype(ix,iy+1,iz) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix,iy+1,iz);
+            mu(ix,iy,iz) = mu(ix,iy+1,iz);
+        }else if(celltype(ix,iy,iz-1) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix,iy,iz-1);
+            mu(ix,iy,iz) = mu(ix,iy,iz-1);
+        }else if(celltype(ix,iy,iz+1) == C_INTERIOR){
+            rho(ix,iy,iz) = rho(ix,iy,iz+1);
+            mu(ix,iy,iz) = mu(ix,iy,iz+1);
+        }else{
+            rho(ix,iy,iz)=0.;
+            mu(ix,iy,iz)=0.;
+        }
+
+    }
+}
+
+static __global__ void k_update_cell_ghost_properties(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    bool is_ghost =
+        ix == 0 || ix == Nx+1 ||
+        iy == 0 || iy == Ny+1 ||
+        iz == 0 || iz == Nz+1;
+
+    if(!is_ghost) return;
+
+    MyArray<double,3> rho = grid->rho_;
+    MyArray<double,3> mu = grid->mu_;
+
+    int src_ix = ix == 0 ? 1 : ix == Nx+1 ? Nx : ix;
+    int src_iy = iy == 0 ? 1 : iy == Ny+1 ? Ny : iy;
+    int src_iz = iz == 0 ? 1 : iz == Nz+1 ? Nz : iz;
+
+    rho(ix,iy,iz) = rho(src_ix,src_iy,src_iz);
+    mu(ix,iy,iz) = mu(src_ix,src_iy,src_iz);
+}
 
 static __global__ void k_update_cell_properties_by_alpha(G_StaggeredGrid* grid,double rho0, double rho1, double mu0, double mu1){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
@@ -1417,6 +1546,10 @@ void G_SMACSolver::update_properties_by_alpha(){
     k_swap_rho<<<1,1>>>(grid_.d_ptr_);
 
     k_update_cell_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,rho0, rho1, mu0, mu1);
+    k_update_cell_boundary_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_cell_ghost_properties<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+
     k_update_x_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,rho0, rho1);
     k_update_y_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,rho0, rho1);
     k_update_z_face_properties_by_alpha<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,rho0, rho1);

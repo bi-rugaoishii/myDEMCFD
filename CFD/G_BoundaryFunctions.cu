@@ -254,6 +254,26 @@ __global__ void k_update_vz_outlet(SMACSolver solv, G_StaggeredGrid* grid){
     }
 }
 
+static __device__ __forceinline__ double d_get_velocity_ghost_value(
+    unsigned char bcType,
+    double boundaryVelocity,
+    double lambda,
+    double boundaryValue,
+    double innerValue){
+
+    if(bcType == BC_INFLOW){
+        return 2.0*(1.0-lambda)*boundaryVelocity-innerValue;
+    }else if(bcType == BC_NOSLIP){
+        return -innerValue;
+    }else if(bcType == BC_OUTLET){
+        return 2.0*boundaryValue-innerValue;
+    }else if(bcType == BC_SLIP){
+        return innerValue;
+    }
+
+    return boundaryValue;
+}
+
 __global__ void k_update_vx_ghost(G_StaggeredGrid* grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
     int iy = blockIdx.y*blockDim.y + threadIdx.y;
@@ -263,84 +283,258 @@ __global__ void k_update_vx_ghost(G_StaggeredGrid* grid){
     int Ny = grid->Ny_;
     int Nz = grid->Nz_;
 
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+    MyArray<double,3> vx = grid->f_vx_;
 
-    MyArray<double,3>  vx = grid->f_vx_;
-
-
-    if(iy == 0){
-
-        int bid = grid->f_xbcid_(ix,iy+1,iz);
+    // Lower y boundary, excluding corners.
+    if(iy == 0 && iz >= 1 && iz <= Nz){
+        int bid = grid->f_xbcid_(ix,1,iz);
         unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_x_(ix,1,iz);
 
-        if(bcType == BC_INFLOW){
-            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy+1,iz); 
-            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy+2,iz);
-        }else if(bcType == BC_NOSLIP){
-            vx(ix,iy,iz)= -vx(ix,iy+2,iz);
-        }else if(bcType == BC_OUTLET){
-            vx(ix,iy,iz) = 2.0*vx(ix,iy+1,iz)-vx(ix,iy+2,iz);
-        }else if(bcType == BC_SLIP){
-            vx(ix,iy,iz) = vx(ix,iy+2,iz);
-        }
-
-    }
-
-    if(iy == Ny+1){
-
-        int bid = grid->f_xbcid_(ix,iy-1,iz);
+        vx(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vx_(bid),
+            lambda,
+            vx(ix,1,iz),
+            vx(ix,2,iz));
+    }else if(iy == Ny+1 && iz >= 1 && iz <= Nz){
+        int bid = grid->f_xbcid_(ix,Ny,iz);
         unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_x_(ix,Ny,iz);
 
-        if(bcType == BC_INFLOW){
-            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy-1,iz); 
-            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy-2,iz);
-        }else if(bcType == BC_NOSLIP){
-            vx(ix,iy,iz)= -vx(ix,iy-2,iz);
-        }else if(bcType == BC_OUTLET){
-            vx(ix,iy,iz) = 2.0*vx(ix,iy-1,iz)-vx(ix,iy-2,iz);
-        }else if(bcType == BC_SLIP){
-            vx(ix,iy,iz) = vx(ix,iy-2,iz);
-        }
-
-
-    }
-
-    if(iz == 0){
-
-
-        int bid = grid->f_xbcid_(ix,iy,iz+1);
+        vx(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vx_(bid),
+            lambda,
+            vx(ix,Ny,iz),
+            vx(ix,Ny-1,iz));
+    }else if(iz == 0 && iy >= 1 && iy <= Ny){
+        int bid = grid->f_xbcid_(ix,iy,1);
         unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,1);
 
-        if(bcType == BC_INFLOW){
-            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz+1); 
-            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy,iz+2);
-        }else if(bcType == BC_NOSLIP){
-            vx(ix,iy,iz)= -vx(ix,iy,iz+2);
-        }else if(bcType == BC_OUTLET){
-            vx(ix,iy,iz) = 2.0*vx(ix,iy,iz+1)-vx(ix,iy,iz+2);
-        }else if(bcType == BC_SLIP){
-            vx(ix,iy,iz) = vx(ix,iy,iz+2);
-        }
-
-    }
-
-    if(iz == Nz+1){
-
-        int bid = grid->f_xbcid_(ix,iy,iz-1);
+        vx(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vx_(bid),
+            lambda,
+            vx(ix,iy,1),
+            vx(ix,iy,2));
+    }else if(iz == Nz+1 && iy >= 1 && iy <= Ny){
+        int bid = grid->f_xbcid_(ix,iy,Nz);
         unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,Nz);
 
-        if(bcType == BC_INFLOW){
-            double lambda = grid->f_ibm_area_solid_fraction_x_(ix,iy,iz-1); 
-            vx(ix,iy,iz) = 2.0*(1.-lambda)*grid->bc_.vx_(bid)-vx(ix,iy,iz-2);
-        }else if(bcType == BC_NOSLIP){
-            vx(ix,iy,iz)= -vx(ix,iy,iz-2);
-        }else if(bcType == BC_OUTLET){
-            vx(ix,iy,iz) = 2.0*vx(ix,iy,iz-1)-vx(ix,iy,iz-2);
-        }else if(bcType == BC_SLIP){
-            vx(ix,iy,iz) = vx(ix,iy,iz-2);
-        }
-
+        vx(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vx_(bid),
+            lambda,
+            vx(ix,iy,Nz),
+            vx(ix,iy,Nz-1));
     }
 }
 
+__global__ void k_update_vx_ghost_corner(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    bool is_y_ghost = iy == 0 || iy == Ny+1;
+    bool is_z_ghost = iz == 0 || iz == Nz+1;
+
+    if(!is_y_ghost || !is_z_ghost) return;
+
+    MyArray<double,3> vx = grid->f_vx_;
+
+    int inner_iy = iy == 0 ? 1 : Ny;
+    int inner_iz = iz == 0 ? 1 : Nz;
+
+    double y_ghost_value = vx(ix,iy,inner_iz);
+    double z_ghost_value = vx(ix,inner_iy,iz);
+
+    vx(ix,iy,iz) = 0.5*(y_ghost_value+z_ghost_value);
+}
+
+__global__ void k_update_vy_ghost(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<double,3> vy = grid->f_vy_;
+
+    // Lower x boundary, excluding corners.
+    if(ix == 0 && iz >= 1 && iz <= Nz){
+        int bid = grid->f_ybcid_(1,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_y_(1,iy,iz);
+
+        vy(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vy_(bid),
+            lambda,
+            vy(1,iy,iz),
+            vy(2,iy,iz));
+    }else if(ix == Nx+1 && iz >= 1 && iz <= Nz){
+        int bid = grid->f_ybcid_(Nx,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_y_(Nx,iy,iz);
+
+        vy(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vy_(bid),
+            lambda,
+            vy(Nx,iy,iz),
+            vy(Nx-1,iy,iz));
+    }else if(iz == 0 && ix >= 1 && ix <= Nx){
+        int bid = grid->f_ybcid_(ix,iy,1);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_y_(ix,iy,1);
+
+        vy(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vy_(bid),
+            lambda,
+            vy(ix,iy,1),
+            vy(ix,iy,2));
+    }else if(iz == Nz+1 && ix >= 1 && ix <= Nx){
+        int bid = grid->f_ybcid_(ix,iy,Nz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_y_(ix,iy,Nz);
+
+        vy(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vy_(bid),
+            lambda,
+            vy(ix,iy,Nz),
+            vy(ix,iy,Nz-1));
+    }
+}
+
+__global__ void k_update_vy_ghost_corner(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    bool is_x_ghost = ix == 0 || ix == Nx+1;
+    bool is_z_ghost = iz == 0 || iz == Nz+1;
+
+    if(!is_x_ghost || !is_z_ghost) return;
+
+    MyArray<double,3> vy = grid->f_vy_;
+
+    int inner_ix = ix == 0 ? 1 : Nx;
+    int inner_iz = iz == 0 ? 1 : Nz;
+
+    double x_ghost_value = vy(ix,iy,inner_iz);
+    double z_ghost_value = vy(inner_ix,iy,iz);
+
+    vy(ix,iy,iz) = 0.5*(x_ghost_value+z_ghost_value);
+}
+
+
+__global__ void k_update_vz_ghost(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<double,3> vz = grid->f_vz_;
+
+    // Lower x boundary, excluding corners.
+    if(ix == 0 && iy >= 1 && iy <= Ny){
+        int bid = grid->f_zbcid_(1,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_z_(1,iy,iz);
+
+        vz(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vz_(bid),
+            lambda,
+            vz(1,iy,iz),
+            vz(2,iy,iz));
+    }else if(ix == Nx+1 && iy >= 1 && iy <= Ny){
+        int bid = grid->f_zbcid_(Nx,iy,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_z_(Nx,iy,iz);
+
+        vz(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vz_(bid),
+            lambda,
+            vz(Nx,iy,iz),
+            vz(Nx-1,iy,iz));
+    }else if(iy == 0 && ix >= 1 && ix <= Nx){
+        int bid = grid->f_zbcid_(ix,1,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_z_(ix,1,iz);
+
+        vz(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vz_(bid),
+            lambda,
+            vz(ix,1,iz),
+            vz(ix,2,iz));
+    }else if(iy == Ny+1 && ix >= 1 && ix <= Nx){
+        int bid = grid->f_zbcid_(ix,Ny,iz);
+        unsigned char bcType = grid->bc_.bcType_(bid);
+        double lambda = grid->f_ibm_area_solid_fraction_z_(ix,Ny,iz);
+
+        vz(ix,iy,iz) = d_get_velocity_ghost_value(
+            bcType,
+            grid->bc_.vz_(bid),
+            lambda,
+            vz(ix,Ny,iz),
+            vz(ix,Ny-1,iz));
+    }
+}
+
+__global__ void k_update_vz_ghost_corner(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    bool is_x_ghost = ix == 0 || ix == Nx+1;
+    bool is_y_ghost = iy == 0 || iy == Ny+1;
+
+    if(!is_x_ghost || !is_y_ghost) return;
+
+    MyArray<double,3> vz = grid->f_vz_;
+
+    int inner_ix = ix == 0 ? 1 : Nx;
+    int inner_iy = iy == 0 ? 1 : Ny;
+
+    double x_ghost_value = vz(ix,inner_iy,iz);
+    double y_ghost_value = vz(inner_ix,iy,iz);
+
+    vz(ix,iy,iz) = 0.5*(x_ghost_value+y_ghost_value);
+}

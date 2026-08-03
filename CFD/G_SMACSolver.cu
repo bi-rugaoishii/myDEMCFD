@@ -1137,6 +1137,13 @@ void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     k_update_vz_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
 
     k_update_vx_ghost<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_vx_ghost_corner<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    k_update_vy_ghost<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_vy_ghost_corner<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    k_update_vz_ghost<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_vz_ghost_corner<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 
     cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
 }
