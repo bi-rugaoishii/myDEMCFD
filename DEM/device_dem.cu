@@ -985,9 +985,9 @@ void updateAcceleration(ParticleSys<DeviceMemory>* p, int i){
     int bi = i*DIM;
 
 
-    p->a[bi+0] = (p->g[0]+p->f[bi+0]*p->invm[i]);
-    p->a[bi+1] = (p->g[1]+p->f[bi+1]*p->invm[i]);
-    p->a[bi+2] = (p->g[2]+p->f[bi+2]*p->invm[i]);
+    p->a[bi+0] = (p->g[0]+(p->f[bi+0]+p->force_source[bi+0])*p->invm[i]);
+    p->a[bi+1] = (p->g[1]+(p->f[bi+1]+p->force_source[bi+1])*p->invm[i]);
+    p->a[bi+2] = (p->g[2]+(p->f[bi+2]+p->force_source[bi+2])*p->invm[i]);
 }
 
 /* 速度更新（重力適用） */
@@ -1086,10 +1086,66 @@ __global__ void k_integrate(ParticleSys<DeviceMemory>* p){
     p->angv[bi+0] += p->anga[bi+0] * p->dt;
     p->angv[bi+1] += p->anga[bi+1] * p->dt;
     p->angv[bi+2] += p->anga[bi+2] * p->dt;
-
-
 }
 
+__global__ void k_cfd_pressure_gradient(ParticleSys<DeviceMemory>* p){
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= p->N || p->isActive[i]!=1) return;
+
+    int bi = i*DIM;
+
+    double vol = p->vol[i];
+
+    p->force_source[bi+0] += -p->cfd_gradp_x_[i] * vol;
+    p->force_source[bi+1] += -p->cfd_gradp_y_[i] * vol;
+    p->force_source[bi+2] += -p->cfd_gradp_z_[i] * vol;
+}
+
+__global__ void k_cfd_schiller_naumann_drag(ParticleSys<DeviceMemory>* p){
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if(i >= p->N || p->isActive[i] != 1) return;
+
+
+    int bi = i*DIM;
+
+    double radius = p->r[i];
+    double rho = p->cfd_rho_[i];
+    double mu = p->cfd_mu_[i];
+
+
+    double urx = p->cfd_vx_[i] - p->v[bi+0];
+    double ury = p->cfd_vy_[i] - p->v[bi+1];
+    double urz = p->cfd_vz_[i] - p->v[bi+2];
+
+    double ur_sq = urx*urx + ury*ury + urz*urz;
+    if(ur_sq <= 0.0) return;
+
+    double ur = sqrt(ur_sq);
+    double diameter = 2.0*radius;
+    double re = rho*diameter*ur/mu;
+
+    double coeff;
+
+    if(re < 1000.0){
+        /*
+         * 0.5*Cd*rho*A*|ur|
+         * = 6*pi*mu*r*(1 + 0.15*Re^0.687)
+         */
+        coeff = 6.0*M_PI*mu*radius
+              * (1.0 + 0.15*pow(re,0.687));
+    }else{
+        /*
+         * Cd = 0.44
+         * 0.5*Cd*rho*A*|ur|
+         */
+        double area =M_PI*p->rsq[i];
+        coeff = 0.5*0.44*rho*area*ur;
+    }
+
+    p->force_source[bi+0] += coeff*urx;
+    p->force_source[bi+1] += coeff*ury;
+    p->force_source[bi+2] += coeff*urz;
+}
 /* ============== verlet list related============  */
 
 __global__ void k_shouldRefreshNeighborList(ParticleSys<DeviceMemory> *p, DeviceBoundingBox* box){
@@ -1192,11 +1248,63 @@ void device_dem_naive(ParticleSys<DeviceMemory> *p,BoundingBox *box, TriangleMes
     //    cudaDeviceSynchronize();
 
 }
+
+void device_dem_verlet_verlet_cfd(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize){
+
+    /* initialize force */
+    cudaMemset(p->f, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->mom, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->force_source, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->isContact, 0, sizeof(int)*p->N*MAX_NEI);
+    cudaMemset(p->isContactWall, 0, sizeof(int)*p->N*MAX_NEI);
+
+    k_collision_verlet_verlet<<<gridSize,blockSize>>>(p->d_self,box->d_boxPtr,mesh->d_meshPtr);
+
+    /* cfd coupling*/
+    k_cfd_pressure_gradient<<<gridSize,blockSize>>>(p->d_self);
+    k_cfd_schiller_naumann_drag<<<gridSize,blockSize>>>(p->d_self);
+    /* cfd coupling done*/
+
+    k_integrate<<<gridSize, blockSize>>>(p->d_self);
+
+    dk_checkOoB<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+
+    /* ==  check if refresh of verlet list required == */
+
+    cudaMemset(p->refreshVerletFlag, 0, sizeof(int));
+    k_shouldRefreshNeighborList<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+
+    int shouldRefreshVerletFlag = 0;
+    cudaMemcpy(&shouldRefreshVerletFlag,p->refreshVerletFlag,sizeof(int), cudaMemcpyDeviceToHost);
+
+    /* == refresh neighborlist if needed == */
+
+    if (shouldRefreshVerletFlag==1){
+        /* for debug */
+        printf("refreshing\n");
+        d_update_pList(p,box,gridSize, blockSize);
+
+        printf("sort neighborlist\n");
+        k_update_neighborlist_endsort<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+        printf("sort done\n");
+        k_update_neighborlist_wall<<<gridSize, blockSize>>>(p->d_self,mesh->d_meshPtr,bvh->d_bvhPtr, box->skinR);
+        printf("update neighborlist\n");
+    }
+
+    /*
+       cudaError_t err = cudaGetLastError();
+       printf("CUDA error = %s\n", cudaGetErrorString(err));
+     */
+    //    cudaDeviceSynchronize();
+
+}
+
 void device_dem_verlet_verlet(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize){
 
     /* initialize force */
     cudaMemset(p->f, 0, sizeof(double)*DIM*p->N);
     cudaMemset(p->mom, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->force_source, 0, sizeof(double)*DIM*p->N);
     cudaMemset(p->isContact, 0, sizeof(int)*p->N*MAX_NEI);
     cudaMemset(p->isContactWall, 0, sizeof(int)*p->N*MAX_NEI);
 

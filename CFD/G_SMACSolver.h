@@ -36,6 +36,7 @@ struct G_SMACSolver{
     void solve_vof_poisson_pcg_fused_kernel(SMACSolver solv);
 
     void correct_vof_velocity(SMACSolver solv);
+    void update_boundary_ghost(SMACSolver solv);
     void check_divergence();
 
     void transport_alpha();
@@ -58,6 +59,7 @@ struct G_SMACSolver{
     void build_vof_poisson_Ap(const double *p);
     void build_vof_poisson_invdiag();
     void make_poisson_rhs();
+    void make_face_gradp();
     void subtract_cell_mean(double *p, int Nx, int Ny);
 
     void set_boundary_star();

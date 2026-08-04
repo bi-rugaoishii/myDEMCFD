@@ -121,6 +121,11 @@ __global__ void k_interpolate_fluid_to_particle(G_StaggeredGrid* grid, ParticleS
     const double zp = ps->x[bi+2];
 
     if(!d_is_inside_cfd(grid, xp, yp, zp)){
+        ps->cfd_gradp_x_[pid] = 0.0;
+        ps->cfd_gradp_y_[pid] = 0.0;
+        ps->cfd_gradp_z_[pid] = 0.0;
+        ps->cfd_vy_[pid] = 0.0;
+        ps->cfd_vz_[pid] = 0.0;
         ps->cfd_vx_[pid] = 0.0;
         ps->cfd_vy_[pid] = 0.0;
         ps->cfd_vz_[pid] = 0.0;
@@ -144,12 +149,22 @@ __global__ void k_interpolate_fluid_to_particle(G_StaggeredGrid* grid, ParticleS
     const MyArray<double,3> vx = grid->f_vx_;
     const MyArray<double,3> vy = grid->f_vy_;
     const MyArray<double,3> vz = grid->f_vz_;
+
+    const MyArray<double,3> gradp_x = grid->f_gradp_x_;
+    const MyArray<double,3> gradp_y = grid->f_gradp_y_;
+    const MyArray<double,3> gradp_z = grid->f_gradp_z_;
+
     const MyArray<double,3> rho = grid->rho_;
     const MyArray<double,3> mu = grid->mu_;
 
     const double fluid_vx = d_interpolate_trilinear(vx, vx_stencil);
     const double fluid_vy = d_interpolate_trilinear(vy, vy_stencil);
     const double fluid_vz = d_interpolate_trilinear(vz, vz_stencil);
+
+    const double fluid_gradp_x = d_interpolate_trilinear(gradp_x, vx_stencil);
+    const double fluid_gradp_y = d_interpolate_trilinear(gradp_y, vy_stencil);
+    const double fluid_gradp_z = d_interpolate_trilinear(gradp_z, vz_stencil);
+
     const double fluid_rho = d_interpolate_trilinear(rho, cell_stencil);
     const double fluid_mu = d_interpolate_trilinear(mu, cell_stencil);
 
@@ -158,12 +173,16 @@ __global__ void k_interpolate_fluid_to_particle(G_StaggeredGrid* grid, ParticleS
     ps->cfd_vx_[pid] = fluid_vx;
     ps->cfd_vy_[pid] = fluid_vy;
     ps->cfd_vz_[pid] = fluid_vz;
+
+    ps->cfd_gradp_x_[pid] = fluid_gradp_x;
+    ps->cfd_gradp_y_[pid] = fluid_gradp_y;
+    ps->cfd_gradp_z_[pid] = fluid_gradp_z;
+
     ps->cfd_rho_[pid] = fluid_rho;
     ps->cfd_mu_[pid] = fluid_mu;
 
-    /* debug */
-    printf("position = %f %f %f, rho = %f\n",xp,yp,zp, fluid_rho);
 }
+
 void G_DEMCFDCoupling::get_index_of_Cell(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize, int blockSize){
 
     k_get_cfd_cell_index<<<gridSize, blockSize>>>(grid.d_ptr_, ps.d_self);

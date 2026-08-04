@@ -96,12 +96,17 @@ MEMBER(double, f_muz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
 MEMBER(double, f_rhox_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, f_rhoy_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
 MEMBER(double, f_rhoz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
-
-
+   
 /* inverse rho */
 MEMBER(double, f_bx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)
 MEMBER(double, f_by_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
 MEMBER(double, f_bz_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
+
+
+/* pressure gradient */
+MEMBER(double, f_gradp_x_, (Nx+3),(Ny+2),(Nz+2),SAVE_OFF)
+MEMBER(double, f_gradp_y_, (Nx+2),(Ny+3),(Nz+2),SAVE_OFF)
+MEMBER(double, f_gradp_z_, (Nx+2),(Ny+2),(Nz+3),SAVE_OFF)
 
 /* surface tension */
 MEMBER(double, f_sx_, (Nx+3),(Ny+2),(Nz+2),SAVE_ON)

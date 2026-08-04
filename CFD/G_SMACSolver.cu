@@ -1129,8 +1129,201 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
     }
 }
 
+static __global__ void k_update_cell_boundary_pressure(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3> p= grid->p_;
+
+    if (ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+
+    if(ix == 0){
+
+        /* == update p == */
+        p(ix,iy,iz)= p(ix+1,iy,iz);
+    }
+
+    if(ix == Nx+1){
+        /* == update p == */
+        p(ix,iy,iz)= p(ix-1,iy,iz);
+
+    }
+
+    if(iy == 0){
+        /* == update p == */
+        p(ix,iy,iz)= p(ix,iy+1,iz);
+
+    }
+
+    if(iy == Ny+1){
+        /* == update p == */
+        p(ix,iy,iz)= p(ix,iy-1,iz);
+
+    }
+
+    if(iz == 0){
+        /* == update p == */
+        p(ix,iy,iz)= p(ix,iy,iz+1);
+
+
+    }
+
+    if(iz == Nz+1){
+        /* == update p == */
+        p(ix,iy,iz)= p(ix,iy,iz-1);
+
+    }
+
+    MyArray<unsigned char,3>& celltype = grid->celltype_;
+
+    if(celltype(ix,iy,iz) == C_SOLID){
+
+        if(celltype(ix-1,iy,iz) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix-1,iy,iz);
+        }else if(celltype(ix+1,iy,iz) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix+1,iy,iz);
+        }else if(celltype(ix,iy-1,iz) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix,iy-1,iz);
+        }else if(celltype(ix,iy+1,iz) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix,iy+1,iz);
+        }else if(celltype(ix,iy,iz-1) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix,iy,iz-1);
+        }else if(celltype(ix,iy,iz+1) == C_INTERIOR){
+            p(ix,iy,iz) = p(ix,iy,iz+1);
+        }else{
+            p(ix,iy,iz)=0.;
+        }
+    }
+}
+
+static __global__ void k_update_cell_ghost_pressure(G_StaggeredGrid* grid){
+    int ix = blockIdx.x*blockDim.x + threadIdx.x;
+    int iy = blockIdx.y*blockDim.y + threadIdx.y;
+    int iz = blockIdx.z*blockDim.z + threadIdx.z;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    if(ix >= Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    bool is_ghost =
+        ix == 0 || ix == Nx+1 ||
+        iy == 0 || iy == Ny+1 ||
+        iz == 0 || iz == Nz+1;
+
+    if(!is_ghost) return;
+
+    MyArray<double,3> p = grid->p_;
+
+    int src_ix = ix == 0 ? 1 : ix == Nx+1 ? Nx : ix;
+    int src_iy = iy == 0 ? 1 : iy == Ny+1 ? Ny : iy;
+    int src_iz = iz == 0 ? 1 : iz == Nz+1 ? Nz : iz;
+
+    p(ix,iy,iz) = p(src_ix,src_iy,src_iz);
+}
+
 void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     k_correct_vof_velocity<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
+
+    cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
+}
+
+static __global__ void k_make_face_gradp_x(G_StaggeredGrid* grid){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    double inv_dx = grid->inv_dx_;
+    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  f_gradp = grid->f_gradp_x_;
+
+    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<unsigned char,3> f_xtype = grid->f_xtype_;
+
+    if(f_xtype(ix,iy,iz) != F_INTERIOR){
+        /* do nothing */
+    }else{
+        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx;
+    }
+
+}
+
+static __global__ void k_make_face_gradp_y(G_StaggeredGrid* grid){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    double inv_dy = grid->inv_dy_;
+    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  f_gradp = grid->f_gradp_y_;
+
+    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<unsigned char,3> f_ytype = grid->f_ytype_;
+
+    if(f_ytype(ix,iy,iz) != F_INTERIOR){
+        /* do nothing */
+    }else{
+        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy;
+    }
+
+}
+
+static __global__ void k_make_face_gradp_z(G_StaggeredGrid* grid){
+    int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
+    int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
+    int ix = blockIdx.x*blockDim.x + threadIdx.x+1;
+
+    int Nx = grid->Nx_;
+    int Ny = grid->Ny_;
+    int Nz = grid->Nz_;
+
+    double inv_dz = grid->inv_dz_;
+    MyArray<double,3>  p = grid->p_;
+    MyArray<double,3>  f_gradp = grid->f_gradp_z_;
+
+    if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
+
+    MyArray<unsigned char,3> f_ztype = grid->f_ztype_;
+
+    if(f_ztype(ix,iy,iz) != F_INTERIOR){
+        /* do nothing */
+    }else{
+        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz;
+    }
+
+}
+
+void G_SMACSolver::make_face_gradp(){
+
+    k_make_face_gradp_x<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_make_face_gradp_y<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_make_face_gradp_z<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+}
+
+void G_SMACSolver::update_boundary_ghost(SMACSolver solv){
+
+    k_update_cell_boundary_pressure<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_cell_ghost_pressure<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 
     k_update_vx_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_update_vy_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
@@ -1145,7 +1338,6 @@ void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
     k_update_vz_ghost<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
     k_update_vz_ghost_corner<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 
-    cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
 }
 
 static __global__  void  k_calc_cfl(G_StaggeredGrid* grid,double dt){

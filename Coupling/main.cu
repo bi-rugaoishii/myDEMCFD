@@ -479,7 +479,6 @@ int main(int argc, char** argv){
 
     /* output initial data */
     g_solv.gpuTocpu(solv.grid_);
-    fileIO.output_vti_binary_cellData(solv.grid_,0.);
 
     printf("output initial data done \n");
 
@@ -494,9 +493,74 @@ int main(int argc, char** argv){
 
     /* ==== DEMCFD Coupling initialization done === */
 
+
+    /* === calculate one step of CFD to get pressure gradient === */
+    {
+        int cur_step=0;
+
+        /* initial step requires high tolerance*/
+        g_solv.pressure_solver_->tol_ = 1e-11;
+
+        /* == setup time == */
+        double cfl=g_solv.calc_cfl();
+        cfdtime.updateTime(cfl);
+
+        solv.dt_ = cfdtime.dt_;
+        solv.inv_dt_ = 1./cfdtime.dt_;
+
+        g_solv.dt_ = cfdtime.dt_;
+        g_solv.inv_dt_ = 1./cfdtime.dt_;
+
+        printf("dt = %3.2e, current time = %f\n",cfdtime.dt_,cfdtime.current_time_);
+
+        /* == transport alpha == */
+        g_solv.clear_alpha_flux_accum();
+
+
+        double sub_dt = cfdtime.dt_/(double)alpha_substeps;
+        for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
+            printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
+            g_solv.clear_alpha_flux();
+            g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+
+            //g_solv.alpha_flux_thincwlic(sub_dt);
+            //g_solv.transport_alpha(); //used for unsplit thinc
+
+            g_solv.alpha_flux_accum();
+        }
+        /* == transport alpha done == */
+
+        g_solv.update_properties_by_alpha();
+        g_solv.compute_mass_flux_from_alpha_flux(solv);
+
+        g_solv.update_boundary_faces();
+
+
+        g_solv.calc_surface_tension();
+
+
+        g_solv.get_vof_vstar_rhouu_consistent(solv);
+
+        g_solv.update_vstar_boundary();
+
+
+        printf("starting poisson\n");
+        g_solv.solve_poisson();
+
+        g_solv.correct_vof_velocity(solv);
+        g_solv.update_boundary_ghost(solv);
+        g_solv.make_face_gradp();
+
+        g_solv.gpuTocpu(solv.grid_);
+        //solv.check_pressure_jump_by_radius();
+        fileIO.output_vti_binary_cellData(solv.grid_,0.0);
+
+    }
+
     /* ====== main dem routine ===== */
 
     printf("starting \n");
+
 
     /* ========== GPU ============= */
     if(isGPUon ==1){
@@ -511,7 +575,7 @@ int main(int argc, char** argv){
 
             }else{
 
-                device_dem_verlet_verlet(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
+                device_dem_verlet_verlet_cfd(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
             }
 
 

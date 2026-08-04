@@ -294,6 +294,7 @@ void initializeParticles(ParticleSys<HostMemory>* ps,cJSON *json_inlet, double r
 
             ps->r[i] = r;
             ps->rsq[i] = ps->r[i]*ps->r[i];
+            ps->vol[i] = 4./3.*M_PI*ps->rsq[i]*r;
             ps->invr[i] = 1./ps->r[i];
             ps->k[i] = k;
             ps->m[i] = m;

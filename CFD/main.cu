@@ -313,6 +313,8 @@ int main(int argc, char** argv){
             g_solv.solve_poisson();
 
             g_solv.correct_vof_velocity(solv);
+            g_solv.update_boundary_ghost(solv);
+            g_solv.make_face_gradp();
 
 
 

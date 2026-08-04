@@ -2,6 +2,7 @@ MEMBER(double, x, N*DIM,SAVE_ON)
 MEMBER(double, v, N*DIM,SAVE_ON)
 MEMBER(double, r, N,SAVE_ON)
 MEMBER(double, rsq, N,SAVE_OFF)
+MEMBER(double, vol, N,SAVE_ON)
 MEMBER(double, invr, N,SAVE_OFF)
 MEMBER(double, a, N*DIM,SAVE_OFF)
 MEMBER(double, f, N*DIM,SAVE_OFF)
@@ -15,6 +16,8 @@ MEMBER(double, anga, N*DIM,SAVE_OFF) /* angular accelartion */
 MEMBER(double, moi, N,SAVE_OFF) /* moment of intertia */
 MEMBER(double, invmoi, N,SAVE_OFF)
 MEMBER(double, mom, N*DIM,SAVE_OFF) /* torque */
+
+MEMBER(double, force_source, N*DIM,SAVE_OFF) 
 
 MEMBER(double, etaconst, N,SAVE_OFF)
 MEMBER(double, g, DIM,SAVE_OFF)
@@ -69,6 +72,10 @@ MEMBER(int, numNeiWall, N,SAVE_OFF) /* neighbor list */
 MEMBER(double, cfd_vx_, N, SAVE_OFF)
 MEMBER(double, cfd_vy_, N, SAVE_OFF)
 MEMBER(double, cfd_vz_, N, SAVE_OFF)
+
+MEMBER(double, cfd_gradp_x_, N, SAVE_OFF)
+MEMBER(double, cfd_gradp_y_, N, SAVE_OFF)
+MEMBER(double, cfd_gradp_z_, N, SAVE_OFF)
 
 MEMBER(double, cfd_rho_, N, SAVE_OFF)
 MEMBER(double, cfd_mu_, N, SAVE_OFF)
