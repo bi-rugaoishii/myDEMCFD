@@ -1,110 +1,63 @@
 {
-  "hardware": {
-    "use_gpu": true
-  },
-
-  "output": {
-    "directory": "results"
-  },
-
-
-
-  "fluid": {
-
-    "phase0": {
-      "density": 1.0,
-      "viscosity": 1.8e-5,
-      "comment":"gas"
+    "boundingBox":{
+        "minx": -0.2,
+        "maxx": 0.2,
+        "miny":-0.5,
+        "maxy":0.8,
+        "minz":-0.2,
+        "maxz":0.2,
+        "comment":"this is not used, but kept for debugging"
     },
 
-    "phase1": {
-      "density": 2000.0,
-      "viscosity": 1.0e-3,
-      "comment":"water"
+    "walls":{
+        "filepaths": [
+            "geometry/simpleBox.stl"
+        ]
     },
 
-    "surface_tension": 0.072,
-    "gravity": [0.0, -9.81, 0.0]
-  },
+    "inlet":{
+        "inputMode":"shuffle",
+        "COMMENT":"allowed input modes are 'shuffle', 'files' ",
+        "numParticle":10000,
+        "shuffle":{
+            "minx":-0.9,
+            "maxx": 0.9,
+            "miny":0.5,
+            "maxy":4.0,
+            "minz":-0.9,
+            "maxz":0.9
+        },
 
-  "time": {
-    "initial_dt": 1.0e-5,
-    "maximum_dt": 1.0e-2,
-    "end_time": 10.0,
-    "interval": 0.05,
-    "comment": "[s]",
-    "cfl": 0.2,
-    "vof_cfl": 0.2
-  },
+        "file":"initParticle.txt"
 
-  "pressure_solver": {
-    "gmg_levels": 4,
-    "tol": 1e-6
-  },
+    },
 
-  "boundary_conditions": [
-    {
-      "id": 1,
-      "type": "noslip",
-      "velocity": [0.0, 0.0, 0.0]
+    "particleTypes":{
+        "particle0":{
+            "density":1000.,
+            "radius":0.03,
+            "CoR":0.3,
+            "youngModulus":3.0e8,
+            "mu":0.3
+        }
+    },
+    "others":{
+        "seed":1,
+        "dtFactor":100,
+        "startTime":0,
+        "endTime":20.0,
+        "outputTiming":0.01,
+        "gpuOn":1,
+        "bruteOn":0
+    },
+
+    "gravity":{
+        "x":0.,
+        "y":-9.81,
+        "z":0.
     }
-
-
-  ],
-
-  "comment": "types are noslip, slip, inflow, outlet",
-
-  "boundary_faces": [
-      {
-          "axis": "x",
-          "side": "min",
-          "boundary_id": 1
-      },
-
-      {
-          "axis": "x",
-          "side": "max",
-          "boundary_id": 1
-      },
-
-
-      {
-          "axis": "y",
-          "side": "min",
-          "boundary_id": 1
-      },
-
-      {
-          "axis": "y",
-          "side": "max",
-          "boundary_id": 1
-      },
-      {
-          "axis": "z",
-          "side": "min",
-          "boundary_id": 1
-      },
-      {
-          "axis": "z",
-          "side": "max",
-          "boundary_id": 1
-      }
-  ],
-
-  "grid": {
-    "cells": [64,64,64],
-    "size": [2.0, 2.0, 2.0],
-    "origin": [-1.0, -1.0, -1.0],
-    "comment":"size is in m"
-  },
-
-  "initial_conditions": [
-    {
-      "type": "vof_box",
-      "minimum": [-1.0, -1.0, -1.0],
-      "maximum": [1.0, 0.0, 1.0],
-      "alpha": 1.0
-    }
-
-  ]
 }
+
+
+
+
