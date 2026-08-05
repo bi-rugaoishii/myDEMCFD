@@ -19,7 +19,7 @@ struct G_GMGSolver:G_PressureSolverBase{
     using Base=G_PressureSolverBase;
 
     int num_levels_;
-    int min_size_=12;
+    int min_size_=6;
     int num_iter_coarse_ =30; 
     int num_iter_fine_ = 4;
 

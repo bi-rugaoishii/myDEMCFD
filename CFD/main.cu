@@ -239,7 +239,7 @@ int main(int argc, char** argv){
         printf("\n\n PURENEUMANN\n\n");
     }else{
         pcgSolver.set_solver(GMG_PCG);
-        //pcgSolver.set_solver(STANDARD_PCG);
+       // pcgSolver.set_solver(STANDARD_PCG);
     }
 
     /* ============================= 

@@ -446,6 +446,8 @@ void G_PCGSolver::solve_pureneumann_pcg(G_SMACSolver& solv){
 
 
 void G_PCGSolver::solve_pcg(G_SMACSolver& solv){                                                       
+    /* debug */
+    printf("running normal pcg\n");
 
     G_StaggeredGrid& grid_=solv.grid_;
 

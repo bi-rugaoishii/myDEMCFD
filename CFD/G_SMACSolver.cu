@@ -1129,7 +1129,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
     }
 }
 
-static __global__ void k_update_cell_boundary_pressure(G_StaggeredGrid* grid){
+static __global__ void k_update_cell_boundary_pressure(SMACSolver solv, G_StaggeredGrid* grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x;
     int iy = blockIdx.y*blockDim.y + threadIdx.y;
     int iz = blockIdx.z*blockDim.z + threadIdx.z;
@@ -1139,7 +1139,16 @@ static __global__ void k_update_cell_boundary_pressure(G_StaggeredGrid* grid){
     int Ny=grid->Ny_;
     int Nz=grid->Nz_;
 
+    double dx = grid->dx_;
+    double dy = grid->dy_;
+    double dz = grid->dz_;
+
     MyArray<double,3> p= grid->p_;
+    MyArray<double,3> rho= grid->rho_;
+
+    double gx = solv.gx_;
+    double gy = solv.gy_;
+    double gz = solv.gz_;
 
     if (ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
@@ -1147,37 +1156,37 @@ static __global__ void k_update_cell_boundary_pressure(G_StaggeredGrid* grid){
     if(ix == 0){
 
         /* == update p == */
-        p(ix,iy,iz)= p(ix+1,iy,iz);
+        p(ix,iy,iz)= p(ix+1,iy,iz) - rho(ix+1,iy,iz)*gx*dx;
     }
 
     if(ix == Nx+1){
         /* == update p == */
-        p(ix,iy,iz)= p(ix-1,iy,iz);
+        p(ix,iy,iz)= p(ix-1,iy,iz) + rho(ix-1,iy,iz)*gx*dx;
 
     }
 
     if(iy == 0){
         /* == update p == */
-        p(ix,iy,iz)= p(ix,iy+1,iz);
+        p(ix,iy,iz)= p(ix,iy+1,iz) - rho(ix,iy+1,iz)*gy*dy;
 
     }
 
     if(iy == Ny+1){
         /* == update p == */
-        p(ix,iy,iz)= p(ix,iy-1,iz);
+        p(ix,iy,iz)= p(ix,iy-1,iz) + rho(ix,iy-1,iz)*gy*dy;
 
     }
 
     if(iz == 0){
         /* == update p == */
-        p(ix,iy,iz)= p(ix,iy,iz+1);
+        p(ix,iy,iz)= p(ix,iy,iz+1) - rho(ix,iy,iz+1)*gz*dz;
 
 
     }
 
     if(iz == Nz+1){
         /* == update p == */
-        p(ix,iy,iz)= p(ix,iy,iz-1);
+        p(ix,iy,iz)= p(ix,iy,iz-1) + rho(ix,iy,iz-1)*gz*dz;
 
     }
 
@@ -1186,24 +1195,24 @@ static __global__ void k_update_cell_boundary_pressure(G_StaggeredGrid* grid){
     if(celltype(ix,iy,iz) == C_SOLID){
 
         if(celltype(ix-1,iy,iz) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix-1,iy,iz);
+            p(ix,iy,iz)= p(ix-1,iy,iz) + rho(ix-1,iy,iz)*gx*dx;
         }else if(celltype(ix+1,iy,iz) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix+1,iy,iz);
+            p(ix,iy,iz)= p(ix+1,iy,iz) - rho(ix+1,iy,iz)*gx*dx;
         }else if(celltype(ix,iy-1,iz) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix,iy-1,iz);
+            p(ix,iy,iz)= p(ix,iy-1,iz) + rho(ix,iy-1,iz)*gy*dy;
         }else if(celltype(ix,iy+1,iz) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix,iy+1,iz);
+            p(ix,iy,iz)= p(ix,iy+1,iz) - rho(ix,iy+1,iz)*gy*dy;
         }else if(celltype(ix,iy,iz-1) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix,iy,iz-1);
+            p(ix,iy,iz)= p(ix,iy,iz-1) + rho(ix,iy,iz-1)*gz*dz;
         }else if(celltype(ix,iy,iz+1) == C_INTERIOR){
-            p(ix,iy,iz) = p(ix,iy,iz+1);
+            p(ix,iy,iz)= p(ix,iy,iz+1) - rho(ix,iy,iz+1)*gz*dz;
         }else{
             p(ix,iy,iz)=0.;
         }
     }
 }
 
-static __global__ void k_update_cell_ghost_pressure(G_StaggeredGrid* grid){
+static __global__ void k_update_cell_ghost_pressure(SMACSolver solv, G_StaggeredGrid* grid){
     int ix = blockIdx.x*blockDim.x + threadIdx.x;
     int iy = blockIdx.y*blockDim.y + threadIdx.y;
     int iz = blockIdx.z*blockDim.z + threadIdx.z;
@@ -1223,11 +1232,26 @@ static __global__ void k_update_cell_ghost_pressure(G_StaggeredGrid* grid){
 
     MyArray<double,3> p = grid->p_;
 
+    double dx = grid->dx_;
+    double dy = grid->dy_;
+    double dz = grid->dz_;
+
+    MyArray<double,3> rho= grid->rho_;
+
+    double gx = solv.gx_;
+    double gy = solv.gy_;
+    double gz = solv.gz_;
+
     int src_ix = ix == 0 ? 1 : ix == Nx+1 ? Nx : ix;
     int src_iy = iy == 0 ? 1 : iy == Ny+1 ? Ny : iy;
     int src_iz = iz == 0 ? 1 : iz == Nz+1 ? Nz : iz;
 
-    p(ix,iy,iz) = p(src_ix,src_iy,src_iz);
+
+    double rx = (double)(ix - src_ix)*dx;
+    double ry = (double)(iy - src_iy)*dy;
+    double rz = (double)(iz - src_iz)*dz;
+
+    p(ix,iy,iz) = p(src_ix,src_iy,src_iz) + rho(src_ix,src_iy,src_iz)*(rx*gx +ry*gy + rz*gz);
 }
 
 void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
@@ -1252,13 +1276,8 @@ static __global__ void k_make_face_gradp_x(G_StaggeredGrid* grid){
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    MyArray<unsigned char,3> f_xtype = grid->f_xtype_;
 
-    if(f_xtype(ix,iy,iz) != F_INTERIOR){
-        /* do nothing */
-    }else{
-        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx;
-    }
+    f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx;
 
 }
 
@@ -1277,13 +1296,8 @@ static __global__ void k_make_face_gradp_y(G_StaggeredGrid* grid){
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    MyArray<unsigned char,3> f_ytype = grid->f_ytype_;
 
-    if(f_ytype(ix,iy,iz) != F_INTERIOR){
-        /* do nothing */
-    }else{
-        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy;
-    }
+    f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy;
 
 }
 
@@ -1302,13 +1316,8 @@ static __global__ void k_make_face_gradp_z(G_StaggeredGrid* grid){
 
     if(ix >=Nx+2 || iy >= Ny+2 || iz >= Nz+2) return;
 
-    MyArray<unsigned char,3> f_ztype = grid->f_ztype_;
 
-    if(f_ztype(ix,iy,iz) != F_INTERIOR){
-        /* do nothing */
-    }else{
-        f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz;
-    }
+    f_gradp(ix,iy,iz) = (p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz;
 
 }
 
@@ -1322,8 +1331,8 @@ void G_SMACSolver::make_face_gradp(){
 
 void G_SMACSolver::update_boundary_ghost(SMACSolver solv){
 
-    k_update_cell_boundary_pressure<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
-    k_update_cell_ghost_pressure<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+    k_update_cell_boundary_pressure<<<grid_dim_,block_dim_>>>(solv, grid_.d_ptr_);
+    k_update_cell_ghost_pressure<<<grid_dim_,block_dim_>>>(solv, grid_.d_ptr_);
 
     k_update_vx_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_update_vy_outlet<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);

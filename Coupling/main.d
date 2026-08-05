@@ -39,7 +39,7 @@ Coupling/main.o : Coupling/main.cu \
     Coupling/../DEM/output.h \
     Coupling/../DEM/solver_output.h \
     Coupling/../DEM/settings_loader.h \
-    Coupling/G_DEMCFDCoupling.h
+    Coupling/G_CFDDEMCoupling.h
 
 Coupling/../CFD/hardCodedParameters.h:
 
@@ -121,4 +121,4 @@ Coupling/../DEM/solver_output.h:
 
 Coupling/../DEM/settings_loader.h:
 
-Coupling/G_DEMCFDCoupling.h:
+Coupling/G_CFDDEMCoupling.h:

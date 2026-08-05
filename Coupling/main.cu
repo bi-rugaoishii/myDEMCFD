@@ -46,8 +46,8 @@
 #define OUTPUT 1
 #define NONDIM 0
 
-// DEMCFD includes//
-#include "G_DEMCFDCoupling.h"
+// CFDDEM includes//
+#include "G_CFDDEMCoupling.h"
 
 int main(int argc, char** argv){ 
     setvbuf(stdout,NULL,_IOLBF,0);
@@ -241,14 +241,9 @@ int main(int argc, char** argv){
 
 
 
-    int steps = (int)(end_time/dt);
 
-    #if USE_GPU
     int blockSize =0;
     int gridSize =0;
-    cudaEvent_t d_start, d_stop, d_now;
-    double h_start, h_end;
-    float ms;
     if(isGPUon == 1){
         blockSize = 256;
         gridSize = (ps.N + blockSize - 1) / blockSize;
@@ -256,14 +251,7 @@ int main(int argc, char** argv){
 
         check_g_kernel<<<1, 1>>>(d_ps.d_self,mesh.d_meshPtr);
         cudaDeviceSynchronize();
-        cudaEventCreate(&d_start);
-        cudaEventCreate(&d_stop);
-        cudaEventCreate(&d_now);
-        cudaEventRecord(d_start);
-    }else{
-        h_start = omp_get_wtime();
     }
-    #endif
 
     /* == dem initialization done ==*/
     /* == dem initialization done ==*/
@@ -470,6 +458,7 @@ int main(int argc, char** argv){
     /* choose solver according to the boundary condition*/
     if(isPureNeumann){
         pcgSolver.set_solver(PURENEUMANN_GMG_PCG);
+        //pcgSolver.set_solver(PURENEUMANN_STANDARD_PCG);
         printf("\n\n PURENEUMANN\n\n");
     }else{
         pcgSolver.set_solver(GMG_PCG);
@@ -487,11 +476,11 @@ int main(int argc, char** argv){
     /* == CFD initialization done ==*/
     /* == CFD initialization done ==*/
 
-    /* ==== DEMCFD coupling ==== */
+    /* ==== CFDDEM coupling ==== */
 
-    G_DEMCFDCoupling demcfd;
+    G_CFDDEMCoupling cfddem;
 
-    /* ==== DEMCFD Coupling initialization done === */
+    /* ==== CFDDEM Coupling initialization done === */
 
 
     /* === calculate one step of CFD to get pressure gradient === */
@@ -557,107 +546,143 @@ int main(int argc, char** argv){
 
     }
 
+    /* === calc time measurement === */
+    double h_start, h_end;
+    float ms;
+    h_start = omp_get_wtime();
+
     /* ====== main dem routine ===== */
 
     printf("starting \n");
 
+    /* == set initial tolerance ==*/
+    g_solv.pressure_solver_->tol_ = config.pressure_solver.tol;
 
     /* ========== GPU ============= */
     if(isGPUon ==1){
-        for (int step = 1; step <= steps; step++){
-            #if USE_GPU
 
-            demcfd.interpolate_fluid_to_particle(g_solv.grid_, d_ps, gridSize, blockSize);
+        int cur_step = 0;
+        while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
+            /* == calculate cfd timestep == */
+            double cfl=g_solv.calc_cfl();
+            cfdtime.updateTime(cfl);
 
-            /* GPU */
-            if(isBruteOn==1){
-                device_dem_naive(&d_ps,&box,&mesh,&bvh,gridSize, blockSize);
+            solv.dt_ = cfdtime.dt_;
+            solv.inv_dt_ = 1./cfdtime.dt_;
 
+            g_solv.dt_ = cfdtime.dt_;
+            g_solv.inv_dt_ = 1./cfdtime.dt_;
+
+            printf("dt = %3.2e, current time = %f\n",cfdtime.dt_,cfdtime.current_time_);
+
+
+            /* == calculate dem timestep == */
+
+            int numDemSubSteps = 0;
+
+            if(cfdtime.dt_ < d_ps.dt){
+                printf("CFD time step is smaller than dem timestep!\n");
+                numDemSubSteps = 1;
+                d_ps.dt = cfdtime.dt_;
             }else{
+                numDemSubSteps = (int)ceil(cfdtime.dt_/d_ps.dt);
+                d_ps.dt = cfdtime.dt_/(double)numDemSubSteps;
+            }
 
-                device_dem_verlet_verlet_cfd(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
+            printf("dem dt = %3.2e\n",d_ps.dt);
+
+
+            for (int demStep = 0; demStep < numDemSubSteps; demStep++){
+
+                cfddem.interpolate_fluid_to_particle(g_solv.grid_, d_ps, gridSize, blockSize);
+
+                /* GPU */
+                if(isBruteOn==1){
+                    device_dem_naive(&d_ps,&box,&mesh,&bvh,gridSize, blockSize);
+
+                }else{
+
+                    device_dem_verlet_verlet_cfd(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
+                }
+
+
             }
 
 
-            #if OUTPUT
-            if (step % outStep == 0)
-            {
-                cudaDeviceSynchronize();
+            /* == dem steps done == */
+            /* == starting cfd steps == */
+
+            /* == transport alpha == */
+            g_solv.clear_alpha_flux_accum();
+
+
+            double sub_dt = cfdtime.dt_/(double)alpha_substeps;
+            for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
+                printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
+                g_solv.clear_alpha_flux();
+                g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+
+
+                g_solv.alpha_flux_accum();
+            }
+            /* == transport alpha done == */
+
+            g_solv.update_properties_by_alpha();
+            g_solv.compute_mass_flux_from_alpha_flux(solv);
+
+            g_solv.update_boundary_faces();
+
+
+            g_solv.calc_surface_tension();
+
+
+            g_solv.get_vof_vstar_rhouu_consistent(solv);
+
+            g_solv.update_vstar_boundary();
+
+
+            printf("starting poisson\n");
+            g_solv.solve_poisson();
+
+            g_solv.correct_vof_velocity(solv);
+            g_solv.update_boundary_ghost(solv);
+            g_solv.make_face_gradp();
+
+
+
+            if(cfdtime.isOutStep_){
+
                 copyFromDevice(&d_ps,&ps);
-                #if NONDIM
-                write_frame_bin(outdir,step,&ps,ps.length_factor);
+                write_frame_bin(outdir,cfdtime.current_steps_,&ps,1.0);
                 for (int i=0; i<numWrite; i++){
-                    write_single_text(outdir,step,&ps,i);
+                    write_single_text(outdir,cfdtime.current_steps_,&ps,i);
                 }
-                #else
-                write_frame_bin(outdir,step,&ps,1.0);
-                for (int i=0; i<numWrite; i++){
-                    write_single_text(outdir,step,&ps,i);
-                }
-                #endif
 
-                cudaEventRecord(d_now);
-                cudaEventSynchronize(d_now);
-
-                cudaEventElapsedTime(&ms, d_start, d_now);
-                printf("Output step %d, current time: %f, GPU time: %f s\n", step, (step)*dt,ms/1000.0f);
-            }
-        }
-    }else{
-        /* ============= CPU ============== */
-        #endif
-        for (int step = 1; step <= steps; step++){
-            /* CPU */
-            if(isBruteOn==1){
-                cpu_dem_naive_triangle(&ps, &box, &mesh);
-            }else{
-                // cpu_dem_nosort_triangle(&ps, &tmpPs, &box,&mesh);
-                //cpu_dem_sort(&ps, &tmpPs, &box, step);
-                //cpu_dem_sort_triangles(&ps, &tmpPs, &box,&mesh, step);
-                //cpu_dem_verlet_triangles(&ps, &tmpPs, &box,&mesh, step);
-                // cpu_dem_verlet_BVH(&ps, &tmpPs, &box,&mesh, &bvh,step);
-                cpu_dem_verlet_verlet(&ps,&tmpPs, &box,&mesh, &bvh,step);
-
-            }
-
-            checkOoB(&ps,&tmpPs,&box);
-            #if OUTPUT
-            if (step % outStep == 0){
-                //  writeParticlesVTKBinary(&ps, step);
-                #if NONDIM
-                write_frame_bin(outdir,step,&ps,ps.length_factor);
-                for (int i=0; i<numWrite; i++){
-                    write_single_text(outdir,step,&ps,i);
-                }
-                #else
-                write_frame_bin(outdir,step,&ps,1.0);
-                for (int i=0; i<numWrite; i++){
-                    write_single_text(outdir,step,&ps,i);
-                }
-                #endif
+                g_solv.gpuTocpu(solv.grid_);
+                //solv.check_pressure_jump_by_radius();
+                fileIO.output_vti_binary_cellData(solv.grid_,cfdtime.current_steps_);
                 h_end = omp_get_wtime();
                 ms = (float)(h_end-h_start);
-                printf("Output step %d,current time: %f s, CPU time: %f s\n", step,(step)*dt,ms);
+
+                int step= cfdtime.current_steps_;
+                double current_time= cfdtime.current_time_;
+                printf("Output step %d, dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
+                cfdtime.isOutStep_=false;
+            }else{
+                h_end = omp_get_wtime();
+                ms = (float)(h_end-h_start);
+
+                int step= cfdtime.current_steps_;
+                double current_time= cfdtime.current_time_;
+                printf("step %d,next dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
             }
-            #endif
-            #endif
+            printf("\n");
+
+            cur_step ++;
+
         }
     }
-
-#if USE_GPU
-    if(isGPUon == 1){
-        cudaEventRecord(d_stop);
-        cudaEventSynchronize(d_stop);
-        cudaEventElapsedTime(&ms,d_start, d_stop);
-        printf("GPU time: %f s\n",ms/1000.);
-    }else{
-        h_end = omp_get_wtime();
-        ms = (float)(h_end-h_start);
-        printf("CPU time: %f s\n",ms);
-    }
-#endif
-
-
+        
     /* === free memories === */
 
     printf("deallocating memories\n");
