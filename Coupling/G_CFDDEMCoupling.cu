@@ -109,6 +109,10 @@ static __global__ void k_get_cfd_cell_index(G_StaggeredGrid *grid, ParticleSys<D
 
 }
 
+__global__ void k_update_demdt(ParticleSys<DeviceMemory>* ps, double dt){
+    ps->dt = dt;
+}
+
 __global__ void k_interpolate_fluid_to_particle(G_StaggeredGrid* grid, ParticleSys<DeviceMemory>* ps){
     const int pid = blockIdx.x * blockDim.x + threadIdx.x;
 

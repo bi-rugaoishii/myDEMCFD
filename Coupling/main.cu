@@ -154,6 +154,8 @@ int main(int argc, char** argv){
 
     ps.dt=dt;
 
+    double initial_demdt = dt;
+
 
     const char *inlet_type = cJSON_GetObjectItem(json_inlet,"inputMode")->valuestring;
     cJSON *json_inlet_type = cJSON_GetObjectItem(json_inlet,inlet_type);
@@ -575,18 +577,26 @@ int main(int argc, char** argv){
 
             printf("dt = %3.2e, current time = %f\n",cfdtime.dt_,cfdtime.current_time_);
 
+            /* == for two way == */
+            cudaMemset(g_solv.grid_.f_coupling_impulse_x_.data_, 0, sizeof(double)*g_solv.grid_.f_coupling_impulse_x_.size_);
+            cudaMemset(g_solv.grid_.f_coupling_impulse_y_.data_, 0, sizeof(double)*g_solv.grid_.f_coupling_impulse_y_.size_);
+            cudaMemset(g_solv.grid_.f_coupling_impulse_z_.data_, 0, sizeof(double)*g_solv.grid_.f_coupling_impulse_z_.size_);
 
             /* == calculate dem timestep == */
 
             int numDemSubSteps = 0;
 
-            if(cfdtime.dt_ < d_ps.dt){
+            if(cfdtime.dt_ < initial_demdt){
                 printf("CFD time step is smaller than dem timestep!\n");
                 numDemSubSteps = 1;
                 d_ps.dt = cfdtime.dt_;
+
+                k_update_demdt<<<1,1>>>(d_ps.d_self, d_ps.dt);
             }else{
-                numDemSubSteps = (int)ceil(cfdtime.dt_/d_ps.dt);
+                numDemSubSteps = (int)ceil(cfdtime.dt_/initial_demdt);
                 d_ps.dt = cfdtime.dt_/(double)numDemSubSteps;
+
+                k_update_demdt<<<1,1>>>(d_ps.d_self, d_ps.dt);
             }
 
             printf("dem dt = %3.2e\n",d_ps.dt);
@@ -602,7 +612,8 @@ int main(int argc, char** argv){
 
                 }else{
 
-                    device_dem_verlet_verlet_cfd(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
+                    //device_dem_verlet_verlet_cfd(&d_ps, &box, &mesh,&bvh,gridSize, blockSize);
+                    device_dem_verlet_verlet_cfd_two_way(&d_ps, &box, &mesh,&bvh,g_solv.grid_,gridSize, blockSize);
                 }
 
 
@@ -682,7 +693,7 @@ int main(int argc, char** argv){
 
         }
     }
-        
+
     /* === free memories === */
 
     printf("deallocating memories\n");

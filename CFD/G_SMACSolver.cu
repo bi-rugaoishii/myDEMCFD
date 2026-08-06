@@ -379,9 +379,11 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_x(SMACSolver solv,G_Stag
         /* == add pressure gradient == */
         tmp_vx -=  (p(ix,iy,iz) - p(ix-1,iy,iz))*inv_dx;
 
+        const double inv_volume = grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
 
+        const double coupling_momentum_density = grid->f_coupling_impulse_x_(ix,iy,iz)*inv_volume;
 
-        vx_star(ix,iy,iz)=f_inv_rho*vx_111*f_rho_old+dt*(f_inv_rho*tmp_vx+gx);
+        vx_star(ix,iy,iz)=f_inv_rho*(vx_111*f_rho_old+coupling_momentum_density)+dt*(f_inv_rho*tmp_vx+gx);
 
         /* == add ibm == */
         double solid_frac = grid->f_ibm_solid_fraction_x_(ix,iy,iz);
@@ -664,7 +666,12 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_y(SMACSolver solv,G_Stag
 
         /* == add pressure gradient == */
         tmp_vy -=  (p(ix,iy,iz) - p(ix,iy-1,iz))*inv_dy;
-        vy_star(ix,iy,iz)=f_inv_rho*vy_111*f_rho_old+dt*(f_inv_rho*tmp_vy+gy);
+
+        const double inv_volume = grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
+
+        const double coupling_momentum_density = grid->f_coupling_impulse_y_(ix,iy,iz)*inv_volume;
+
+        vy_star(ix,iy,iz)=f_inv_rho*(vy_111*f_rho_old+coupling_momentum_density)+dt*(f_inv_rho*tmp_vy+gy);
 
         /* == add ibm == */
         double solid_frac = grid->f_ibm_solid_fraction_y_(ix,iy,iz);
@@ -676,37 +683,37 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_y(SMACSolver solv,G_Stag
 
     /* debug*/
     /*
-    int jp = iy;
-    int jm = iy - 1;
+       int jp = iy;
+       int jm = iy - 1;
 
-    double rho_m = grid->rho_(ix, jm, iz);
-    double rho_p = grid->rho_(ix, jp, iz);
-    double beta_f = grid->f_by_( ix, iy, iz);
+       double rho_m = grid->rho_(ix, jm, iz);
+       double rho_p = grid->rho_(ix, jp, iz);
+       double beta_f = grid->f_by_( ix, iy, iz);
 
-    double gravity_y = -9.81;
-    double dpdy =
-        (p(ix, jp, iz) - p(ix, jm, iz)) * inv_dy;
+       double gravity_y = -9.81;
+       double dpdy =
+       (p(ix, jp, iz) - p(ix, jm, iz)) * inv_dy;
 
-    double pressure_acc = -beta_f * dpdy;
-    double total_acc = pressure_acc -9.81;
+       double pressure_acc = -beta_f * dpdy;
+       double total_acc = pressure_acc -9.81;
 
-    if(total_acc > 1e-6){
+       if(total_acc > 1e-6){
 
-        printf(
-                "iy=%d rho_m=%.15e rho_p=%.15e "
-                "beta=%.15e pm=%.15e pp=%.15e "
-                "pacc=%.15e gy=%.15e total=%.15e\n",
-                iy,
-                rho_m,
-                rho_p,
-                beta_f,
-                p(ix, jm, iz),
-                p(ix, jp, iz),
-                pressure_acc,
-                gravity_y,
-                total_acc);
-    }
-    */
+       printf(
+       "iy=%d rho_m=%.15e rho_p=%.15e "
+       "beta=%.15e pm=%.15e pp=%.15e "
+       "pacc=%.15e gy=%.15e total=%.15e\n",
+       iy,
+       rho_m,
+       rho_p,
+       beta_f,
+       p(ix, jm, iz),
+       p(ix, jp, iz),
+       pressure_acc,
+       gravity_y,
+       total_acc);
+       }
+     */
 }
 
 
@@ -988,7 +995,11 @@ static __global__ void k_get_vof_vstar_rhouu_consistent_z(SMACSolver solv,G_Stag
         /* == add pressure gradient == */
         tmp_vz -=  (p(ix,iy,iz) - p(ix,iy,iz-1))*inv_dz;
 
-        vz_star(ix,iy,iz)=f_inv_rho*vz_111*f_rho_old+dt*(f_inv_rho*tmp_vz+gz);
+        const double inv_volume = grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
+
+        const double coupling_momentum_density = grid->f_coupling_impulse_z_(ix,iy,iz)*inv_volume;
+
+        vz_star(ix,iy,iz)=f_inv_rho*(vz_111*f_rho_old+coupling_momentum_density)+dt*(f_inv_rho*tmp_vz+gz);
 
         /* == add ibm == */
         double solid_frac = grid->f_ibm_solid_fraction_z_(ix,iy,iz);

@@ -8,6 +8,7 @@
 #include <math.h>
 #include <chrono>
 #include "ParticleSystem.h"
+#include "../CFD/G_StaggeredGrid.h"
 #include "BoundingBox.h"
 #include "BVH.h"
 #include "Vec3.h"
@@ -99,6 +100,8 @@ __global__ void k_collision_triangle(ParticleSys<DeviceMemory>* p, DeviceBoundin
 
 __global__ void k_collision(ParticleSys<DeviceMemory>* p, DeviceBoundingBox* box);
 
+
+
 /*
    ======================================================
    main routine 
@@ -110,6 +113,9 @@ void device_dem_naive(ParticleSys<DeviceMemory> *p,BoundingBox *box, TriangleMes
 void device_dem_verlet_verlet_withSort(ParticleSys<DeviceMemory> *p,ParticleSys<DeviceMemory> *tmpPs, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize);
 
 void device_dem_verlet_verlet_cfd(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize);
+
+void device_dem_verlet_verlet_cfd_two_way(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, G_StaggeredGrid grid, int gridSize, int blockSize);
+
 void device_dem_verlet_verlet(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize);
 
 void device_dem_verlet_triangles(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, int gridSize, int blockSize);

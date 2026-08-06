@@ -13,6 +13,34 @@ struct TrilinearStencil{
     double tz;
 };
 
+/* ===== cfd coupling ===== */
+__device__ __forceinline__
+void d_atomic_add_trilinear(MyArray<double,3> field,const TrilinearStencil& stencil, double value){
+
+    const int i0 = stencil.i0;
+    const int j0 = stencil.j0;
+    const int k0 = stencil.k0;
+
+    const double wx0 = 1.0-stencil.tx;
+    const double wx1 = stencil.tx;
+
+    const double wy0 = 1.0-stencil.ty;
+    const double wy1 = stencil.ty;
+
+    const double wz0 = 1.0-stencil.tz;
+    const double wz1 = stencil.tz;
+
+    atomicAdd(&field(i0,  j0,  k0),   value*wx0*wy0*wz0);
+    atomicAdd(&field(i0+1,j0,  k0),   value*wx1*wy0*wz0);
+    atomicAdd(&field(i0,  j0+1,k0),   value*wx0*wy1*wz0);
+    atomicAdd(&field(i0+1,j0+1,k0),   value*wx1*wy1*wz0);
+
+    atomicAdd(&field(i0,  j0,  k0+1), value*wx0*wy0*wz1);
+    atomicAdd(&field(i0+1,j0,  k0+1), value*wx1*wy0*wz1);
+    atomicAdd(&field(i0,  j0+1,k0+1), value*wx0*wy1*wz1);
+    atomicAdd(&field(i0+1,j0+1,k0+1), value*wx1*wy1*wz1);
+}
+
 template<int OFFSET_X2, int OFFSET_Y2, int OFFSET_Z2>
 __device__ __forceinline__ TrilinearStencil d_get_stencil(const G_StaggeredGrid* grid, const ParticleSys<DeviceMemory>* ps, int pid){
     static_assert(OFFSET_X2 == 0 || OFFSET_X2 == 1,
@@ -104,6 +132,8 @@ __device__ __forceinline__
 bool same_stencil_base(const TrilinearStencil& stencil, int old_i0, int old_j0, int old_k0){
     return stencil.i0 == old_i0 && stencil.j0 == old_j0 && stencil.k0 == old_k0;
 }
+
+__global__ void k_update_demdt(ParticleSys<DeviceMemory>* ps, double dt);
 
 struct G_CFDDEMCoupling{
 

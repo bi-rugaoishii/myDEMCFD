@@ -1,4 +1,5 @@
 #include "device_dem.h"
+#include "../Coupling/G_CFDDEMCoupling.h"
 #define DIM 3
 
 
@@ -1088,6 +1089,169 @@ __global__ void k_integrate(ParticleSys<DeviceMemory>* p){
     p->angv[bi+2] += p->anga[bi+2] * p->dt;
 }
 
+__global__ void k_cfd_pressure_gradient_two_way(G_StaggeredGrid* grid, ParticleSys<DeviceMemory>* p){
+
+    const int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+    if(i >= p->N || p->isActive[i]!=1) return;
+
+    const int bi = i*DIM;
+
+    const double vol = p->vol[i];
+
+    /*
+     * Pressure-gradient force acting on the particle.
+     *
+     * F_particle = -Vp*grad(p)
+     */
+    const double force_x = -p->cfd_gradp_x_[i]*vol;
+    const double force_y = -p->cfd_gradp_y_[i]*vol;
+    const double force_z = -p->cfd_gradp_z_[i]*vol;
+
+    p->force_source[bi+0] += force_x;
+    p->force_source[bi+1] += force_y;
+    p->force_source[bi+2] += force_z;
+
+    /*
+     * Reaction impulse acting on the fluid.
+     *
+     * J_fluid = -F_particle*dt_dem
+     *         = +Vp*grad(p)*dt_dem
+     */
+    const double reaction_impulse_x = -force_x*p->dt;
+    const double reaction_impulse_y = -force_y*p->dt;
+    const double reaction_impulse_z = -force_z*p->dt;
+
+    /*
+     * Use the same staggered stencils used for interpolation.
+     */
+    const TrilinearStencil vx_stencil =
+        d_get_stencil<0,1,1>(grid,p,i);
+
+    const TrilinearStencil vy_stencil =
+        d_get_stencil<1,0,1>(grid,p,i);
+
+    const TrilinearStencil vz_stencil =
+        d_get_stencil<1,1,0>(grid,p,i);
+
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_x_,
+        vx_stencil,
+        reaction_impulse_x
+    );
+
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_y_,
+        vy_stencil,
+        reaction_impulse_y
+    );
+
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_z_,
+        vz_stencil,
+        reaction_impulse_z
+    );
+}
+
+__global__ void k_cfd_schiller_naumann_drag_two_way(G_StaggeredGrid* grid, ParticleSys<DeviceMemory>* p){
+
+    const int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+    if(i >= p->N || p->isActive[i]!=1) return;
+
+    const int bi = i*DIM;
+
+    const double radius = p->r[i];
+    const double rho = p->cfd_rho_[i];
+    const double mu = p->cfd_mu_[i];
+
+    if(radius <= 0.0 || rho <= 0.0 || mu <= 0.0) return;
+
+    const double urx = p->cfd_vx_[i]-p->v[bi+0];
+    const double ury = p->cfd_vy_[i]-p->v[bi+1];
+    const double urz = p->cfd_vz_[i]-p->v[bi+2];
+
+    const double ur_sq = urx*urx+ury*ury+urz*urz;
+
+    if(ur_sq <= 0.0) return;
+
+    const double ur = sqrt(ur_sq);
+    const double diameter = 2.0*radius;
+    const double re = rho*diameter*ur/mu;
+
+    double coeff;
+
+    if(re < 1000.0){
+        /*
+         * Fd = 6*pi*mu*r*(1+0.15*Re^0.687)*ur_vec
+         */
+        coeff =
+            6.0*M_PI*mu*radius*
+            (1.0+0.15*pow(re,0.687));
+    }else{
+        /*
+         * Cd = 0.44
+         * Fd = 0.5*Cd*rho*A*|ur|*ur_vec
+         */
+        const double area = M_PI*p->rsq[i];
+
+        coeff =
+            0.5*0.44*rho*area*ur;
+    }
+
+    /*
+     * Drag force acting on the particle.
+     */
+    const double drag_x = coeff*urx;
+    const double drag_y = coeff*ury;
+    const double drag_z = coeff*urz;
+
+    p->force_source[bi+0] += drag_x;
+    p->force_source[bi+1] += drag_y;
+    p->force_source[bi+2] += drag_z;
+
+    /*
+     * Reaction impulse acting on the fluid.
+     */
+    const double impulse_x = -drag_x*p->dt;
+    const double impulse_y = -drag_y*p->dt;
+    const double impulse_z = -drag_z*p->dt;
+
+    /*
+     * Recalculate the current stencils because the particle position
+     * can change every DEM step.
+     */
+    const TrilinearStencil vx_stencil =
+        d_get_stencil<0,1,1>(grid,p,i);
+
+    const TrilinearStencil vy_stencil =
+        d_get_stencil<1,0,1>(grid,p,i);
+
+    const TrilinearStencil vz_stencil =
+        d_get_stencil<1,1,0>(grid,p,i);
+
+    /*
+     * Deposit each momentum component onto its staggered velocity grid.
+     */
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_x_,
+        vx_stencil,
+        impulse_x
+    );
+
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_y_,
+        vy_stencil,
+        impulse_y
+    );
+
+    d_atomic_add_trilinear(
+        grid->f_coupling_impulse_z_,
+        vz_stencil,
+        impulse_z
+    );
+}
+
 __global__ void k_cfd_pressure_gradient(ParticleSys<DeviceMemory>* p){
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= p->N || p->isActive[i]!=1) return;
@@ -1249,6 +1413,59 @@ void device_dem_naive(ParticleSys<DeviceMemory> *p,BoundingBox *box, TriangleMes
 
 }
 
+
+void device_dem_verlet_verlet_cfd_two_way(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, G_StaggeredGrid grid, int gridSize, int blockSize){
+
+    /* initialize force */
+    cudaMemset(p->f, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->mom, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->force_source, 0, sizeof(double)*DIM*p->N);
+    cudaMemset(p->isContact, 0, sizeof(int)*p->N*MAX_NEI);
+    cudaMemset(p->isContactWall, 0, sizeof(int)*p->N*MAX_NEI);
+
+    k_collision_verlet_verlet<<<gridSize,blockSize>>>(p->d_self,box->d_boxPtr,mesh->d_meshPtr);
+
+    /* cfd coupling*/
+
+    /* one way pressure gradient for now*/
+    k_cfd_pressure_gradient<<<gridSize,blockSize>>>(p->d_self);
+
+    k_cfd_schiller_naumann_drag_two_way<<<gridSize,blockSize>>>(grid.d_ptr_,p->d_self);
+    /* cfd coupling done*/
+
+    k_integrate<<<gridSize, blockSize>>>(p->d_self);
+
+    dk_checkOoB<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+
+    /* ==  check if refresh of verlet list required == */
+
+    cudaMemset(p->refreshVerletFlag, 0, sizeof(int));
+    k_shouldRefreshNeighborList<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+
+    int shouldRefreshVerletFlag = 0;
+    cudaMemcpy(&shouldRefreshVerletFlag,p->refreshVerletFlag,sizeof(int), cudaMemcpyDeviceToHost);
+
+    /* == refresh neighborlist if needed == */
+
+    if (shouldRefreshVerletFlag==1){
+        /* for debug */
+        printf("refreshing\n");
+        d_update_pList(p,box,gridSize, blockSize);
+
+        printf("sort neighborlist\n");
+        k_update_neighborlist_endsort<<<gridSize, blockSize>>>(p->d_self,box->d_boxPtr);
+        printf("sort done\n");
+        k_update_neighborlist_wall<<<gridSize, blockSize>>>(p->d_self,mesh->d_meshPtr,bvh->d_bvhPtr, box->skinR);
+        printf("update neighborlist\n");
+    }
+
+    /*
+       cudaError_t err = cudaGetLastError();
+       printf("CUDA error = %s\n", cudaGetErrorString(err));
+     */
+    //    cudaDeviceSynchronize();
+
+}
 void device_dem_verlet_verlet_cfd(ParticleSys<DeviceMemory> *p, BoundingBox *box,TriangleMesh *mesh, BVH *bvh, int gridSize, int blockSize){
 
     /* initialize force */
