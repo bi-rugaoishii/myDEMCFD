@@ -484,12 +484,13 @@ int main(int argc, char** argv){
     cfddem.block_dim_ = g_solv.block_dim_;
     cfddem.grid_dim_ = g_solv.grid_dim_;
 
+    /* == void fraction has to be initialized as 1 ==*/
+    cfddem.initialize_void_fractions(g_solv.grid_);
     cfddem.set_particle_volume_to_cell(g_solv.grid_,d_ps,gridSize, blockSize);
     cfddem.gaussian_filter_particle_volume(g_solv.grid_);
     cfddem.calc_void_fraction(g_solv.grid_);
+    cfddem.sync_initial_void_fraction(g_solv.grid_);
     cfddem.update_boundary_ghost_void_fraction(g_solv.grid_);
-    /* == void fraction has to be initialized as 1 ==*/
-    cfddem.initialize_void_fractions(g_solv.grid_);
 
     /* ==== CFDDEM Coupling initialization done === */
 
@@ -529,6 +530,7 @@ int main(int argc, char** argv){
         g_solv.update_properties_by_alpha();
         g_solv.compute_mass_flux_from_alpha_flux_two_way(solv);
 
+        cfddem.update_poisson_beta_two_way(g_solv.grid_);
         g_solv.update_boundary_faces();
 
 
@@ -541,7 +543,6 @@ int main(int argc, char** argv){
 
 
         printf("starting poisson\n");
-        cfddem.update_poisson_beta_two_way(g_solv.grid_);
         g_solv.solve_poisson();
 
         g_solv.correct_vof_velocity(solv);
@@ -627,6 +628,7 @@ int main(int argc, char** argv){
             }
 
 
+
             /* == dem steps done == */
             /* == starting cfd steps == */
             std::swap(g_solv.grid_.void_fraction_.data_, g_solv.grid_.void_fraction_old_.data_);
@@ -636,6 +638,7 @@ int main(int argc, char** argv){
             cfddem.gaussian_filter_particle_volume(g_solv.grid_);
             cfddem.calc_void_fraction(g_solv.grid_);
             cfddem.update_boundary_ghost_void_fraction(g_solv.grid_);
+
 
             /* == transport alpha == */
             g_solv.clear_alpha_flux_accum();
@@ -657,6 +660,7 @@ int main(int argc, char** argv){
             g_solv.update_properties_by_alpha();
             g_solv.compute_mass_flux_from_alpha_flux_two_way(solv);
 
+            cfddem.update_poisson_beta_two_way(g_solv.grid_);
             g_solv.update_boundary_faces();
 
 
@@ -669,7 +673,6 @@ int main(int argc, char** argv){
 
 
             printf("starting poisson\n");
-            cfddem.update_poisson_beta_two_way(g_solv.grid_);
             g_solv.solve_poisson();
 
             g_solv.correct_vof_velocity(solv);

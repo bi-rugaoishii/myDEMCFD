@@ -1271,6 +1271,7 @@ void G_SMACSolver::correct_vof_velocity(SMACSolver solv){
 
 
     cudaMemset(grid_.p_delta_.data_, 0, sizeof(double) * grid_.p_delta_.size_);
+
 }
 
 static __global__ void k_make_face_gradp_x(G_StaggeredGrid* grid){
@@ -2198,6 +2199,7 @@ void G_SMACSolver::get_vof_vstar_rhouu_consistent_two_way(SMACSolver solv){
     k_get_vof_vstar_rhouu_consistent_x_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_get_vof_vstar_rhouu_consistent_y_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
     k_get_vof_vstar_rhouu_consistent_z_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
 
 }
 

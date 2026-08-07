@@ -138,6 +138,8 @@ __global__ void k_swap_voidfraction(G_StaggeredGrid* grid);
 
 __global__ void k_update_demdt(ParticleSys<DeviceMemory>* ps, double dt);
 
+__global__ void k_check_eps(G_StaggeredGrid* grid);
+
 struct G_CFDDEMCoupling{
 
     void interpolate_fluid_to_particle(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize, int blockSize);
@@ -147,6 +149,7 @@ struct G_CFDDEMCoupling{
     void update_poisson_beta_two_way(G_StaggeredGrid& grid);
 
     void initialize_void_fractions(G_StaggeredGrid& grid);
+    void sync_initial_void_fraction(G_StaggeredGrid& grid);
     void calc_void_fraction(G_StaggeredGrid& grid);
     void set_particle_volume_to_cell(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize, int blockSize);
     void update_boundary_ghost_void_fraction(G_StaggeredGrid& grid);

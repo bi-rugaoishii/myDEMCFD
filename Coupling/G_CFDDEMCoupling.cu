@@ -474,6 +474,39 @@ static __global__ void k_init_void_fraction_one(G_StaggeredGrid* grid){
     grid->void_fraction_vof_new_(ix,iy,iz)=1.0;
 }
 
+__global__ void k_sync_initial_void_fraction(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z;
+
+    if(ix>=grid->void_fraction_.sizex_ ||
+       iy>=grid->void_fraction_.sizey_ ||
+       iz>=grid->void_fraction_.sizez_) return;
+
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    grid->void_fraction_old_(ix,iy,iz)=eps;
+    grid->void_fraction_half_(ix,iy,iz)=eps;
+    grid->void_fraction_vof_(ix,iy,iz)=eps;
+    grid->void_fraction_vof_new_(ix,iy,iz)=eps;
+}
+
 void G_CFDDEMCoupling::initialize_void_fractions(G_StaggeredGrid& grid){
     k_init_void_fraction_one<<<grid_dim_, block_dim_>>>(grid.d_ptr_);
 }
+
+void G_CFDDEMCoupling::sync_initial_void_fraction(G_StaggeredGrid& grid){
+    k_sync_initial_void_fraction<<<grid_dim_, block_dim_>>>(grid.d_ptr_);
+}
+
+/* debug */
+__global__ void k_check_eps(G_StaggeredGrid* grid){
+    int ix=17;
+    int iy=23;
+    int iz=11;
+    printf("%d %d %d eps old=%e new=%e half=%e\n",
+            ix,iy,iz,grid->void_fraction_old_(ix,iy,iz),
+            grid->void_fraction_(ix,iy,iz),
+            grid->void_fraction_half_(ix,iy,iz));
+}
+
