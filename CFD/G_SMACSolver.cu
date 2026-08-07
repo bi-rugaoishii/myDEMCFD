@@ -1068,6 +1068,7 @@ void G_SMACSolver::get_vof_vstar_rhouu_consistent(SMACSolver solv){
 
 }
 
+
 static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* grid){
     int iz = blockIdx.z*blockDim.z + threadIdx.z+1; //+1 for ghost cell
     int iy = blockIdx.y*blockDim.y + threadIdx.y+1; //+1 for ghost cell
@@ -1084,9 +1085,9 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
     MyArray<double,3> vx_star = grid->f_vx_star_;
     MyArray<double,3> vy_star = grid->f_vy_star_;
     MyArray<double,3> vz_star = grid->f_vz_star_;
-    MyArray<double,3> f_bx = grid->f_bx_;
-    MyArray<double,3> f_by = grid->f_by_;
-    MyArray<double,3> f_bz = grid->f_bz_;
+    MyArray<double,3> f_inv_rhox = grid->f_inv_rhox_;
+    MyArray<double,3> f_inv_rhoy = grid->f_inv_rhoy_;
+    MyArray<double,3> f_inv_rhoz = grid->f_inv_rhoz_;
 
     MyArray<double,3> f_sx = grid->f_sx_;
     MyArray<double,3> f_sy = grid->f_sy_;
@@ -1108,7 +1109,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
         /* do nothing */
     }else{
         if(grid->f_xtype_(ix,iy,iz) == F_INTERIOR){
-            vx(ix,iy,iz) = vx_star(ix,iy,iz) + f_bx(ix,iy,iz)*dt*(f_sx(ix,iy,iz)-(p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx);
+            vx(ix,iy,iz) = vx_star(ix,iy,iz) + f_inv_rhox(ix,iy,iz)*dt*(f_sx(ix,iy,iz)-(p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx);
 
 
         }
@@ -1119,7 +1120,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
         /* do nothing */
     }else{
         if(grid->f_ytype_(ix,iy,iz) == F_INTERIOR){
-            vy(ix,iy,iz) = vy_star(ix,iy,iz) + f_by(ix,iy,iz)*dt*(f_sy(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy);
+            vy(ix,iy,iz) = vy_star(ix,iy,iz) + f_inv_rhoy(ix,iy,iz)*dt*(f_sy(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy);
         }
     }
 
@@ -1128,7 +1129,7 @@ static __global__ void k_correct_vof_velocity(SMACSolver solv, G_StaggeredGrid* 
         /* do nothing */
     }else{
         if(grid->f_ztype_(ix,iy,iz) == F_INTERIOR){
-            vz(ix,iy,iz) = vz_star(ix,iy,iz) + f_bz(ix,iy,iz)*dt*(f_sz(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz);
+            vz(ix,iy,iz) = vz_star(ix,iy,iz) + f_inv_rhoz(ix,iy,iz)*dt*(f_sz(ix,iy,iz)-(p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz);
         }
     }
 
@@ -1531,3 +1532,672 @@ void G_SMACSolver::gpuTocpu(StaggeredGrid h_grid){
 
 
 }
+
+/* ==== two way coupling === */
+static __global__ void k_get_vof_vstar_rhouu_consistent_x_two_way(SMACSolver solv,G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    if(ix>=Nx+2 || iy>=Ny+2 || iz>=Nz+2) return;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_dx2=grid->inv_dx2_;
+    double dt=solv.dt_;
+    double gx=solv.gx_;
+
+    MyArray<double,3> p=grid->p_;
+    MyArray<double,3> mfx=grid->f_mfx_;
+    MyArray<double,3> mfy=grid->f_mfy_;
+    MyArray<double,3> mfz=grid->f_mfz_;
+    MyArray<double,3> rho_old=grid->rho_old_;
+    MyArray<double,3> mu=grid->mu_;
+    MyArray<double,3> f_muy=grid->f_muy_;
+    MyArray<double,3> f_muz=grid->f_muz_;
+    MyArray<double,3> vx=grid->f_vx_;
+    MyArray<double,3> f_inv_rhox=grid->f_inv_rhox_;
+    MyArray<double,3> vx_star=grid->f_vx_star_;
+    MyArray<double,3> eps_old=grid->void_fraction_old_;
+    MyArray<double,3> eps_new=grid->void_fraction_;
+    MyArray<unsigned char,3> f_xtype=grid->f_xtype_;
+
+    if(f_xtype(ix,iy,iz)!=F_INTERIOR) return;
+
+    double vx_211=d_get_vx_xface(grid,ix+1,iy,iz);
+    double vx_111=vx(ix,iy,iz);
+    double vx_011=d_get_vx_xface(grid,ix-1,iy,iz);
+    double vx_101=d_get_vx_ydir(grid,ix,iy,iz,-1);
+    double vx_110=d_get_vx_zdir(grid,ix,iy,iz,-1);
+    double vx_121=d_get_vx_ydir(grid,ix,iy,iz,+1);
+    double vx_112=d_get_vx_zdir(grid,ix,iy,iz,+1);
+
+    double vy_121=d_get_vy_yface(grid,ix,iy+1,iz);
+    double vy_021=d_get_vy_yface(grid,ix-1,iy+1,iz);
+    double vy_111=d_get_vy_yface(grid,ix,iy,iz);
+    double vy_011=d_get_vy_yface(grid,ix-1,iy,iz);
+
+    double vz_112=d_get_vz_zface(grid,ix,iy,iz+1);
+    double vz_012=d_get_vz_zface(grid,ix-1,iy,iz+1);
+    double vz_111=d_get_vz_zface(grid,ix,iy,iz);
+    double vz_011=d_get_vz_zface(grid,ix-1,iy,iz);
+
+    double eps_old_x=0.5*(eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz));
+    double eps_new_x=0.5*(eps_new(ix-1,iy,iz)+eps_new(ix,iy,iz));
+
+    double tmp_vx=0.0;
+
+    /* viscous: d(epsilon*tau_xx)/dx */
+    double tau_xp=mu(ix,iy,iz)*(vx_211-vx_111);
+    double tau_xm=mu(ix-1,iy,iz)*(vx_111-vx_011);
+    double eps_xx_p=eps_old(ix,iy,iz);
+    double eps_xx_m=eps_old(ix-1,iy,iz);
+
+    tmp_vx=2.0*(eps_xx_p*tau_xp-eps_xx_m*tau_xm)*inv_dx2;
+
+    /* viscous: d(epsilon*tau_xy)/dy */
+    double mu_yp=0.5*(f_muy(ix,iy+1,iz)+f_muy(ix-1,iy+1,iz));
+    double tau_yp=mu_yp*((vy_121-vy_021)*inv_dx+(vx_121-vx_111)*inv_dy);
+    double mu_ym=0.5*(f_muy(ix,iy,iz)+f_muy(ix-1,iy,iz));
+    double tau_ym=mu_ym*((vy_111-vy_011)*inv_dx+(vx_111-vx_101)*inv_dy);
+
+    double eps_xy_p=0.25*(eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz)+eps_old(ix-1,iy+1,iz)+eps_old(ix,iy+1,iz));
+    double eps_xy_m=0.25*(eps_old(ix-1,iy-1,iz)+eps_old(ix,iy-1,iz)+eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz));
+
+    tmp_vx+=(eps_xy_p*tau_yp-eps_xy_m*tau_ym)*inv_dy;
+
+    /* viscous: d(epsilon*tau_xz)/dz */
+    double mu_zp=0.5*(f_muz(ix,iy,iz+1)+f_muz(ix-1,iy,iz+1));
+    double tau_zp=mu_zp*((vz_112-vz_012)*inv_dx+(vx_112-vx_111)*inv_dz);
+    double mu_zm=0.5*(f_muz(ix,iy,iz)+f_muz(ix-1,iy,iz));
+    double tau_zm=mu_zm*((vz_111-vz_011)*inv_dx+(vx_111-vx_110)*inv_dz);
+
+    double eps_xz_p=0.25*(eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz)+eps_old(ix-1,iy,iz+1)+eps_old(ix,iy,iz+1));
+    double eps_xz_m=0.25*(eps_old(ix-1,iy,iz-1)+eps_old(ix,iy,iz-1)+eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz));
+
+    tmp_vx+=(eps_xz_p*tau_zp-eps_xz_m*tau_zm)*inv_dz;
+
+    /* convection x */
+    double vx_xp=0.5*(mfx(ix,iy,iz)+mfx(ix+1,iy,iz));
+    double vx_xm=0.5*(mfx(ix-1,iy,iz)+mfx(ix,iy,iz));
+
+    int ind_upwind=vx_xp>0.0?ix:ix+1;
+    double ux_xp=0.0;
+
+    if(f_xtype(ind_upwind,iy,iz)!=F_INTERIOR){
+        ux_xp=vx_xp>0.0?vx_111:vx_211;
+    }else{
+        double deltap=d_get_vx_xface(grid,ind_upwind+1,iy,iz)-d_get_vx_xface(grid,ind_upwind,iy,iz);
+        double deltam=d_get_vx_xface(grid,ind_upwind,iy,iz)-d_get_vx_xface(grid,ind_upwind-1,iy,iz);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vx_xp);
+        double upwind_v=vx_xp>0.0?vx_111:vx_211;
+        ux_xp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xp=vx_xp*ux_xp;
+
+    ind_upwind=vx_xm>0.0?ix-1:ix;
+    double ux_xm=0.0;
+
+    if(f_xtype(ind_upwind,iy,iz)!=F_INTERIOR){
+        ux_xm=vx_xm>0.0?vx_011:vx_111;
+    }else{
+        double deltap=d_get_vx_xface(grid,ind_upwind+1,iy,iz)-d_get_vx_xface(grid,ind_upwind,iy,iz);
+        double deltam=d_get_vx_xface(grid,ind_upwind,iy,iz)-d_get_vx_xface(grid,ind_upwind-1,iy,iz);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vx_xm);
+        double upwind_v=vx_xm>0.0?vx_011:vx_111;
+        ux_xm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xm=vx_xm*ux_xm;
+
+    tmp_vx-=(M_xp-M_xm)*inv_dx;
+
+    /* convection y */
+    double vy_yp=0.5*(mfy(ix-1,iy+1,iz)+mfy(ix,iy+1,iz));
+    double vy_ym=0.5*(mfy(ix,iy,iz)+mfy(ix-1,iy,iz));
+
+    ind_upwind=vy_yp>0.0?iy:iy+1;
+    double uy_yp=0.0;
+
+    if(f_xtype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uy_yp=vy_yp>0.0?vx_111:vx_121;
+    }else{
+        double deltap=d_get_vx_ydir(grid,ix,ind_upwind,iz,+1)-vx(ix,ind_upwind,iz);
+        double deltam=vx(ix,ind_upwind,iz)-d_get_vx_ydir(grid,ix,ind_upwind,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vy_yp);
+        double upwind_v=vy_yp>0.0?vx_111:vx_121;
+        uy_yp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_yp=vy_yp*uy_yp;
+
+    ind_upwind=vy_ym>0.0?iy-1:iy;
+    double uy_ym=0.0;
+
+    if(f_xtype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uy_ym=vy_ym>0.0?vx_101:vx_111;
+    }else{
+        double deltap=d_get_vx_ydir(grid,ix,ind_upwind,iz,+1)-vx(ix,ind_upwind,iz);
+        double deltam=vx(ix,ind_upwind,iz)-d_get_vx_ydir(grid,ix,ind_upwind,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vy_ym);
+        double upwind_v=vy_ym>0.0?vx_101:vx_111;
+        uy_ym=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_ym=vy_ym*uy_ym;
+
+    tmp_vx-=(M_yp-M_ym)*inv_dy;
+
+    /* convection z */
+    double vz_zp=0.5*(mfz(ix-1,iy,iz+1)+mfz(ix,iy,iz+1));
+    double vz_zm=0.5*(mfz(ix,iy,iz)+mfz(ix-1,iy,iz));
+
+    ind_upwind=vz_zp>0.0?iz:iz+1;
+    double uz_zp=0.0;
+
+    if(f_xtype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uz_zp=vz_zp>0.0?vx_111:vx_112;
+    }else{
+        double deltap=d_get_vx_zdir(grid,ix,iy,ind_upwind,+1)-vx(ix,iy,ind_upwind);
+        double deltam=vx(ix,iy,ind_upwind)-d_get_vx_zdir(grid,ix,iy,ind_upwind,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vz_zp);
+        double upwind_v=vz_zp>0.0?vx_111:vx_112;
+        uz_zp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zp=vz_zp*uz_zp;
+
+    ind_upwind=vz_zm>0.0?iz-1:iz;
+    double uz_zm=0.0;
+
+    if(f_xtype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uz_zm=vz_zm>0.0?vx_110:vx_111;
+    }else{
+        double deltap=d_get_vx_zdir(grid,ix,iy,ind_upwind,+1)-vx(ix,iy,ind_upwind);
+        double deltam=vx(ix,iy,ind_upwind)-d_get_vx_zdir(grid,ix,iy,ind_upwind,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(vz_zm);
+        double upwind_v=vz_zm>0.0?vx_110:vx_111;
+        uz_zm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zm=vz_zm*uz_zm;
+
+    tmp_vx-=(M_zp-M_zm)*inv_dz;
+
+    /* old pressure: -epsilon^n grad(p^n) */
+    tmp_vx-=eps_old_x*(p(ix,iy,iz)-p(ix-1,iy,iz))*inv_dx;
+
+    /* old and new face mass */
+    double f_inv_rho=f_inv_rhox(ix,iy,iz);
+    double f_rho_old=0.5*(rho_old(ix,iy,iz)+rho_old(ix-1,iy,iz));
+
+    const double inv_volume=grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
+    const double coupling_momentum_density=grid->f_coupling_impulse_x_(ix,iy,iz)*inv_volume;
+
+    /* (epsilon*rho*u)^n -> (epsilon*rho*u)* */
+    double inv_eps_rho=f_inv_rho/eps_new_x;
+    vx_star(ix,iy,iz)=inv_eps_rho*(eps_old_x*f_rho_old*vx_111+dt*tmp_vx+coupling_momentum_density)+dt*gx;
+
+    /* IBM */
+    double solid_frac=grid->f_ibm_solid_fraction_x_(ix,iy,iz);
+    vx_star(ix,iy,iz)=(1.0-solid_frac)*vx_star(ix,iy,iz);
+
+}
+
+static __global__ void k_get_vof_vstar_rhouu_consistent_y_two_way(SMACSolver solv,G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    if(ix>=Nx+2 || iy>=Ny+2 || iz>=Nz+2) return;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_dy2=grid->inv_dy2_;
+    double dt=solv.dt_;
+    double gy=solv.gy_;
+
+    MyArray<double,3> p=grid->p_;
+    MyArray<double,3> mfx=grid->f_mfx_;
+    MyArray<double,3> mfy=grid->f_mfy_;
+    MyArray<double,3> mfz=grid->f_mfz_;
+    MyArray<double,3> rho_old=grid->rho_old_;
+    MyArray<double,3> mu=grid->mu_;
+    MyArray<double,3> f_mux=grid->f_mux_;
+    MyArray<double,3> f_muz=grid->f_muz_;
+    MyArray<double,3> vy=grid->f_vy_;
+    MyArray<double,3> f_inv_rhoy=grid->f_inv_rhoy_;
+    MyArray<double,3> vy_star=grid->f_vy_star_;
+    MyArray<double,3> eps_old=grid->void_fraction_old_;
+    MyArray<double,3> eps_new=grid->void_fraction_;
+    MyArray<unsigned char,3> f_ytype=grid->f_ytype_;
+
+    if(f_ytype(ix,iy,iz)!=F_INTERIOR) return;
+
+    double vy_xp=d_get_vy_xdir(grid,ix,iy,iz,+1);
+    double vy_xm=d_get_vy_xdir(grid,ix,iy,iz,-1);
+    double vy_yp=d_get_vy_yface(grid,ix,iy+1,iz);
+    double vy_111=vy(ix,iy,iz);
+    double vy_ym=d_get_vy_yface(grid,ix,iy-1,iz);
+    double vy_zp=d_get_vy_zdir(grid,ix,iy,iz,+1);
+    double vy_zm=d_get_vy_zdir(grid,ix,iy,iz,-1);
+
+    double vx_xp_p=d_get_vx_xface(grid,ix+1,iy,iz);
+    double vx_xp_m=d_get_vx_xface(grid,ix+1,iy-1,iz);
+    double vx_xm_p=d_get_vx_xface(grid,ix,iy,iz);
+    double vx_xm_m=d_get_vx_xface(grid,ix,iy-1,iz);
+
+    double vz_zp_p=d_get_vz_zface(grid,ix,iy,iz+1);
+    double vz_zp_m=d_get_vz_zface(grid,ix,iy-1,iz+1);
+    double vz_zm_p=d_get_vz_zface(grid,ix,iy,iz);
+    double vz_zm_m=d_get_vz_zface(grid,ix,iy-1,iz);
+
+    double eps_old_y=0.5*(eps_old(ix,iy-1,iz)+eps_old(ix,iy,iz));
+    double eps_new_y=0.5*(eps_new(ix,iy-1,iz)+eps_new(ix,iy,iz));
+
+    double tmp_vy=0.0;
+
+    /* viscous: d(epsilon*tau_yy)/dy */
+    double tau_yp=mu(ix,iy,iz)*(vy_yp-vy_111);
+    double tau_ym=mu(ix,iy-1,iz)*(vy_111-vy_ym);
+    double eps_yy_p=eps_old(ix,iy,iz);
+    double eps_yy_m=eps_old(ix,iy-1,iz);
+
+    tmp_vy=2.0*(eps_yy_p*tau_yp-eps_yy_m*tau_ym)*inv_dy2;
+
+    /* viscous: d(epsilon*tau_yx)/dx */
+    double mu_xp=0.5*(f_mux(ix+1,iy,iz)+f_mux(ix+1,iy-1,iz));
+    double tau_xp=mu_xp*((vx_xp_p-vx_xp_m)*inv_dy+(vy_xp-vy_111)*inv_dx);
+    double mu_xm=0.5*(f_mux(ix,iy,iz)+f_mux(ix,iy-1,iz));
+    double tau_xm=mu_xm*((vx_xm_p-vx_xm_m)*inv_dy+(vy_111-vy_xm)*inv_dx);
+
+    double eps_yx_p=0.25*(eps_old(ix,iy-1,iz)+eps_old(ix+1,iy-1,iz)+eps_old(ix,iy,iz)+eps_old(ix+1,iy,iz));
+    double eps_yx_m=0.25*(eps_old(ix-1,iy-1,iz)+eps_old(ix,iy-1,iz)+eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz));
+
+    tmp_vy+=(eps_yx_p*tau_xp-eps_yx_m*tau_xm)*inv_dx;
+
+    /* viscous: d(epsilon*tau_yz)/dz */
+    double mu_zp=0.5*(f_muz(ix,iy,iz+1)+f_muz(ix,iy-1,iz+1));
+    double tau_zp=mu_zp*((vz_zp_p-vz_zp_m)*inv_dy+(vy_zp-vy_111)*inv_dz);
+    double mu_zm=0.5*(f_muz(ix,iy,iz)+f_muz(ix,iy-1,iz));
+    double tau_zm=mu_zm*((vz_zm_p-vz_zm_m)*inv_dy+(vy_111-vy_zm)*inv_dz);
+
+    double eps_yz_p=0.25*(eps_old(ix,iy-1,iz)+eps_old(ix,iy,iz)+eps_old(ix,iy-1,iz+1)+eps_old(ix,iy,iz+1));
+    double eps_yz_m=0.25*(eps_old(ix,iy-1,iz-1)+eps_old(ix,iy,iz-1)+eps_old(ix,iy-1,iz)+eps_old(ix,iy,iz));
+
+    tmp_vy+=(eps_yz_p*tau_zp-eps_yz_m*tau_zm)*inv_dz;
+
+    /* convection x */
+    double mx_xp=0.5*(mfx(ix+1,iy-1,iz)+mfx(ix+1,iy,iz));
+    double mx_xm=0.5*(mfx(ix,iy-1,iz)+mfx(ix,iy,iz));
+
+    int ind_upwind=mx_xp>0.0?ix:ix+1;
+    double uy_xp=0.0;
+
+    if(f_ytype(ind_upwind,iy,iz)!=F_INTERIOR){
+        uy_xp=mx_xp>0.0?vy_111:vy_xp;
+    }else{
+        double deltap=d_get_vy_xdir(grid,ind_upwind,iy,iz,+1)-vy(ind_upwind,iy,iz);
+        double deltam=vy(ind_upwind,iy,iz)-d_get_vy_xdir(grid,ind_upwind,iy,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mx_xp);
+        double upwind_v=mx_xp>0.0?vy_111:vy_xp;
+        uy_xp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xp=mx_xp*uy_xp;
+
+    ind_upwind=mx_xm>0.0?ix-1:ix;
+    double uy_xm=0.0;
+
+    if(f_ytype(ind_upwind,iy,iz)!=F_INTERIOR){
+        uy_xm=mx_xm>0.0?vy_xm:vy_111;
+    }else{
+        double deltap=d_get_vy_xdir(grid,ind_upwind,iy,iz,+1)-vy(ind_upwind,iy,iz);
+        double deltam=vy(ind_upwind,iy,iz)-d_get_vy_xdir(grid,ind_upwind,iy,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mx_xm);
+        double upwind_v=mx_xm>0.0?vy_xm:vy_111;
+        uy_xm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xm=mx_xm*uy_xm;
+
+    tmp_vy-=(M_xp-M_xm)*inv_dx;
+
+    /* convection y */
+    double my_yp=0.5*(mfy(ix,iy,iz)+mfy(ix,iy+1,iz));
+    double my_ym=0.5*(mfy(ix,iy-1,iz)+mfy(ix,iy,iz));
+
+    ind_upwind=my_yp>0.0?iy:iy+1;
+    double uy_yp=0.0;
+
+    if(f_ytype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uy_yp=my_yp>0.0?vy_111:vy_yp;
+    }else{
+        double deltap=d_get_vy_yface(grid,ix,ind_upwind+1,iz)-d_get_vy_yface(grid,ix,ind_upwind,iz);
+        double deltam=d_get_vy_yface(grid,ix,ind_upwind,iz)-d_get_vy_yface(grid,ix,ind_upwind-1,iz);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(my_yp);
+        double upwind_v=my_yp>0.0?vy_111:vy_yp;
+        uy_yp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_yp=my_yp*uy_yp;
+
+    ind_upwind=my_ym>0.0?iy-1:iy;
+    double uy_ym=0.0;
+
+    if(f_ytype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uy_ym=my_ym>0.0?vy_ym:vy_111;
+    }else{
+        double deltap=d_get_vy_yface(grid,ix,ind_upwind+1,iz)-d_get_vy_yface(grid,ix,ind_upwind,iz);
+        double deltam=d_get_vy_yface(grid,ix,ind_upwind,iz)-d_get_vy_yface(grid,ix,ind_upwind-1,iz);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(my_ym);
+        double upwind_v=my_ym>0.0?vy_ym:vy_111;
+        uy_ym=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_ym=my_ym*uy_ym;
+
+    tmp_vy-=(M_yp-M_ym)*inv_dy;
+
+    /* convection z */
+    double mz_zp=0.5*(mfz(ix,iy-1,iz+1)+mfz(ix,iy,iz+1));
+    double mz_zm=0.5*(mfz(ix,iy-1,iz)+mfz(ix,iy,iz));
+
+    ind_upwind=mz_zp>0.0?iz:iz+1;
+    double uy_zp=0.0;
+
+    if(f_ytype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uy_zp=mz_zp>0.0?vy_111:vy_zp;
+    }else{
+        double deltap=d_get_vy_zdir(grid,ix,iy,ind_upwind,+1)-vy(ix,iy,ind_upwind);
+        double deltam=vy(ix,iy,ind_upwind)-d_get_vy_zdir(grid,ix,iy,ind_upwind,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mz_zp);
+        double upwind_v=mz_zp>0.0?vy_111:vy_zp;
+        uy_zp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zp=mz_zp*uy_zp;
+
+    ind_upwind=mz_zm>0.0?iz-1:iz;
+    double uy_zm=0.0;
+
+    if(f_ytype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uy_zm=mz_zm>0.0?vy_zm:vy_111;
+    }else{
+        double deltap=d_get_vy_zdir(grid,ix,iy,ind_upwind,+1)-vy(ix,iy,ind_upwind);
+        double deltam=vy(ix,iy,ind_upwind)-d_get_vy_zdir(grid,ix,iy,ind_upwind,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mz_zm);
+        double upwind_v=mz_zm>0.0?vy_zm:vy_111;
+        uy_zm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zm=mz_zm*uy_zm;
+
+    tmp_vy-=(M_zp-M_zm)*inv_dz;
+
+    /* old pressure */
+    tmp_vy-=eps_old_y*(p(ix,iy,iz)-p(ix,iy-1,iz))*inv_dy;
+
+    double f_inv_rho=f_inv_rhoy(ix,iy,iz);
+    double f_rho_old=0.5*(rho_old(ix,iy,iz)+rho_old(ix,iy-1,iz));
+
+    const double inv_volume=grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
+    const double coupling_momentum_density=grid->f_coupling_impulse_y_(ix,iy,iz)*inv_volume;
+
+    double inv_eps_rho=f_inv_rho/eps_new_y;
+    vy_star(ix,iy,iz)=inv_eps_rho*(eps_old_y*f_rho_old*vy_111+dt*tmp_vy+coupling_momentum_density)+dt*gy;
+
+    double solid_frac=grid->f_ibm_solid_fraction_y_(ix,iy,iz);
+    vy_star(ix,iy,iz)=(1.0-solid_frac)*vy_star(ix,iy,iz);
+}
+
+static __global__ void k_get_vof_vstar_rhouu_consistent_z_two_way(SMACSolver solv,G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    if(ix>=Nx+2 || iy>=Ny+2 || iz>=Nz+2) return;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_dz2=grid->inv_dz2_;
+    double dt=solv.dt_;
+    double gz=solv.gz_;
+
+    MyArray<double,3> p=grid->p_;
+    MyArray<double,3> mfx=grid->f_mfx_;
+    MyArray<double,3> mfy=grid->f_mfy_;
+    MyArray<double,3> mfz=grid->f_mfz_;
+    MyArray<double,3> rho_old=grid->rho_old_;
+    MyArray<double,3> mu=grid->mu_;
+    MyArray<double,3> f_mux=grid->f_mux_;
+    MyArray<double,3> f_muy=grid->f_muy_;
+    MyArray<double,3> vz=grid->f_vz_;
+    MyArray<double,3> f_inv_rhoz=grid->f_inv_rhoz_;
+    MyArray<double,3> vz_star=grid->f_vz_star_;
+    MyArray<double,3> eps_old=grid->void_fraction_old_;
+    MyArray<double,3> eps_new=grid->void_fraction_;
+    MyArray<unsigned char,3> f_ztype=grid->f_ztype_;
+
+    if(f_ztype(ix,iy,iz)!=F_INTERIOR) return;
+
+    double vz_xp=d_get_vz_xdir(grid,ix,iy,iz,+1);
+    double vz_xm=d_get_vz_xdir(grid,ix,iy,iz,-1);
+    double vz_yp=d_get_vz_ydir(grid,ix,iy,iz,+1);
+    double vz_ym=d_get_vz_ydir(grid,ix,iy,iz,-1);
+    double vz_zp=d_get_vz_zface(grid,ix,iy,iz+1);
+    double vz_111=vz(ix,iy,iz);
+    double vz_zm=d_get_vz_zface(grid,ix,iy,iz-1);
+
+    double vx_xp_p=d_get_vx_xface(grid,ix+1,iy,iz);
+    double vx_xp_m=d_get_vx_xface(grid,ix+1,iy,iz-1);
+    double vx_xm_p=d_get_vx_xface(grid,ix,iy,iz);
+    double vx_xm_m=d_get_vx_xface(grid,ix,iy,iz-1);
+
+    double vy_yp_p=d_get_vy_yface(grid,ix,iy+1,iz);
+    double vy_yp_m=d_get_vy_yface(grid,ix,iy+1,iz-1);
+    double vy_ym_p=d_get_vy_yface(grid,ix,iy,iz);
+    double vy_ym_m=d_get_vy_yface(grid,ix,iy,iz-1);
+
+    double eps_old_z=0.5*(eps_old(ix,iy,iz-1)+eps_old(ix,iy,iz));
+    double eps_new_z=0.5*(eps_new(ix,iy,iz-1)+eps_new(ix,iy,iz));
+
+    double tmp_vz=0.0;
+
+    /* viscous: d(epsilon*tau_zz)/dz */
+    double tau_zp=mu(ix,iy,iz)*(vz_zp-vz_111);
+    double tau_zm=mu(ix,iy,iz-1)*(vz_111-vz_zm);
+    double eps_zz_p=eps_old(ix,iy,iz);
+    double eps_zz_m=eps_old(ix,iy,iz-1);
+
+    tmp_vz=2.0*(eps_zz_p*tau_zp-eps_zz_m*tau_zm)*inv_dz2;
+
+    /* viscous: d(epsilon*tau_zx)/dx */
+    double mu_xp=0.5*(f_mux(ix+1,iy,iz)+f_mux(ix+1,iy,iz-1));
+    double tau_xp=mu_xp*((vx_xp_p-vx_xp_m)*inv_dz+(vz_xp-vz_111)*inv_dx);
+    double mu_xm=0.5*(f_mux(ix,iy,iz)+f_mux(ix,iy,iz-1));
+    double tau_xm=mu_xm*((vx_xm_p-vx_xm_m)*inv_dz+(vz_111-vz_xm)*inv_dx);
+
+    double eps_zx_p=0.25*(eps_old(ix,iy,iz-1)+eps_old(ix+1,iy,iz-1)+eps_old(ix,iy,iz)+eps_old(ix+1,iy,iz));
+    double eps_zx_m=0.25*(eps_old(ix-1,iy,iz-1)+eps_old(ix,iy,iz-1)+eps_old(ix-1,iy,iz)+eps_old(ix,iy,iz));
+
+    tmp_vz+=(eps_zx_p*tau_xp-eps_zx_m*tau_xm)*inv_dx;
+
+    /* viscous: d(epsilon*tau_zy)/dy */
+    double mu_yp=0.5*(f_muy(ix,iy+1,iz)+f_muy(ix,iy+1,iz-1));
+    double tau_yp=mu_yp*((vy_yp_p-vy_yp_m)*inv_dz+(vz_yp-vz_111)*inv_dy);
+    double mu_ym=0.5*(f_muy(ix,iy,iz)+f_muy(ix,iy,iz-1));
+    double tau_ym=mu_ym*((vy_ym_p-vy_ym_m)*inv_dz+(vz_111-vz_ym)*inv_dy);
+
+    double eps_zy_p=0.25*(eps_old(ix,iy,iz-1)+eps_old(ix,iy+1,iz-1)+eps_old(ix,iy,iz)+eps_old(ix,iy+1,iz));
+    double eps_zy_m=0.25*(eps_old(ix,iy-1,iz-1)+eps_old(ix,iy,iz-1)+eps_old(ix,iy-1,iz)+eps_old(ix,iy,iz));
+
+    tmp_vz+=(eps_zy_p*tau_yp-eps_zy_m*tau_ym)*inv_dy;
+
+    /* convection x */
+    double mx_xp=0.5*(mfx(ix+1,iy,iz-1)+mfx(ix+1,iy,iz));
+    double mx_xm=0.5*(mfx(ix,iy,iz-1)+mfx(ix,iy,iz));
+
+    int ind_upwind=mx_xp>0.0?ix:ix+1;
+    double uz_xp=0.0;
+
+    if(f_ztype(ind_upwind,iy,iz)!=F_INTERIOR){
+        uz_xp=mx_xp>0.0?vz_111:vz_xp;
+    }else{
+        double deltap=d_get_vz_xdir(grid,ind_upwind,iy,iz,+1)-vz(ind_upwind,iy,iz);
+        double deltam=vz(ind_upwind,iy,iz)-d_get_vz_xdir(grid,ind_upwind,iy,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mx_xp);
+        double upwind_v=mx_xp>0.0?vz_111:vz_xp;
+        uz_xp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xp=mx_xp*uz_xp;
+
+    ind_upwind=mx_xm>0.0?ix-1:ix;
+    double uz_xm=0.0;
+
+    if(f_ztype(ind_upwind,iy,iz)!=F_INTERIOR){
+        uz_xm=mx_xm>0.0?vz_xm:vz_111;
+    }else{
+        double deltap=d_get_vz_xdir(grid,ind_upwind,iy,iz,+1)-vz(ind_upwind,iy,iz);
+        double deltam=vz(ind_upwind,iy,iz)-d_get_vz_xdir(grid,ind_upwind,iy,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mx_xm);
+        double upwind_v=mx_xm>0.0?vz_xm:vz_111;
+        uz_xm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_xm=mx_xm*uz_xm;
+
+    tmp_vz-=(M_xp-M_xm)*inv_dx;
+
+    /* convection y */
+    double my_yp=0.5*(mfy(ix,iy+1,iz-1)+mfy(ix,iy+1,iz));
+    double my_ym=0.5*(mfy(ix,iy,iz-1)+mfy(ix,iy,iz));
+
+    ind_upwind=my_yp>0.0?iy:iy+1;
+    double uz_yp=0.0;
+
+    if(f_ztype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uz_yp=my_yp>0.0?vz_111:vz_yp;
+    }else{
+        double deltap=d_get_vz_ydir(grid,ix,ind_upwind,iz,+1)-vz(ix,ind_upwind,iz);
+        double deltam=vz(ix,ind_upwind,iz)-d_get_vz_ydir(grid,ix,ind_upwind,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(my_yp);
+        double upwind_v=my_yp>0.0?vz_111:vz_yp;
+        uz_yp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_yp=my_yp*uz_yp;
+
+    ind_upwind=my_ym>0.0?iy-1:iy;
+    double uz_ym=0.0;
+
+    if(f_ztype(ix,ind_upwind,iz)!=F_INTERIOR){
+        uz_ym=my_ym>0.0?vz_ym:vz_111;
+    }else{
+        double deltap=d_get_vz_ydir(grid,ix,ind_upwind,iz,+1)-vz(ix,ind_upwind,iz);
+        double deltam=vz(ix,ind_upwind,iz)-d_get_vz_ydir(grid,ix,ind_upwind,iz,-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(my_ym);
+        double upwind_v=my_ym>0.0?vz_ym:vz_111;
+        uz_ym=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_ym=my_ym*uz_ym;
+
+    tmp_vz-=(M_yp-M_ym)*inv_dy;
+
+    /* convection z */
+    double mz_zp=0.5*(mfz(ix,iy,iz)+mfz(ix,iy,iz+1));
+    double mz_zm=0.5*(mfz(ix,iy,iz-1)+mfz(ix,iy,iz));
+
+    ind_upwind=mz_zp>0.0?iz:iz+1;
+    double uz_zp=0.0;
+
+    if(f_ztype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uz_zp=mz_zp>0.0?vz_111:vz_zp;
+    }else{
+        double deltap=d_get_vz_zface(grid,ix,iy,ind_upwind+1)-d_get_vz_zface(grid,ix,iy,ind_upwind);
+        double deltam=d_get_vz_zface(grid,ix,iy,ind_upwind)-d_get_vz_zface(grid,ix,iy,ind_upwind-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mz_zp);
+        double upwind_v=mz_zp>0.0?vz_111:vz_zp;
+        uz_zp=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zp=mz_zp*uz_zp;
+
+    ind_upwind=mz_zm>0.0?iz-1:iz;
+    double uz_zm=0.0;
+
+    if(f_ztype(ix,iy,ind_upwind)!=F_INTERIOR){
+        uz_zm=mz_zm>0.0?vz_zm:vz_111;
+    }else{
+        double deltap=d_get_vz_zface(grid,ix,iy,ind_upwind+1)-d_get_vz_zface(grid,ix,iy,ind_upwind);
+        double deltam=d_get_vz_zface(grid,ix,iy,ind_upwind)-d_get_vz_zface(grid,ix,iy,ind_upwind-1);
+        double s_u=d_minmod(deltap,deltam);
+        int dir=sgn(mz_zm);
+        double upwind_v=mz_zm>0.0?vz_zm:vz_111;
+        uz_zm=upwind_v+dir*0.5*s_u;
+    }
+
+    double M_zm=mz_zm*uz_zm;
+
+    tmp_vz-=(M_zp-M_zm)*inv_dz;
+
+    /* old pressure */
+    tmp_vz-=eps_old_z*(p(ix,iy,iz)-p(ix,iy,iz-1))*inv_dz;
+
+    double f_inv_rho=f_inv_rhoz(ix,iy,iz);
+    double f_rho_old=0.5*(rho_old(ix,iy,iz)+rho_old(ix,iy,iz-1));
+
+    const double inv_volume=grid->inv_dx_*grid->inv_dy_*grid->inv_dz_;
+    const double coupling_momentum_density=grid->f_coupling_impulse_z_(ix,iy,iz)*inv_volume;
+
+    double inv_eps_rho=f_inv_rho/eps_new_z;
+    vz_star(ix,iy,iz)=inv_eps_rho*(eps_old_z*f_rho_old*vz_111+dt*tmp_vz+coupling_momentum_density)+dt*gz;
+
+    double solid_frac=grid->f_ibm_solid_fraction_z_(ix,iy,iz);
+    vz_star(ix,iy,iz)=(1.0-solid_frac)*vz_star(ix,iy,iz);
+}
+
+void G_SMACSolver::get_vof_vstar_rhouu_consistent_two_way(SMACSolver solv){
+
+
+    k_get_vof_vstar_rhouu_consistent_x_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+    k_get_vof_vstar_rhouu_consistent_y_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+    k_get_vof_vstar_rhouu_consistent_z_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
+}
+

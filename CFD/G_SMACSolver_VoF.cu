@@ -1426,10 +1426,12 @@ static __global__ void k_update_x_face_properties_by_alpha(G_StaggeredGrid* grid
 
     /* == x faces == */
     MyArray<double,3>  f_bx = grid->f_bx_;
+    MyArray<double,3>  f_inv_rhox = grid->f_inv_rhox_;
     unsigned char f_xtype= grid->f_xtype_(ix,iy,iz);
 
     if(f_xtype!=F_INTERIOR){
         f_bx(ix,iy,iz)=0.;
+        f_inv_rhox(ix,iy,iz)=0.;
         return;
     }
 
@@ -1441,6 +1443,7 @@ static __global__ void k_update_x_face_properties_by_alpha(G_StaggeredGrid* grid
 
     //f_bx[ind] = (inv_rho[ind1]+inv_rho[ind0])*0.5;
     f_bx(ix,iy,iz) = 1./f_rhox(ix,iy,iz);
+    f_inv_rhox(ix,iy,iz)=f_bx(ix,iy,iz);
 
     /* == update mu at face== */
     MyArray<double,3>  f_mux = grid->f_mux_;
@@ -1467,10 +1470,12 @@ static __global__ void k_update_y_face_properties_by_alpha(G_StaggeredGrid* grid
 
     /* == update inv rho at face== */
     MyArray<double,3>  f_by = grid->f_by_;
+    MyArray<double,3>  f_inv_rhoy = grid->f_inv_rhoy_;
 
     unsigned char f_ytype= grid->f_ytype_(ix,iy,iz);
     if(f_ytype!=F_INTERIOR){
         f_by(ix,iy,iz)=0.;
+        f_inv_rhoy(ix,iy,iz)=0.;
         return;
     }
 
@@ -1480,6 +1485,7 @@ static __global__ void k_update_y_face_properties_by_alpha(G_StaggeredGrid* grid
     f_rhoy(ix,iy,iz) = 0.5*(rho(ix,iy,iz)+rho(ix,iy-1,iz));
 
     f_by(ix,iy,iz) = 1./f_rhoy(ix,iy,iz);
+    f_inv_rhoy(ix,iy,iz)=f_by(ix,iy,iz);
 
     /* == update mu at face== */
     MyArray<double,3>  f_muy = grid->f_muy_;
@@ -1505,10 +1511,12 @@ static __global__ void k_update_z_face_properties_by_alpha(G_StaggeredGrid* grid
     /* == update inv rho at face== */
     /* == x faces == */
     MyArray<double,3>  f_bz = grid->f_bz_;
+    MyArray<double,3>  f_inv_rhoz = grid->f_inv_rhoz_;
     unsigned char f_ztype= grid->f_ztype_(ix,iy,iz);
 
     if(f_ztype!=F_INTERIOR){
         f_bz(ix,iy,iz)=0.;
+        f_inv_rhoz(ix,iy,iz) = 0.0;
         return;
     }
 
@@ -1519,6 +1527,7 @@ static __global__ void k_update_z_face_properties_by_alpha(G_StaggeredGrid* grid
     f_rhoz(ix,iy,iz) = 0.5*(rho(ix,iy,iz)+rho(ix,iy,iz-1));
 
     f_bz(ix,iy,iz) = 1./f_rhoz(ix,iy,iz);
+    f_inv_rhoz(ix,iy,iz)=f_bz(ix,iy,iz);
 
     /* == update mu at face== */
     MyArray<double,3>  f_muz = grid->f_muz_;
@@ -1561,6 +1570,7 @@ __global__ void k_swap_alpha(G_StaggeredGrid *grid){
     grid->alpha_new_.data_ = grid->alpha_.data_;
     grid->alpha_.data_ = tmp;
 }
+
 
 void G_SMACSolver::alpha_flux_thincwlic_split(double dt,int steps){
 
@@ -1939,3 +1949,740 @@ void G_SMACSolver::update_boundary_faces(){
 
 }
 
+/* ====== for two cfd coupling ======= */
+
+__device__ __forceinline__ double d_get_void_fraction_half_xface(G_StaggeredGrid* grid,int ix,int iy,int iz){
+    MyArray<double,3>& eps=grid->void_fraction_half_;
+    return 0.5*(eps(ix-1,iy,iz)+eps(ix,iy,iz));
+}
+
+__device__ __forceinline__ double d_get_void_fraction_half_yface(G_StaggeredGrid* grid,int ix,int iy,int iz){
+    MyArray<double,3>& eps=grid->void_fraction_half_;
+    return 0.5*(eps(ix,iy-1,iz)+eps(ix,iy,iz));
+}
+
+__device__ __forceinline__ double d_get_void_fraction_half_zface(G_StaggeredGrid* grid,int ix,int iy,int iz){
+    MyArray<double,3>& eps=grid->void_fraction_half_;
+    return 0.5*(eps(ix,iy,iz-1)+eps(ix,iy,iz));
+}
+__device__ __forceinline__ double d_get_void_fraction_t(const G_StaggeredGrid* grid,int ix,int iy,int iz,double theta){
+    const double eps_old=grid->void_fraction_old_(ix,iy,iz);
+    const double eps_new=grid->void_fraction_(ix,iy,iz);
+    return eps_old+theta*(eps_new-eps_old);
+}
+
+__device__ __forceinline__ double d_get_void_fraction_xface_t(const G_StaggeredGrid* grid,int ix,int iy,int iz,double theta){
+    return 0.5*(d_get_void_fraction_t(grid,ix-1,iy,iz,theta)+d_get_void_fraction_t(grid,ix,iy,iz,theta));
+}
+
+__device__ __forceinline__ double d_get_void_fraction_yface_t(const G_StaggeredGrid* grid,int ix,int iy,int iz,double theta){
+    return 0.5*(d_get_void_fraction_t(grid,ix,iy-1,iz,theta)+d_get_void_fraction_t(grid,ix,iy,iz,theta));
+}
+
+__device__ __forceinline__ double d_get_void_fraction_zface_t(const G_StaggeredGrid* grid,int ix,int iy,int iz,double theta){
+    return 0.5*(d_get_void_fraction_t(grid,ix,iy,iz-1,theta)+d_get_void_fraction_t(grid,ix,iy,iz,theta));
+}
+
+
+static __global__ void k_alpha_flux_thincwlic_x_two_way(G_StaggeredGrid* grid,double dt){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+2;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& vx=grid->f_vx_;
+    MyArray<double,3>& Fx=grid->f_Fx_;
+    MyArray<unsigned char,3>& f_xtype=grid->f_xtype_;
+    MyArray<unsigned char,3>& celltype=grid->celltype_;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_2dx=grid->inv_2dx_;
+    double inv_2dy=grid->inv_2dy_;
+    double inv_2dz=grid->inv_2dz_;
+    double dtbydx=dt*inv_dx;
+
+    if(ix>Nx || iy>Ny || iz>Nz) return;
+
+    if(f_xtype(ix,iy,iz)==F_GHOST){
+        Fx(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double vxf=vx(ix,iy,iz);
+    int donorInd=vxf>0.0?ix-1:ix;
+    double axf=a(donorInd,iy,iz);
+    double epsf=d_get_void_fraction_half_xface(grid,ix,iy,iz);
+
+    unsigned char ctyped=celltype(donorInd,iy,iz);
+    unsigned char ctypep=celltype(donorInd+1,iy,iz);
+    unsigned char ctypem=celltype(donorInd-1,iy,iz);
+
+    if(ctyped!=C_INTERIOR){
+        Fx(ix,iy,iz)=0.0;
+        return;
+    }
+
+    if(f_xtype(ix,iy,iz)==F_BOUNDARY){
+        int bid=grid->f_xbcid_(ix,iy,iz);
+        unsigned char bcType=grid->bc_.bcType_(bid);
+        if(bcType==BC_OUTLET){
+            Fx(ix,iy,iz)=epsf*vxf*axf*dtbydx;
+            return;
+        }else{
+            Fx(ix,iy,iz)=0.0;
+            return;
+        }
+    }
+
+
+    if(ctypep!=C_INTERIOR || ctypem!=C_INTERIOR){
+        Fx(ix,iy,iz)=epsf*vxf*axf*dtbydx;
+        return;
+    }
+
+    double gamma_x=a(donorInd+1,iy,iz)-a(donorInd-1,iy,iz);
+
+    if(axf<EPS || axf>1.0-EPS || fabs(gamma_x)<1e-6){
+        Fx(ix,iy,iz)=epsf*vxf*axf*dtbydx;
+        return;
+    }
+
+    double nx=-gamma_x*inv_2dx;
+
+    bool is_yp_interior=celltype(donorInd,iy+1,iz)==C_INTERIOR;
+    bool is_ym_interior=celltype(donorInd,iy-1,iz)==C_INTERIOR;
+    bool is_zp_interior=celltype(donorInd,iy,iz+1)==C_INTERIOR;
+    bool is_zm_interior=celltype(donorInd,iy,iz-1)==C_INTERIOR;
+
+    double ny=0.0;
+    if(is_yp_interior && is_ym_interior){
+        ny=-(a(donorInd,iy+1,iz)-a(donorInd,iy-1,iz))*inv_2dy;
+    }else if(!is_yp_interior && is_ym_interior){
+        ny=-(a(donorInd,iy,iz)-a(donorInd,iy-1,iz))*inv_dy;
+    }else if(is_yp_interior && !is_ym_interior){
+        ny=-(a(donorInd,iy+1,iz)-a(donorInd,iy,iz))*inv_dy;
+    }
+
+    double nz=0.0;
+    if(is_zp_interior && is_zm_interior){
+        nz=-(a(donorInd,iy,iz+1)-a(donorInd,iy,iz-1))*inv_2dz;
+    }else if(!is_zp_interior && is_zm_interior){
+        nz=-(a(donorInd,iy,iz)-a(donorInd,iy,iz-1))*inv_dz;
+    }else if(is_zp_interior && !is_zm_interior){
+        nz=-(a(donorInd,iy,iz+1)-a(donorInd,iy,iz))*inv_dz;
+    }
+
+    double s_sq=nx*nx+ny*ny+nz*nz;
+    double s=sqrt(s_sq);
+    double inv_s=1.0/(s+EPS);
+    double theta=acos(fabs(nx)*inv_s);
+    double awlic_coeff=2.0*theta/M_PI;
+    double wx=1.0-awlic_coeff*awlic_coeff;
+    double gamma=sgn(gamma_x);
+    double xi0=find_xi0_analytic(a(donorInd,iy,iz),gamma);
+    double lambda=vxf*dtbydx;
+    double Fx_thinc;
+
+    if(vxf>0.0){
+        Fx_thinc=integrate_thinc(1.0-lambda,1.0,gamma,xi0);
+    }else{
+        Fx_thinc=-integrate_thinc(0.0,-lambda,gamma,xi0);
+    }
+
+    double Fx_upwind=lambda*axf;
+    Fx(ix,iy,iz)=epsf*(wx*Fx_thinc+(1.0-wx)*Fx_upwind);
+}
+
+static __global__ void k_transport_alpha_x_two_way(G_StaggeredGrid* grid,double dt){
+    const int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    const int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    const int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& a_new=grid->alpha_new_;
+    MyArray<double,3>& eps=grid->void_fraction_vof_;
+    MyArray<double,3>& eps_new=grid->void_fraction_vof_new_;
+    const MyArray<double,3>& Fx=grid->f_Fx_;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        a_new(ix,iy,iz)=0.0;
+        eps_new(ix,iy,iz)=eps(ix,iy,iz);
+        return;
+    }
+
+    const double eps_xp=d_get_void_fraction_half_xface(grid,ix+1,iy,iz);
+    const double eps_xm=d_get_void_fraction_half_xface(grid,ix,iy,iz);
+    const double up=d_get_vx_xface(grid,ix+1,iy,iz);
+    const double um=d_get_vx_xface(grid,ix,iy,iz);
+    const double Qp=eps_xp*up*dt*grid->inv_dx_;
+    const double Qm=eps_xm*um*dt*grid->inv_dx_;
+    const double liquid=eps(ix,iy,iz)*a(ix,iy,iz);
+    const double liquid_new=liquid-(Fx(ix+1,iy,iz)-Fx(ix,iy,iz));
+    const double eps_next=eps(ix,iy,iz)-(Qp-Qm);
+
+    eps_new(ix,iy,iz)=eps_next;
+    a_new(ix,iy,iz)=liquid_new/eps_next;
+}
+static __global__ void k_alpha_flux_thincwlic_y_two_way(G_StaggeredGrid* grid,double dt){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+2;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& vy=grid->f_vy_;
+    MyArray<double,3>& Fy=grid->f_Fy_;
+    MyArray<unsigned char,3>& f_ytype=grid->f_ytype_;
+    MyArray<unsigned char,3>& celltype=grid->celltype_;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_2dx=grid->inv_2dx_;
+    double inv_2dy=grid->inv_2dy_;
+    double inv_2dz=grid->inv_2dz_;
+    double dtbydy=dt*inv_dy;
+
+    if(ix>Nx || iy>Ny || iz>Nz) return;
+
+    if(f_ytype(ix,iy,iz)==F_GHOST){
+        Fy(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double vyf=vy(ix,iy,iz);
+    int donorInd=vyf>0.0?iy-1:iy;
+    double ayf=a(ix,donorInd,iz);
+    double epsf=d_get_void_fraction_half_yface(grid,ix,iy,iz);
+
+    unsigned char ctyped=celltype(ix,donorInd,iz);
+    unsigned char ctypep=celltype(ix,donorInd+1,iz);
+    unsigned char ctypem=celltype(ix,donorInd-1,iz);
+
+    if(ctyped!=C_INTERIOR){
+        Fy(ix,iy,iz)=0.0;
+        return;
+    }
+
+    if(f_ytype(ix,iy,iz)==F_BOUNDARY){
+        int bid=grid->f_ybcid_(ix,iy,iz);
+        unsigned char bcType=grid->bc_.bcType_(bid);
+        if(bcType==BC_OUTLET){
+            Fy(ix,iy,iz)=epsf*vyf*ayf*dtbydy;
+            return;
+        }else{
+            Fy(ix,iy,iz)=0.0;
+            return;
+        }
+    }
+
+    if(ctypep!=C_INTERIOR || ctypem!=C_INTERIOR){
+        Fy(ix,iy,iz)=epsf*vyf*ayf*dtbydy;
+        return;
+    }
+
+
+    double gamma_y=a(ix,donorInd+1,iz)-a(ix,donorInd-1,iz);
+
+    if(ayf<EPS || ayf>1.0-EPS || fabs(gamma_y)<1e-6){
+        Fy(ix,iy,iz)=epsf*vyf*ayf*dtbydy;
+        return;
+    }
+
+    double ny=-gamma_y*inv_2dy;
+
+    bool is_xp_interior=celltype(ix+1,donorInd,iz)==C_INTERIOR;
+    bool is_xm_interior=celltype(ix-1,donorInd,iz)==C_INTERIOR;
+    bool is_zp_interior=celltype(ix,donorInd,iz+1)==C_INTERIOR;
+    bool is_zm_interior=celltype(ix,donorInd,iz-1)==C_INTERIOR;
+
+    double nx=0.0;
+    if(is_xp_interior && is_xm_interior){
+        nx=-(a(ix+1,donorInd,iz)-a(ix-1,donorInd,iz))*inv_2dx;
+    }else if(!is_xp_interior && is_xm_interior){
+        nx=-(a(ix,donorInd,iz)-a(ix-1,donorInd,iz))*inv_dx;
+    }else if(is_xp_interior && !is_xm_interior){
+        nx=-(a(ix+1,donorInd,iz)-a(ix,donorInd,iz))*inv_dx;
+    }
+
+    double nz=0.0;
+    if(is_zp_interior && is_zm_interior){
+        nz=-(a(ix,donorInd,iz+1)-a(ix,donorInd,iz-1))*inv_2dz;
+    }else if(!is_zp_interior && is_zm_interior){
+        nz=-(a(ix,donorInd,iz)-a(ix,donorInd,iz-1))*inv_dz;
+    }else if(is_zp_interior && !is_zm_interior){
+        nz=-(a(ix,donorInd,iz+1)-a(ix,donorInd,iz))*inv_dz;
+    }
+
+    double s_sq=nx*nx+ny*ny+nz*nz;
+    double s=sqrt(s_sq);
+    double inv_s=1.0/(s+EPS);
+    double theta=acos(fabs(ny)*inv_s);
+    double awlic_coeff=2.0*theta/M_PI;
+    double wy=1.0-awlic_coeff*awlic_coeff;
+    double gamma=sgn(gamma_y);
+    double xi0=find_xi0_analytic(a(ix,donorInd,iz),gamma);
+    double lambda=vyf*dtbydy;
+    double Fy_thinc;
+
+    if(vyf>0.0){
+        Fy_thinc=integrate_thinc(1.0-lambda,1.0,gamma,xi0);
+    }else{
+        Fy_thinc=-integrate_thinc(0.0,-lambda,gamma,xi0);
+    }
+
+    double Fy_upwind=lambda*ayf;
+    Fy(ix,iy,iz)=epsf*(wy*Fy_thinc+(1.0-wy)*Fy_upwind);
+}
+
+static __global__ void k_transport_alpha_y_two_way(G_StaggeredGrid* grid,double dt){
+    const int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    const int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    const int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& a_new=grid->alpha_new_;
+    MyArray<double,3>& eps=grid->void_fraction_vof_;
+    MyArray<double,3>& eps_new=grid->void_fraction_vof_new_;
+    const MyArray<double,3>& Fy=grid->f_Fy_;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        a_new(ix,iy,iz)=0.0;
+        eps_new(ix,iy,iz)=eps(ix,iy,iz);
+        return;
+    }
+
+    const double eps_yp=d_get_void_fraction_half_yface(grid,ix,iy+1,iz);
+    const double eps_ym=d_get_void_fraction_half_yface(grid,ix,iy,iz);
+    const double up=d_get_vy_yface(grid,ix,iy+1,iz);
+    const double um=d_get_vy_yface(grid,ix,iy,iz);
+    const double Qp=eps_yp*up*dt*grid->inv_dy_;
+    const double Qm=eps_ym*um*dt*grid->inv_dy_;
+    const double liquid=eps(ix,iy,iz)*a(ix,iy,iz);
+    const double liquid_new=liquid-(Fy(ix,iy+1,iz)-Fy(ix,iy,iz));
+    const double eps_next=eps(ix,iy,iz)-(Qp-Qm);
+
+    eps_new(ix,iy,iz)=eps_next;
+    a_new(ix,iy,iz)=liquid_new/eps_next;
+}
+
+static __global__ void k_alpha_flux_thincwlic_z_two_way(G_StaggeredGrid* grid,double dt){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+2;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& vz=grid->f_vz_;
+    MyArray<double,3>& Fz=grid->f_Fz_;
+    MyArray<unsigned char,3>& f_ztype=grid->f_ztype_;
+    MyArray<unsigned char,3>& celltype=grid->celltype_;
+
+    double inv_dx=grid->inv_dx_;
+    double inv_dy=grid->inv_dy_;
+    double inv_dz=grid->inv_dz_;
+    double inv_2dx=grid->inv_2dx_;
+    double inv_2dy=grid->inv_2dy_;
+    double inv_2dz=grid->inv_2dz_;
+    double dtbydz=dt*inv_dz;
+
+    if(ix>Nx || iy>Ny || iz>Nz) return;
+
+    if(f_ztype(ix,iy,iz)==F_GHOST){
+        Fz(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double vzf=vz(ix,iy,iz);
+    int donorInd=vzf>0.0?iz-1:iz;
+    double azf=a(ix,iy,donorInd);
+    double epsf=d_get_void_fraction_half_zface(grid,ix,iy,iz);
+
+    unsigned char ctyped=celltype(ix,iy,donorInd);
+    unsigned char ctypep=celltype(ix,iy,donorInd+1);
+    unsigned char ctypem=celltype(ix,iy,donorInd-1);
+
+    if(ctyped!=C_INTERIOR){
+        Fz(ix,iy,iz)=0.0;
+        return;
+    }
+
+    if(f_ztype(ix,iy,iz)==F_BOUNDARY){
+        int bid=grid->f_zbcid_(ix,iy,iz);
+        unsigned char bcType=grid->bc_.bcType_(bid);
+        if(bcType==BC_OUTLET){
+            Fz(ix,iy,iz)=epsf*vzf*azf*dtbydz;
+            return;
+        }else{
+            Fz(ix,iy,iz)=0.0;
+            return;
+        }
+    }
+
+    if(ctypep!=C_INTERIOR || ctypem!=C_INTERIOR){
+        Fz(ix,iy,iz)=epsf*vzf*azf*dtbydz;
+        return;
+    }
+
+
+    double gamma_z=a(ix,iy,donorInd+1)-a(ix,iy,donorInd-1);
+
+    if(azf<EPS || azf>1.0-EPS || fabs(gamma_z)<1e-6){
+        Fz(ix,iy,iz)=epsf*vzf*azf*dtbydz;
+        return;
+    }
+
+    double nz=-gamma_z*inv_2dz;
+
+    bool is_xp_interior=celltype(ix+1,iy,donorInd)==C_INTERIOR;
+    bool is_xm_interior=celltype(ix-1,iy,donorInd)==C_INTERIOR;
+    bool is_yp_interior=celltype(ix,iy+1,donorInd)==C_INTERIOR;
+    bool is_ym_interior=celltype(ix,iy-1,donorInd)==C_INTERIOR;
+
+    double nx=0.0;
+    if(is_xp_interior && is_xm_interior){
+        nx=-(a(ix+1,iy,donorInd)-a(ix-1,iy,donorInd))*inv_2dx;
+    }else if(!is_xp_interior && is_xm_interior){
+        nx=-(a(ix,iy,donorInd)-a(ix-1,iy,donorInd))*inv_dx;
+    }else if(is_xp_interior && !is_xm_interior){
+        nx=-(a(ix+1,iy,donorInd)-a(ix,iy,donorInd))*inv_dx;
+    }
+
+    double ny=0.0;
+    if(is_yp_interior && is_ym_interior){
+        ny=-(a(ix,iy+1,donorInd)-a(ix,iy-1,donorInd))*inv_2dy;
+    }else if(!is_yp_interior && is_ym_interior){
+        ny=-(a(ix,iy,donorInd)-a(ix,iy-1,donorInd))*inv_dy;
+    }else if(is_yp_interior && !is_ym_interior){
+        ny=-(a(ix,iy+1,donorInd)-a(ix,iy,donorInd))*inv_dy;
+    }
+
+    double s_sq=nx*nx+ny*ny+nz*nz;
+    double s=sqrt(s_sq);
+    double inv_s=1.0/(s+EPS);
+    double theta=acos(fabs(nz)*inv_s);
+    double awlic_coeff=2.0*theta/M_PI;
+    double wz=1.0-awlic_coeff*awlic_coeff;
+    double gamma=sgn(gamma_z);
+    double xi0=find_xi0_analytic(a(ix,iy,donorInd),gamma);
+    double lambda=vzf*dtbydz;
+    double Fz_thinc;
+
+    if(vzf>0.0){
+        Fz_thinc=integrate_thinc(1.0-lambda,1.0,gamma,xi0);
+    }else{
+        Fz_thinc=-integrate_thinc(0.0,-lambda,gamma,xi0);
+    }
+
+    double Fz_upwind=lambda*azf;
+    Fz(ix,iy,iz)=epsf*(wz*Fz_thinc+(1.0-wz)*Fz_upwind);
+}
+
+static __global__ void k_transport_alpha_z_two_way(G_StaggeredGrid* grid,double dt){
+    const int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    const int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    const int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    MyArray<double,3>& a=grid->alpha_;
+    MyArray<double,3>& a_new=grid->alpha_new_;
+    MyArray<double,3>& eps=grid->void_fraction_vof_;
+    MyArray<double,3>& eps_new=grid->void_fraction_vof_new_;
+    const MyArray<double,3>& Fz=grid->f_Fz_;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        a_new(ix,iy,iz)=0.0;
+        eps_new(ix,iy,iz)=eps(ix,iy,iz);
+        return;
+    }
+
+    const double eps_zp=d_get_void_fraction_half_zface(grid,ix,iy,iz+1);
+    const double eps_zm=d_get_void_fraction_half_zface(grid,ix,iy,iz);
+    const double up=d_get_vz_zface(grid,ix,iy,iz+1);
+    const double um=d_get_vz_zface(grid,ix,iy,iz);
+    const double Qp=eps_zp*up*dt*grid->inv_dz_;
+    const double Qm=eps_zm*um*dt*grid->inv_dz_;
+    const double liquid=eps(ix,iy,iz)*a(ix,iy,iz);
+    const double liquid_new=liquid-(Fz(ix,iy,iz+1)-Fz(ix,iy,iz));
+    const double eps_next=eps(ix,iy,iz)-(Qp-Qm);
+
+    eps_new(ix,iy,iz)=eps_next;
+    a_new(ix,iy,iz)=liquid_new/eps_next;
+}
+
+static __global__ void k_finalize_alpha_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    const double eps_vof=grid->void_fraction_vof_(ix,iy,iz);
+    const double eps_new=grid->void_fraction_(ix,iy,iz);
+    const double liquid=eps_vof*grid->alpha_(ix,iy,iz);
+
+    grid->alpha_(ix,iy,iz)=liquid/eps_new;
+}
+static __global__ void k_init_void_fraction_vof_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    grid->void_fraction_vof_(ix,iy,iz)=grid->void_fraction_old_(ix,iy,iz);
+}
+
+static __global__ void k_get_eps_alpha_to_tmp_(G_StaggeredGrid* grid, MyArray<double,3> tmp){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    tmp(ix,iy,iz)=grid->alpha_(ix,iy,iz)*grid->void_fraction_(ix,iy,iz);
+}
+
+
+__global__ void k_swap_void_frac_vof(G_StaggeredGrid* grid){
+    double* tmp;
+    tmp =grid->void_fraction_vof_.data_; 
+    grid->void_fraction_vof_.data_=grid->void_fraction_vof_new_.data_; 
+    grid->void_fraction_vof_new_.data_=tmp; 
+}
+
+static __global__ void k_compute_mass_flux_from_alpha_flux_two_way(SMACSolver solv,G_StaggeredGrid* grid){
+    int iz=blockIdx.z*blockDim.z+threadIdx.z;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y;
+    int ix=blockIdx.x*blockDim.x+threadIdx.x;
+
+    int Nx=grid->Nx_;
+    int Ny=grid->Ny_;
+    int Nz=grid->Nz_;
+
+    MyArray<double,3> Fx=grid->f_Fx_accum_;
+    MyArray<double,3> Fy=grid->f_Fy_accum_;
+    MyArray<double,3> Fz=grid->f_Fz_accum_;
+    MyArray<double,3> mfx=grid->f_mfx_;
+    MyArray<double,3> mfy=grid->f_mfy_;
+    MyArray<double,3> mfz=grid->f_mfz_;
+
+    double inv_dt=solv.inv_dt_;
+    double dx=grid->dx_;
+    double dy=grid->dy_;
+    double dz=grid->dz_;
+
+    double rho0=solv.rho0_;
+    double drho=solv.rho1_-solv.rho0_;
+
+    double dxbydt=dx*inv_dt;
+    double dybydt=dy*inv_dt;
+    double dzbydt=dz*inv_dt;
+
+    /* x mass flux: epsilon*rho*u */
+    if(iy<Ny+2 && ix<Nx+3 && iz<Nz+2){
+        if(ix>=1 && ix<=Nx+1){
+            double epsf;
+            if(ix==1){
+                epsf=grid->void_fraction_half_(1,iy,iz);
+            }else if(ix==Nx+1){
+                epsf=grid->void_fraction_half_(Nx,iy,iz);
+            }else{
+                epsf=d_get_void_fraction_half_xface(grid,ix,iy,iz);
+            }
+
+            double q=epsf*d_get_vx_xface(grid,ix,iy,iz);
+            double alpha_q=Fx(ix,iy,iz)*dxbydt;
+            mfx(ix,iy,iz)=rho0*q+drho*alpha_q;
+        }else{
+            mfx(ix,iy,iz)=0.0;
+        }
+    }
+
+    /* y mass flux: epsilon*rho*v */
+    if(iy<Ny+3 && ix<Nx+2 && iz<Nz+2){
+        if(iy>=1 && iy<=Ny+1){
+            double epsf;
+            if(iy==1){
+                epsf=grid->void_fraction_half_(ix,1,iz);
+            }else if(iy==Ny+1){
+                epsf=grid->void_fraction_half_(ix,Ny,iz);
+            }else{
+                epsf=d_get_void_fraction_half_yface(grid,ix,iy,iz);
+            }
+
+            double q=epsf*d_get_vy_yface(grid,ix,iy,iz);
+            double alpha_q=Fy(ix,iy,iz)*dybydt;
+            mfy(ix,iy,iz)=rho0*q+drho*alpha_q;
+        }else{
+            mfy(ix,iy,iz)=0.0;
+        }
+    }
+
+    /* z mass flux: epsilon*rho*w */
+    if(iy<Ny+2 && ix<Nx+2 && iz<Nz+3){
+        if(iz>=1 && iz<=Nz+1){
+            double epsf;
+            if(iz==1){
+                epsf=grid->void_fraction_half_(ix,iy,1);
+            }else if(iz==Nz+1){
+                epsf=grid->void_fraction_half_(ix,iy,Nz);
+            }else{
+                epsf=d_get_void_fraction_half_zface(grid,ix,iy,iz);
+            }
+
+            double q=epsf*d_get_vz_zface(grid,ix,iy,iz);
+            double alpha_q=Fz(ix,iy,iz)*dzbydt;
+            mfz(ix,iy,iz)=rho0*q+drho*alpha_q;
+        }else{
+            mfz(ix,iy,iz)=0.0;
+        }
+    }
+}
+
+void G_SMACSolver::finalize_alpha_two_way(){
+    k_finalize_alpha_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+    k_get_eps_alpha_to_tmp_<<<grid_dim_, block_dim_>>>(grid_.d_ptr_, grid_.array_tmp_);
+    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.array_tmp_.data_, d_r2_,grid_.array_tmp_.size_);
+    double sum;
+    cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+    printf("total alpha eps = %.7e\n",sum);
+
+}
+
+void G_SMACSolver::init_void_fraction_vof_two_way(){
+    k_init_void_fraction_vof_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+}
+
+void G_SMACSolver::alpha_flux_thincwlic_split_two_way(double dt,int steps){
+
+
+
+
+
+    if (steps%3 == 0){
+        k_alpha_flux_thincwlic_x_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_x_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+
+
+        k_alpha_flux_thincwlic_y_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_y_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+
+        k_alpha_flux_thincwlic_z_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_z_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+    }else if(steps%3 == 1){
+
+        k_alpha_flux_thincwlic_y_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_y_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+
+
+        k_alpha_flux_thincwlic_z_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_z_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+        k_alpha_flux_thincwlic_x_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_x_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+
+    }else{
+
+
+        k_alpha_flux_thincwlic_z_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_z_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+        k_alpha_flux_thincwlic_x_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_x_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+        k_alpha_flux_thincwlic_y_two_way<<<grid_dim_,block_dim_ >>>(grid_.d_ptr_, dt);
+        k_transport_alpha_y_two_way<<<grid_dim_, block_dim_>>>(grid_.d_ptr_,dt);
+        /* == swap == */
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+
+        std::swap(grid_.void_fraction_vof_.data_,grid_.void_fraction_vof_new_.data_);
+        k_swap_void_frac_vof<<<1,1>>>(grid_.d_ptr_);
+
+    }
+
+
+    //k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_.d_ptr_);
+
+
+
+}
+
+void G_SMACSolver::compute_mass_flux_from_alpha_flux_two_way(SMACSolver solv){
+    k_compute_mass_flux_from_alpha_flux_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
+
+}

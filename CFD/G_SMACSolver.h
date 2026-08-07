@@ -44,6 +44,7 @@ struct G_SMACSolver{
     void clear_alpha_flux();
     void clear_alpha_flux_accum();
     void compute_mass_flux_from_alpha_flux(SMACSolver solv);
+    void compute_mass_flux_from_alpha_flux_two_way(SMACSolver solv);
     double calc_alpha_area() ;
     void alpha_flux_accum();
     void alpha_flux_thincwlic(double dt);
@@ -68,6 +69,7 @@ struct G_SMACSolver{
     void set_boundary_alpha(int Nx, int Ny);
 
     void get_vof_vstar_rhouu_consistent(SMACSolver solv);
+    void get_vof_vstar_rhouu_consistent_two_way(SMACSolver solv);
 
     void update_vstar_boundary();
     void update_v_boundary();
@@ -110,7 +112,15 @@ struct G_SMACSolver{
 
     /* == pressure solver == */
     G_PressureSolverBase* pressure_solver_;
-    
+
+    /* === cfd two way coupling === */
+    void finalize_alpha_two_way();
+
+    void init_void_fraction_vof_two_way();
+
+    void alpha_flux_thincwlic_split_two_way(double dt,int steps);
+
+
 
 };
 

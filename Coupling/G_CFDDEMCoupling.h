@@ -2,6 +2,7 @@
 #include "../CFD/G_StaggeredGrid.h"
 #include "../DEM/ParticleSystem.h"
 #include <cmath>
+#include <cuda_runtime.h>
 
 struct TrilinearStencil{
     int i0;
@@ -133,12 +134,28 @@ bool same_stencil_base(const TrilinearStencil& stencil, int old_i0, int old_j0, 
     return stencil.i0 == old_i0 && stencil.j0 == old_j0 && stencil.k0 == old_k0;
 }
 
+__global__ void k_swap_voidfraction(G_StaggeredGrid* grid);
+
 __global__ void k_update_demdt(ParticleSys<DeviceMemory>* ps, double dt);
 
 struct G_CFDDEMCoupling{
 
     void interpolate_fluid_to_particle(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize, int blockSize);
 
+    void gaussian_filter_particle_volume(G_StaggeredGrid& grid);
+
+    void update_poisson_beta_two_way(G_StaggeredGrid& grid);
+
+    void initialize_void_fractions(G_StaggeredGrid& grid);
+    void calc_void_fraction(G_StaggeredGrid& grid);
+    void set_particle_volume_to_cell(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize, int blockSize);
+    void update_boundary_ghost_void_fraction(G_StaggeredGrid& grid);
+
     void get_index_of_Cell(G_StaggeredGrid& grid, ParticleSys<DeviceMemory>& ps, int gridSize,int blockSize);
+
+    dim3 block_dim_;
+    dim3 grid_dim_;
+
+
 
 };

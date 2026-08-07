@@ -481,6 +481,15 @@ int main(int argc, char** argv){
     /* ==== CFDDEM coupling ==== */
 
     G_CFDDEMCoupling cfddem;
+    cfddem.block_dim_ = g_solv.block_dim_;
+    cfddem.grid_dim_ = g_solv.grid_dim_;
+
+    cfddem.set_particle_volume_to_cell(g_solv.grid_,d_ps,gridSize, blockSize);
+    cfddem.gaussian_filter_particle_volume(g_solv.grid_);
+    cfddem.calc_void_fraction(g_solv.grid_);
+    cfddem.update_boundary_ghost_void_fraction(g_solv.grid_);
+    /* == void fraction has to be initialized as 1 ==*/
+    cfddem.initialize_void_fractions(g_solv.grid_);
 
     /* ==== CFDDEM Coupling initialization done === */
 
@@ -506,23 +515,19 @@ int main(int argc, char** argv){
 
         /* == transport alpha == */
         g_solv.clear_alpha_flux_accum();
+        g_solv.init_void_fraction_vof_two_way();
 
-
-        double sub_dt = cfdtime.dt_/(double)alpha_substeps;
-        for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
-            printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
+        double sub_dt=cfdtime.dt_/(double)alpha_substeps;
+        for(int substeps=0;substeps<alpha_substeps;substeps++){
+            printf("alpha subcycle %d/%d\n",substeps+1,alpha_substeps);
             g_solv.clear_alpha_flux();
-            g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
-
-            //g_solv.alpha_flux_thincwlic(sub_dt);
-            //g_solv.transport_alpha(); //used for unsplit thinc
-
+            g_solv.alpha_flux_thincwlic_split_two_way(sub_dt,cur_step);
             g_solv.alpha_flux_accum();
-        }
-        /* == transport alpha done == */
+        }/* == transport alpha done == */
 
+        g_solv.finalize_alpha_two_way();
         g_solv.update_properties_by_alpha();
-        g_solv.compute_mass_flux_from_alpha_flux(solv);
+        g_solv.compute_mass_flux_from_alpha_flux_two_way(solv);
 
         g_solv.update_boundary_faces();
 
@@ -530,12 +535,13 @@ int main(int argc, char** argv){
         g_solv.calc_surface_tension();
 
 
-        g_solv.get_vof_vstar_rhouu_consistent(solv);
+        g_solv.get_vof_vstar_rhouu_consistent_two_way(solv);
 
         g_solv.update_vstar_boundary();
 
 
         printf("starting poisson\n");
+        cfddem.update_poisson_beta_two_way(g_solv.grid_);
         g_solv.solve_poisson();
 
         g_solv.correct_vof_velocity(solv);
@@ -547,6 +553,7 @@ int main(int argc, char** argv){
         fileIO.output_vti_binary_cellData(solv.grid_,0.0);
 
     }
+
 
     /* === calc time measurement === */
     double h_start, h_end;
@@ -622,24 +629,33 @@ int main(int argc, char** argv){
 
             /* == dem steps done == */
             /* == starting cfd steps == */
+            std::swap(g_solv.grid_.void_fraction_.data_, g_solv.grid_.void_fraction_old_.data_);
+            k_swap_voidfraction<<<1,1>>>(g_solv.grid_.d_ptr_);
+
+            cfddem.set_particle_volume_to_cell(g_solv.grid_,d_ps,gridSize, blockSize);
+            cfddem.gaussian_filter_particle_volume(g_solv.grid_);
+            cfddem.calc_void_fraction(g_solv.grid_);
+            cfddem.update_boundary_ghost_void_fraction(g_solv.grid_);
 
             /* == transport alpha == */
             g_solv.clear_alpha_flux_accum();
+            g_solv.init_void_fraction_vof_two_way();
 
 
             double sub_dt = cfdtime.dt_/(double)alpha_substeps;
             for (int substeps=0 ; substeps<alpha_substeps; substeps++){ 
                 printf("alpha subcycle %d/%d\n", substeps+1,alpha_substeps);
                 g_solv.clear_alpha_flux();
-                g_solv.alpha_flux_thincwlic_split(sub_dt,cur_step);
+                g_solv.alpha_flux_thincwlic_split_two_way(sub_dt,cur_step);
 
 
                 g_solv.alpha_flux_accum();
             }
             /* == transport alpha done == */
 
+            g_solv.finalize_alpha_two_way();
             g_solv.update_properties_by_alpha();
-            g_solv.compute_mass_flux_from_alpha_flux(solv);
+            g_solv.compute_mass_flux_from_alpha_flux_two_way(solv);
 
             g_solv.update_boundary_faces();
 
@@ -647,12 +663,13 @@ int main(int argc, char** argv){
             g_solv.calc_surface_tension();
 
 
-            g_solv.get_vof_vstar_rhouu_consistent(solv);
+            g_solv.get_vof_vstar_rhouu_consistent_two_way(solv);
 
             g_solv.update_vstar_boundary();
 
 
             printf("starting poisson\n");
+            cfddem.update_poisson_beta_two_way(g_solv.grid_);
             g_solv.solve_poisson();
 
             g_solv.correct_vof_velocity(solv);
