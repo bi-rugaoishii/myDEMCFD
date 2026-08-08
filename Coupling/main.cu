@@ -573,6 +573,12 @@ int main(int argc, char** argv){
 
         int cur_step = 0;
         while(cfdtime.current_time_ < cfdtime.end_time_-EPS){
+
+
+            /* ==starting new step== */
+            printf("====================================\n");
+
+
             /* == calculate cfd timestep == */
             double cfl=g_solv.calc_cfl();
             cfdtime.updateTime(cfl);
@@ -705,9 +711,9 @@ int main(int argc, char** argv){
 
                 int step= cfdtime.current_steps_;
                 double current_time= cfdtime.current_time_;
-                printf("step %d,next dt = %f s, current time: %f s, GPU time: %f s\n\n", step,cfdtime.dt_,current_time,ms);
+                printf("step %d,next dt = %f s, current time: %f s, GPU time: %f s\n", step,cfdtime.dt_,current_time,ms);
             }
-            printf("\n");
+            printf("====================================\n");
 
             cur_step ++;
 

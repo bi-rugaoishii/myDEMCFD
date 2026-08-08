@@ -1181,9 +1181,9 @@ static __global__ void k_clip_alpha(G_StaggeredGrid* grid){
 
     if (iy >=a.sizey_-1 || ix >= a.sizex_-1 || iz>= a.sizez_-1) return;
 
-    if (a(ix,iy,iz)<EPS){
+    if (a(ix,iy,iz)<1e-16){
         a(ix,iy,iz)=0.;
-    }else if (a(ix,iy,iz)>1.){
+    }else if (a(ix,iy,iz)>1.-1e-16){
         a(ix,iy,iz)=1.;
     }
 
@@ -2427,20 +2427,6 @@ static __global__ void k_transport_alpha_z_two_way(G_StaggeredGrid* grid,double 
     a_new(ix,iy,iz)=liquid_new/eps_next;
 }
 
-static __global__ void k_finalize_alpha_two_way(G_StaggeredGrid* grid){
-    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
-    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
-    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
-
-    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
-    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
-
-    const double eps_vof=grid->void_fraction_vof_(ix,iy,iz);
-    const double eps_new=grid->void_fraction_(ix,iy,iz);
-    const double liquid=eps_vof*grid->alpha_(ix,iy,iz);
-
-    grid->alpha_(ix,iy,iz)=liquid/eps_new;
-}
 static __global__ void k_init_void_fraction_vof_two_way(G_StaggeredGrid* grid){
     int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
     int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
@@ -2558,18 +2544,6 @@ static __global__ void k_compute_mass_flux_from_alpha_flux_two_way(SMACSolver so
     }
 }
 
-void G_SMACSolver::finalize_alpha_two_way(){
-    k_finalize_alpha_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
-
-    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
-    k_get_eps_alpha_to_tmp_<<<grid_dim_, block_dim_>>>(grid_.d_ptr_, grid_.array_tmp_);
-    cub::DeviceReduce::Sum(cub_temp_storage_, cub_temp_storage_bytes_, grid_.array_tmp_.data_, d_r2_,grid_.array_tmp_.size_);
-    double sum;
-    cudaMemcpy(&sum,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
-    printf("total alpha eps = %.7e\n",sum);
-
-}
-
 void G_SMACSolver::init_void_fraction_vof_two_way(){
     k_init_void_fraction_vof_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
 }
@@ -2676,8 +2650,16 @@ void G_SMACSolver::alpha_flux_thincwlic_split_two_way(double dt,int steps){
     }
 
 
-    //k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_.d_ptr_);
-
+    /* debug */
+    cub::DeviceReduce::Max(
+            cub_temp_storage_,
+            cub_temp_storage_bytes_,
+            grid_.alpha_.data_,
+            d_r2_,
+            grid_.alpha_.size_);
+    double max_alpha = 0.0;
+    cudaMemcpy(&max_alpha,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+    printf("max_alpha before redistribution = %f\n",max_alpha);
 
 
 }
@@ -2685,4 +2667,574 @@ void G_SMACSolver::alpha_flux_thincwlic_split_two_way(double dt,int steps){
 void G_SMACSolver::compute_mass_flux_from_alpha_flux_two_way(SMACSolver solv){
     k_compute_mass_flux_from_alpha_flux_two_way<<<grid_dim_,block_dim_>>>(solv,grid_.d_ptr_);
 
+}
+
+/* ============================================================ */
+/* === Conservative bounded liquid redistribution for CFD-DEM === */
+/* ============================================================ */
+
+static __device__ __forceinline__ bool d_is_non_excess_two_way(
+    G_StaggeredGrid* grid,int ix,int iy,int iz,double tol){
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return false;
+
+    double q=grid->alpha_(ix,iy,iz);
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    return q<=eps+tol;
+}
+
+static __device__ __forceinline__ int d_count_non_excess_neighbors_two_way(
+    G_StaggeredGrid* grid,int ix,int iy,int iz,double tol){
+
+    int n=0;
+
+    n+=d_is_non_excess_two_way(grid,ix-1,iy,iz,tol);
+    n+=d_is_non_excess_two_way(grid,ix+1,iy,iz,tol);
+    n+=d_is_non_excess_two_way(grid,ix,iy-1,iz,tol);
+    n+=d_is_non_excess_two_way(grid,ix,iy+1,iz,tol);
+    n+=d_is_non_excess_two_way(grid,ix,iy,iz-1,tol);
+    n+=d_is_non_excess_two_way(grid,ix,iy,iz+1,tol);
+
+    return n;
+}
+
+static __global__ void k_prepare_liquid_redistribution_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    grid->alpha_(ix,iy,iz)*=grid->void_fraction_vof_(ix,iy,iz);
+}
+
+static __global__ void k_make_liquid_redistribution_flux_x_two_way(
+    G_StaggeredGrid* grid,double tol){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>=grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+    if(grid->celltype_(ix+1,iy,iz)!=C_INTERIOR) return;
+
+    double qL=grid->alpha_(ix,iy,iz);
+    double qR=grid->alpha_(ix+1,iy,iz);
+
+    double epsL=grid->void_fraction_(ix,iy,iz);
+    double epsR=grid->void_fraction_(ix+1,iy,iz);
+
+    double excessL=fmax(qL-epsL,0.0);
+    double excessR=fmax(qR-epsR,0.0);
+
+    double flux=0.0;
+
+    if(excessL>tol && excessR<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix,iy,iz,tol);
+        if(n>0) flux=excessL/(double)n;
+    }else if(excessR>tol && excessL<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix+1,iy,iz,tol);
+        if(n>0) flux=-excessR/(double)n;
+    }
+
+    grid->f_Fx_(ix+1,iy,iz)=flux;
+}
+
+static __global__ void k_make_liquid_redistribution_flux_y_two_way(
+    G_StaggeredGrid* grid,double tol){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>=grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+    if(grid->celltype_(ix,iy+1,iz)!=C_INTERIOR) return;
+
+    double qL=grid->alpha_(ix,iy,iz);
+    double qR=grid->alpha_(ix,iy+1,iz);
+
+    double epsL=grid->void_fraction_(ix,iy,iz);
+    double epsR=grid->void_fraction_(ix,iy+1,iz);
+
+    double excessL=fmax(qL-epsL,0.0);
+    double excessR=fmax(qR-epsR,0.0);
+
+    double flux=0.0;
+
+    if(excessL>tol && excessR<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix,iy,iz,tol);
+        if(n>0) flux=excessL/(double)n;
+    }else if(excessR>tol && excessL<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix,iy+1,iz,tol);
+        if(n>0) flux=-excessR/(double)n;
+    }
+
+    grid->f_Fy_(ix,iy+1,iz)=flux;
+}
+
+static __global__ void k_make_liquid_redistribution_flux_z_two_way(
+    G_StaggeredGrid* grid,double tol){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>=grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+    if(grid->celltype_(ix,iy,iz+1)!=C_INTERIOR) return;
+
+    double qL=grid->alpha_(ix,iy,iz);
+    double qR=grid->alpha_(ix,iy,iz+1);
+
+    double epsL=grid->void_fraction_(ix,iy,iz);
+    double epsR=grid->void_fraction_(ix,iy,iz+1);
+
+    double excessL=fmax(qL-epsL,0.0);
+    double excessR=fmax(qR-epsR,0.0);
+
+    double flux=0.0;
+
+    if(excessL>tol && excessR<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix,iy,iz,tol);
+        if(n>0) flux=excessL/(double)n;
+    }else if(excessR>tol && excessL<=tol){
+        int n=d_count_non_excess_neighbors_two_way(grid,ix,iy,iz+1,tol);
+        if(n>0) flux=-excessR/(double)n;
+    }
+
+    grid->f_Fz_(ix,iy,iz+1)=flux;
+}
+
+static __global__ void k_update_liquid_redistribution_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    double divF=
+        grid->f_Fx_(ix+1,iy,iz)-grid->f_Fx_(ix,iy,iz)
+       +grid->f_Fy_(ix,iy+1,iz)-grid->f_Fy_(ix,iy,iz)
+       +grid->f_Fz_(ix,iy,iz+1)-grid->f_Fz_(ix,iy,iz);
+
+    grid->alpha_new_(ix,iy,iz)=grid->alpha_(ix,iy,iz)-divF;
+}
+
+
+static __global__ void k_accum_liquid_redistribution_flux_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    grid->f_Fx_accum_(ix+1,iy,iz)+=grid->f_Fx_(ix+1,iy,iz);
+    grid->f_Fy_accum_(ix,iy+1,iz)+=grid->f_Fy_(ix,iy+1,iz);
+    grid->f_Fz_accum_(ix,iy,iz+1)+=grid->f_Fz_(ix,iy,iz+1);
+}
+
+static __global__ void k_finalize_alpha_from_liquid_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    const double q=grid->alpha_(ix,iy,iz);
+    const double eps=grid->void_fraction_(ix,iy,iz);
+
+
+    grid->alpha_(ix,iy,iz)=q/eps;
+}
+
+static __global__ void k_get_liquid_excess_two_way(
+    G_StaggeredGrid* grid,MyArray<double,3> tmp){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double q=grid->alpha_(ix,iy,iz);
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    tmp(ix,iy,iz)=fmax(q-eps,0.0);
+}
+
+static __global__ void k_get_liquid_to_tmp_two_way(G_StaggeredGrid* grid,MyArray<double,3> tmp){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    tmp(ix,iy,iz)=grid->alpha_(ix,iy,iz);
+}
+
+static __global__ void k_snapshot_liquid_two_way(G_StaggeredGrid* grid){
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    grid->alpha_new_(ix,iy,iz)=grid->alpha_(ix,iy,iz);
+}
+
+static __device__ __forceinline__ bool d_has_liquid_neighbor_snapshot_two_way(
+    G_StaggeredGrid* grid,int ix,int iy,int iz,double alpha_min){
+
+    const int dx[6]={-1,1,0,0,0,0};
+    const int dy[6]={0,0,-1,1,0,0};
+    const int dz[6]={0,0,0,0,-1,1};
+
+    for(int n=0;n<6;n++){
+        int jx=ix+dx[n];
+        int jy=iy+dy[n];
+        int jz=iz+dz[n];
+
+        if(grid->celltype_(jx,jy,jz)!=C_INTERIOR) continue;
+
+        double q=grid->alpha_new_(jx,jy,jz);
+        double eps=grid->void_fraction_(jx,jy,jz);
+
+        if(eps<=0.0) continue;
+
+        if(q/eps>alpha_min) return true;
+    }
+
+    return false;
+}
+
+static __global__ void k_get_interface_capacity_two_way(
+    G_StaggeredGrid* grid,MyArray<double,3> tmp,double alpha_min,double alpha_max){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double q=grid->alpha_new_(ix,iy,iz);
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    if(eps<=0.0){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double alpha=q/eps;
+
+    if(alpha>alpha_min && alpha<alpha_max){
+        tmp(ix,iy,iz)=fmax(eps-q,0.0);
+    }else{
+        tmp(ix,iy,iz)=0.0;
+    }
+}
+
+static __global__ void k_get_adjacent_gas_capacity_two_way(
+    G_StaggeredGrid* grid,MyArray<double,3> tmp,double alpha_min){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double q=grid->alpha_new_(ix,iy,iz);
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    if(eps<=0.0){
+        tmp(ix,iy,iz)=0.0;
+        return;
+    }
+
+    double alpha=q/eps;
+
+    if(alpha<=alpha_min &&
+       d_has_liquid_neighbor_snapshot_two_way(grid,ix,iy,iz,alpha_min)){
+        tmp(ix,iy,iz)=fmax(eps-q,0.0);
+    }else{
+        tmp(ix,iy,iz)=0.0;
+    }
+}
+
+static __global__ void k_priority_interface_cleanup_two_way(
+    G_StaggeredGrid* grid,double lambda_interface,double lambda_gas,
+    double alpha_min,double alpha_max){
+
+    int ix=blockIdx.x*blockDim.x+threadIdx.x+1;
+    int iy=blockIdx.y*blockDim.y+threadIdx.y+1;
+    int iz=blockIdx.z*blockDim.z+threadIdx.z+1;
+
+    if(ix>grid->Nx_ || iy>grid->Ny_ || iz>grid->Nz_) return;
+    if(grid->celltype_(ix,iy,iz)!=C_INTERIOR) return;
+
+    double q=grid->alpha_new_(ix,iy,iz);
+    double eps=grid->void_fraction_(ix,iy,iz);
+
+    if(eps<=0.0) return;
+
+    /* Remove all remaining excess from donor cells. */
+    if(q>eps){
+        grid->alpha_(ix,iy,iz)=eps;
+        return;
+    }
+
+    double alpha=q/eps;
+    double capacity=eps-q;
+
+    /* First priority: existing interface cells. */
+    if(alpha>alpha_min && alpha<alpha_max){
+        grid->alpha_(ix,iy,iz)=q+lambda_interface*capacity;
+        return;
+    }
+
+    /* Second priority: gas cells adjacent to liquid. */
+    if(alpha<=alpha_min &&
+       d_has_liquid_neighbor_snapshot_two_way(grid,ix,iy,iz,alpha_min)){
+        grid->alpha_(ix,iy,iz)=q+lambda_gas*capacity;
+        return;
+    }
+
+    grid->alpha_(ix,iy,iz)=q;
+}
+
+void G_SMACSolver::finalize_alpha_two_way(){
+    constexpr int max_iter=16;
+    constexpr double tol=1e-12;
+    constexpr double alpha_interface_min=0.01;
+    constexpr double alpha_interface_max=0.99;
+
+    k_prepare_liquid_redistribution_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    /* Check liquid volume before redistribution. */
+    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+    k_get_liquid_to_tmp_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,grid_.array_tmp_);
+
+    cub::DeviceReduce::Sum(
+        cub_temp_storage_,
+        cub_temp_storage_bytes_,
+        grid_.array_tmp_.data_,
+        d_r2_,
+        grid_.array_tmp_.size_);
+
+    double total_before=0.0;
+    cudaMemcpy(&total_before,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+
+    double total_excess=0.0;
+    int iter=0;
+
+    /* Local conservative redistribution. */
+    for(iter=0;iter<max_iter;iter++){
+        cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+        k_get_liquid_excess_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,grid_.array_tmp_);
+
+        cub::DeviceReduce::Sum(
+            cub_temp_storage_,
+            cub_temp_storage_bytes_,
+            grid_.array_tmp_.data_,
+            d_r2_,
+            grid_.array_tmp_.size_);
+
+        cudaMemcpy(&total_excess,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+
+        if(total_excess<=tol) break;
+
+        clear_alpha_flux();
+
+        k_make_liquid_redistribution_flux_x_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,tol);
+        k_make_liquid_redistribution_flux_y_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,tol);
+        k_make_liquid_redistribution_flux_z_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,tol);
+
+        k_accum_liquid_redistribution_flux_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+        k_update_liquid_redistribution_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+        std::swap(grid_.alpha_.data_,grid_.alpha_new_.data_);
+        k_swap_alpha<<<1,1>>>(grid_.d_ptr_);
+    }
+
+    /* Recompute excess after the last local iteration. */
+    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+    k_get_liquid_excess_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,grid_.array_tmp_);
+
+    cub::DeviceReduce::Sum(
+        cub_temp_storage_,
+        cub_temp_storage_bytes_,
+        grid_.array_tmp_.data_,
+        d_r2_,
+        grid_.array_tmp_.size_);
+
+    cudaMemcpy(&total_excess,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+
+    double total_capacity=0.0;
+    double lambda=0.0;
+
+    double total_interface_capacity=0.0;
+    double total_gas_capacity=0.0;
+    double lambda_interface=0.0;
+    double lambda_gas=0.0;
+    bool cleanup=false;
+
+    /* Direct cleanup of the remaining excess.
+     * Priority:
+     *   1. existing interface cells
+     *   2. gas cells adjacent to liquid
+     */
+    if(total_excess>tol){
+
+        /* Freeze the state used for receiver classification. */
+        k_snapshot_liquid_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+        /* First priority: existing interface cells. */
+        cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+
+        k_get_interface_capacity_two_way<<<grid_dim_,block_dim_>>>(
+                grid_.d_ptr_,
+                grid_.array_tmp_,
+                alpha_interface_min,
+                alpha_interface_max);
+
+        cub::DeviceReduce::Sum(
+                cub_temp_storage_,
+                cub_temp_storage_bytes_,
+                grid_.array_tmp_.data_,
+                d_r2_,
+                grid_.array_tmp_.size_);
+
+        cudaMemcpy(
+                &total_interface_capacity,
+                d_r2_,
+                sizeof(double),
+                cudaMemcpyDeviceToHost);
+
+        if(total_interface_capacity>=total_excess && total_interface_capacity>0.0){
+
+            /* Existing interface cells can absorb all excess. */
+            lambda_interface=total_excess/total_interface_capacity;
+            lambda_gas=0.0;
+            cleanup=true;
+
+        }else{
+
+            /* Existing interface cells are filled first. */
+            double remaining=total_excess-total_interface_capacity;
+
+            lambda_interface=total_interface_capacity>0.0 ? 1.0 : 0.0;
+
+            /* Second priority: gas cells adjacent to liquid. */
+            cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+
+            k_get_adjacent_gas_capacity_two_way<<<grid_dim_,block_dim_>>>(
+                    grid_.d_ptr_,
+                    grid_.array_tmp_,
+                    alpha_interface_min);
+
+            cub::DeviceReduce::Sum(
+                    cub_temp_storage_,
+                    cub_temp_storage_bytes_,
+                    grid_.array_tmp_.data_,
+                    d_r2_,
+                    grid_.array_tmp_.size_);
+
+            cudaMemcpy(
+                    &total_gas_capacity,
+                    d_r2_,
+                    sizeof(double),
+                    cudaMemcpyDeviceToHost);
+
+            if(total_gas_capacity>=remaining && total_gas_capacity>0.0){
+                lambda_gas=remaining/total_gas_capacity;
+                cleanup=true;
+            }else{
+                printf(
+                        "WARNING: insufficient cleanup capacity: "
+                        "excess=%.7e interface=%.7e gas=%.7e\n",
+                        total_excess,
+                        total_interface_capacity,
+                        total_gas_capacity);
+            }
+        }
+
+        if(cleanup){
+            k_priority_interface_cleanup_two_way<<<grid_dim_,block_dim_>>>(
+                    grid_.d_ptr_,
+                    lambda_interface,
+                    lambda_gas,
+                    alpha_interface_min,
+                    alpha_interface_max);
+        }
+    }
+   
+    /* Check remaining excess after interface cleanup. */
+    double final_excess=0.0;
+
+    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+    k_get_liquid_excess_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,grid_.array_tmp_);
+
+    cub::DeviceReduce::Sum(
+            cub_temp_storage_,
+            cub_temp_storage_bytes_,
+            grid_.array_tmp_.data_,
+            d_r2_,
+            grid_.array_tmp_.size_);
+
+    cudaMemcpy(&final_excess,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+
+    /* Convert q back to alpha. */
+    k_finalize_alpha_from_liquid_two_way<<<grid_dim_,block_dim_>>>(grid_.d_ptr_);
+
+    k_clip_alpha<<<grid_dim_, block_dim_>>>(grid_.d_ptr_);
+
+    /* Check total liquid volume after redistribution. */
+    cudaMemset(grid_.array_tmp_.data_,0,sizeof(double)*grid_.array_tmp_.size_);
+    k_get_eps_alpha_to_tmp_<<<grid_dim_,block_dim_>>>(grid_.d_ptr_,grid_.array_tmp_);
+
+    cub::DeviceReduce::Sum(
+            cub_temp_storage_,
+            cub_temp_storage_bytes_,
+            grid_.array_tmp_.data_,
+            d_r2_,
+            grid_.array_tmp_.size_);
+
+    double total_after=0.0;
+    cudaMemcpy(&total_after,d_r2_,sizeof(double),cudaMemcpyDeviceToHost);
+
+    printf(
+            "liquid redistribution: iter=%d local_excess=%.7e final_excess=%.7e\n "
+            "capacity=%.7e lambda=%.7e before=%.7e after=%.7e diff=%.3e\n\n",
+            iter,total_excess,final_excess,total_capacity,lambda,
+            total_before,total_after,total_after-total_before);
 }
